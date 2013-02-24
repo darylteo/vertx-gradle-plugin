@@ -1,0 +1,17 @@
+project.ext.info = { String message ->
+  if (message){
+    println "[$project.name] $message"
+  }
+}
+
+project.ext.warn = { String message ->
+  if (message){
+    logger.warn "[$project.name] Warning: $message"
+  }
+}
+
+project.ext.error = { String message ->
+  if (message){
+    logger.error "[$project.name] ERROR: $message"
+  }
+}
