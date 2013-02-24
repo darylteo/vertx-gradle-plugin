@@ -176,7 +176,7 @@ subprojects {
       }
     }
 
-    task runMod(dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx') << {
+    task("run-$project.name", dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
       def mutex = new Object()
 
       ModuleClassLoader.reverseLoadOrder = false
@@ -255,24 +255,6 @@ buildscript {
   dependencies {
     classpath "io.vertx:vertx-core:$vertxVersion"
     classpath "io.vertx:vertx-platform:$vertxVersion"
-  }
-}
-
-
-tasks.addRule("Pattern: run-<moduleName>"){ String taskName ->
-  if(taskName.startsWith('run-')){
-    task(taskName) << {
-      def moduleName = taskName.replaceFirst('run-','')
-
-      // Check to see if this is a module
-      Project project = project(":$moduleName")
-      if(!isModuleProject(project)){
-        project.info("This is not a runnable module, and cannot be run")
-        return
-      }
-
-      project.tasks.runMod.execute()
-    }
   }
 }
 
