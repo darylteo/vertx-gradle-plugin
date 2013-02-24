@@ -3,6 +3,7 @@ import org.vertx.java.platform.PlatformLocator
 import org.vertx.java.platform.impl.ModuleClassLoader
 
 // This sets up the classpath for the script itself
+// This is required for the class imports above
 buildscript {
   repositories {
     mavenLocal()
@@ -16,11 +17,9 @@ buildscript {
   }
 }
 
-info "Applying Module Language Plugins"
-apply plugin: 'java'
-apply plugin: 'groovy'
-apply plugin: 'idea'
-apply plugin: 'eclipse'
+dependencies {
+  compile project(':module2')
+}
 
 info "Loading vertx.properties and vertx.gradle"
 loadProperties()
@@ -79,10 +78,13 @@ sourceSets {
 }
 
 info "Adding Tasks"
-task copyMod( type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory' ) {
+task copyMod(type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory' ) {
+  // Copy into module directory
   into "$rootDir/mods/$project.moduleName"
   from compileJava
   from 'src/main/resources'
+
+  // and then into module library directory
   into( 'lib' ) {
     from configurations.compile
   }
@@ -159,7 +161,7 @@ test {
 }
 
 def loadBuildfile() {
-  apply from: "$projectDir/$VERTX_GRADLE_FILENAME"
+  project.apply from: "$projectDir/$VERTX_GRADLE_FILENAME"
 }
 
 def loadProperties() {

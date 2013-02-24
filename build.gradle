@@ -63,6 +63,12 @@ allprojects {
 info "Beginning Configuration\n"
 
 subprojects {
+  info "Applying Module Language Plugins"
+  project.apply plugin: 'java'
+  project.apply plugin: 'groovy'
+  project.apply plugin: 'idea'
+  project.apply plugin: 'eclipse'
+
   // Ignore this project if it is not one of our vertx modules
   if(!isModuleProject(project)){
     info "Not a vert.x module. Ignoring.\n"
