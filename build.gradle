@@ -66,6 +66,18 @@ allprojects {
       println "[$project.name] $message"
     }
   }
+
+  ext.warn = { String message ->
+    if (message){
+      println "[$project.name] Warning: $message"
+    }
+  }
+
+  ext.error = { String message ->
+    if (message){
+      println "[$project.name] ERROR: $message"
+    }
+  }
 }
 
 info "Beginning Configuration\n"
@@ -83,22 +95,29 @@ subprojects {
     loadProperties(project)
 
     // And then apply the project vertx.gradle script
-    apply from: "$project.projectDir/$VERTX_GRADLE_FILENAME"
+    apply from: "$projectDir/$VERTX_GRADLE_FILENAME"
+
+    project.ext.moduleName = "$repotype:$groupname:$artifact:$ext.version"
 
     // maven build script is applied after vertx.gradle as it needs to
     // find the configurePom method that is defined in vertx.gradle
     // if configurePom is not defined, the script will not be evaluated
-    if(project.hasProperty('configurePom')){
-      info "Maven configuration is available"
+    if(project.repotype == 'maven'){
+      info "Configuring Maven"
+      if(!project.hasProperty('configurePom')){
+        warn "configurePom has not been implemented in vertx.gradle. You will not be able to properly upload your artifact."
+        project.ext.configurePom = { pom -> return }
+      }
+
       apply from: "$rootDir/gradle/maven.gradle"
     }
+
+    info "Module Name: $moduleName"
 
     defaultTasks = ['assemble']
 
     sourceCompatibility = '1.7'
     targetCompatibility = '1.7'
-
-    project.ext.moduleName = "maven:$group:$artifact:$version"
 
     if (produceJar == 'false') {
       info "Jars have been disabled for this module."
@@ -132,7 +151,7 @@ subprojects {
 
     info "Adding Tasks"
     task copyMod( type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory' ) {
-      into "mods/$project.moduleName"
+      into "$rootDir/mods/$project.moduleName"
       from compileJava
       from 'src/main/resources'
       into( 'lib' ) {
@@ -154,6 +173,34 @@ subprojects {
         System.out.println("Pulling in dependencies for module " + moduleName + " Please wait")
         pm.pullInDependencies(moduleName)
         System.out.println("Dependencies pulled into mods directory of module")
+      }
+    }
+
+    task runMod(dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx') << {
+      def mutex = new Object()
+
+      ModuleClassLoader.reverseLoadOrder = false
+      def pm = PlatformLocator.factory.createPlatformManager()
+      pm.deployModule(moduleName, null, 1, new Handler<String>() {
+        public void handle(String deploymentID) {
+          if (!deploymentID){
+            error 'Verticle failed to deploy.'
+
+            // Wake the main thread
+            synchronized(mutex){
+              mutex.notify()
+            }
+            return
+          }
+
+          info "Verticle deployed! Deployment ID is: $deploymentID"
+          info 'CTRL-C to stop server'
+        }
+      });
+
+      // Waiting thread so that verticle will continue running
+      synchronized (mutex){
+        mutex.wait()
       }
     }
 
@@ -212,26 +259,22 @@ buildscript {
 }
 
 
-tasks.addRule("Pattern: run<moduleName>"){ String taskName ->
-  if(taskName.startsWith('run')){
+tasks.addRule("Pattern: run-<moduleName>"){ String taskName ->
+  if(taskName.startsWith('run-')){
     task(taskName) << {
-      def moduleName = taskName.replaceFirst('run','')
+      def moduleName = taskName.replaceFirst('run-','')
+
+      // Check to see if this is a module
+      Project project = project(":$moduleName")
+      if(!isModuleProject(project)){
+        project.info("This is not a runnable module, and cannot be run")
+        return
+      }
+
+      project.tasks.runMod.execute()
     }
   }
 }
-
-/*
-task runMod(dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx') << {
-  ModuleClassLoader.reverseLoadOrder = false
-  def pm = PlatformLocator.factory.createPlatformManager()
-  pm.deployModule(moduleName, null, 1, new Handler<String>() {
-    public void handle(String deploymentID) {
-      System.out.println("CTRL-C to stop server")
-    }
-  });
-  Thread.sleep(Long.MAX_VALUE);
-}
-*/
 
 // Helper Functions
 def isModuleProject(Project project){
