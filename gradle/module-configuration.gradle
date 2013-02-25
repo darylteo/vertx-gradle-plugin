@@ -1,163 +1,14 @@
-import org.vertx.java.core.Handler
-import org.vertx.java.platform.PlatformLocator
-import org.vertx.java.platform.impl.ModuleClassLoader
-
-// This sets up the classpath for the script itself
-// This is required for the class imports above
-buildscript {
-  repositories {
-    mavenLocal()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-    mavenCentral()
-  }
-
-  dependencies {
-    classpath "io.vertx:vertx-core:$vertxVersion"
-    classpath "io.vertx:vertx-platform:$vertxVersion"
-  }
-}
-
-dependencies {
-  compile project(':module2')
-}
-
 info "Loading vertx.properties and vertx.gradle"
+
 loadProperties()
 loadBuildfile()
 
-project.ext.moduleName = "$repotype:$groupname:$artifact:$version"
+info "Module Name: $verticle.moduleName"
 
-// maven build script is applied after vertx.gradle as it needs to
-// find the configurePom method that is defined in vertx.gradle
-// if configurePom is not defined, the script will not be evaluated
-if(repotype == 'maven'){
-  info "Configuring Maven"
-  if(!project.hasProperty('configurePom')){
-    warn "configurePom has not been implemented in vertx.gradle. You will not be able to properly upload your artifact."
-    project.ext.configurePom = { def pom -> return }
-  }
-
-  project.apply from: "$rootDir/gradle/maven.gradle"
-}
-
-info "Module Name: $moduleName"
-
-defaultTasks = ['assemble']
-
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
-
-if (produceJar == 'false') {
-  info "Jars have been disabled for this module."
-  jar.enabled = false
-  assert configurations.archives.artifacts.removeAll { it.file == jar.archivePath }
-}
-
-configurations {
-  provided
-  testCompile.extendsFrom provided
-}
-
-repositories {
-  mavenLocal()
-  maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-  mavenCentral()
-}
-
-dependencies {
-  provided "io.vertx:vertx-core:$vertxVersion"
-  provided "io.vertx:vertx-platform:$vertxVersion"
-  testCompile "junit:junit:$junitVersion"
-  testCompile "io.vertx:testtools:$toolsVersion"
-}
-
-sourceSets {
-  main {
-    compileClasspath = compileClasspath + configurations.provided
-  }
-}
-
-info "Adding Tasks"
-task copyMod(type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory' ) {
-  // Copy into module directory
-  into "$rootDir/mods/$project.moduleName"
-  from compileJava
-  from 'src/main/resources'
-
-  // and then into module library directory
-  into( 'lib' ) {
-    from configurations.compile
-  }
-}
-
-task modZip( type: Zip, dependsOn: 'pullInDeps', description: 'Package the module .zip file') {
-  group = 'vert.x'
-  description = "Assembles a vert.x module"
-  destinationDir = project.file('build/libs')
-  archiveName = "${artifact}-${version}" + ".zip"
-  from copyMod
-}
-
-task pullInDeps(dependsOn: copyMod, description: 'Pull in all the module dependencies for the module into the nested mods directory') << {
-  if (pullInDeps == 'true') {
-    def pm = PlatformLocator.factory.createPlatformManager()
-    System.out.println("Pulling in dependencies for module " + moduleName + " Please wait")
-    pm.pullInDependencies(moduleName)
-    System.out.println("Dependencies pulled into mods directory of module")
-  }
-}
-
-task("run-$name", dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
-  def mutex = new Object()
-
-  ModuleClassLoader.reverseLoadOrder = false
-  def pm = PlatformLocator.factory.createPlatformManager()
-  pm.deployModule(moduleName, null, 1, new Handler<String>() {
-    public void handle(String deploymentID) {
-      if (!deploymentID){
-        error 'Verticle failed to deploy.'
-
-        // Wake the main thread
-        synchronized(mutex){
-          mutex.notify()
-        }
-        return
-      }
-
-      info "Verticle deployed! Deployment ID is: $deploymentID"
-      info 'CTRL-C to stop server'
-    }
-  });
-
-  // Waiting thread so that verticle will continue running
-  synchronized (mutex){
-    mutex.wait()
-  }
-}
-
-info "Performing common configuration"
-artifacts {
-  archives modZip
-}
-
-task cleanModsDir(type: Delete) {
-  delete 'mods'
-}
-
-clean {
-  dependsOn cleanModsDir
-}
-
-test {
-  dependsOn copyMod
-
-  // Make sure tests are always run!
-  outputs.upToDateWhen { false }
-
-  // Show output
-  testLogging.showStandardStreams = true
-
-  testLogging { exceptionFormat "full" }
+if (verticle.runnable) {
+  project.apply from: "$rootDir/gradle/runnable-configuration.gradle"
+} else {
+  project.apply from: "$rootDir/gradle/nonrunnable-configuration.gradle"
 }
 
 def loadBuildfile() {
@@ -172,8 +23,24 @@ def loadProperties() {
     return
   }
 
+  extensions.create('verticle', ModuleProps)
+
   config.load(new FileInputStream(propFile))
   for (Map.Entry property in config) {
-    project.ext[property.key] = property.value;
+    verticle[property.key] = property.value;
+  }
+}
+
+class ModuleProps {
+  def repotype="maven"
+  def groupname="my-company"
+  def artifact="my-module"
+  def version="1.0.0-SNAPSHOT"
+
+  def testtimeout=300
+  def runnable=true
+
+  def getModuleName() {
+    return "$repotype:$groupname:$artifact:$version"
   }
 }

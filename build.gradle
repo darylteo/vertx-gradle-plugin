@@ -70,12 +70,12 @@ subprojects {
   project.apply plugin: 'eclipse'
 
   // Ignore this project if it is not one of our vertx modules
-  if(!isModuleProject(project)){
-    info "Not a vert.x module. Ignoring.\n"
-  }else {
+  if(isModuleProject(project)){
     info "Is a vert.x module."
     project.apply from: "$rootDir/gradle/module-configuration.gradle"
     info("Configuration Complete\n")
+  } else {
+    info "Not a vert.x module. Ignoring.\n"
   }
 }
 
