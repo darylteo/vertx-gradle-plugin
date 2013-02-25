@@ -1,3 +1,4 @@
 {
-  "main": "Module1"
+  "main": "Module1",
+  "includes":"maven:com.mycompany:module4:1.0.0-SNAPSHOT"
 }
