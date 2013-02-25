@@ -1,0 +1,50 @@
+project.ext.loadBuildscript = { Map<String, ?> options ->
+  _loadScript(project, options.from)
+}
+
+project.ext.loadProps = { Map<String, ?> options ->
+  if(options.defaults){
+    _loadProperties(project, options.defaults)
+  }
+
+  _loadProperties(project, options.from)
+}
+
+project.ext.isModule = project.file(MODULE_SCRIPT_FILENAME).canRead()
+project.ext.isLibrary = project.file(LIBRARY_SCRIPT_FILENAME).canRead()
+
+def _loadScript(Project project, String filename) {
+  def file = project.file(VERTX_GRADLE_FILENAME)
+  _loadScript project, file
+}
+
+def _loadScript(Project project, File file){
+  if (file.canRead()){
+    project.apply from: file
+  }
+}
+
+def _loadProperties(Project project, String filename) {
+  def propFile = project.file(filename)
+
+  _loadProperties(project, propFile)
+}
+
+def _loadProperties(Project project, File file) {
+  if(!file.canRead()){
+    project.warn "$project.name does not have a properties file: $file.absolutePath"
+    return
+  }
+
+  def config = new Properties()
+  config.load(new FileInputStream(file))
+  for (entry in config) {
+    project.ext[entry.key] = entry.value
+  }
+}
+
+def _loadProperties(Project project, Map<String,?> defaults){
+  for (entry in defaults) {
+    project.ext[entry.key] = entry.value
+  }
+}

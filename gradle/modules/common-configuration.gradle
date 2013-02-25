@@ -1,46 +1,34 @@
 info "Loading vertx.properties and vertx.gradle"
 
-loadProperties()
-loadBuildfile()
+// Helpers provide loadProps and loadBuildScript
+project.apply from: rootProject.file('gradle/modules/helpers.gradle')
 
-info "Module Name: $vertxmod.moduleName"
+project.loadProps from: project.file(MODULE_PROPERTIES_FILENAME), defaults: [
+  repotype: 'local',
+  artifact: project.name
+]
+project.loadBuildscript from: project.file(MODULE_SCRIPT_FILENAME)
 
-if (vertxmod.runnable) {
-  project.apply from: "$rootDir/gradle/modules/runnable-configuration.gradle"
-} else {
-  project.apply from: "$rootDir/gradle/modules/nonrunnable-configuration.gradle"
-}
+if (ext.isModule) {
+  // maven build script is applied after vertx.gradle as it needs to
+  // find the configurePom method that is defined in vertx.gradle
+  if(ext.repotype == 'maven'){
+    info "Configuring Maven"
+    project.ext.moduleName = "${ext.repotype}:${ext.groupname}:${ext.artifact}:${ext.version}"
 
-def loadBuildfile() {
-  project.apply from: "$projectDir/$VERTX_GRADLE_FILENAME"
-}
+    if(!project.hasProperty('configurePom')){
+      warn "configurePom has not been implemented in vertx.gradle. You will not be able to properly upload your artifact."
+      project.ext.configurePom = { def pom -> return }
+    }
 
-def loadProperties() {
-  def config = new Properties()
-  def propFile = new File("$projectDir/$VERTX_PROPERTIES_FILENAME")
-
-  if(!propFile.canRead()){
-    return
+    project.apply from: rootProject.file('gradle/maven.gradle')
   }
 
-  extensions.create('vertxmod', ModuleProps)
+  info "Module Name: $project.moduleName"
 
-  config.load(new FileInputStream(propFile))
-  for (Map.Entry property in config) {
-    vertxmod[property.key] = property.value;
-  }
-}
-
-class ModuleProps {
-  def repotype="maven"
-  def groupname="my-company"
-  def artifact="my-module"
-  def version="1.0.0-SNAPSHOT"
-
-  def testtimeout=300
-  def runnable=true
-
-  def getModuleName() {
-    return "$repotype:$groupname:$artifact:$version"
+  if (ext.runnable) {
+    project.apply from: rootProject.file('gradle/modules/runnable-configuration.gradle')
+  } else {
+    project.apply from: rootProject.file('gradle/modules/nonrunnable-configuration.gradle')
   }
 }

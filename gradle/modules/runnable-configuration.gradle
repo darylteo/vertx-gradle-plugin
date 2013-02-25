@@ -17,18 +17,6 @@ buildscript {
   }
 }
 
-// maven build script is applied after vertx.gradle as it needs to
-// find the configurePom method that is defined in vertx.gradle
-if(vertxmod.repotype == 'maven'){
-  info "Configuring Maven"
-  if(!project.hasProperty('configurePom')){
-    warn "configurePom has not been implemented in vertx.gradle. You will not be able to properly upload your artifact."
-    project.ext.configurePom = { def pom -> return }
-  }
-
-  project.apply from: "$rootDir/gradle/maven.gradle"
-}
-
 defaultTasks = ['assemble']
 
 sourceCompatibility = '1.7'
@@ -67,7 +55,7 @@ sourceSets {
 info "Adding Tasks"
 task copyMod(type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory' ) {
   // Copy into module directory
-  into "$rootDir/mods/$vertxmod.moduleName"
+  into "$rootDir/mods/$project.moduleName"
   from compileJava
   from 'src/main/resources'
 
@@ -81,25 +69,25 @@ task modZip( type: Zip, dependsOn: 'pullInDeps', description: 'Package the modul
   group = 'vert.x'
   description = "Assembles a vert.x module"
   destinationDir = project.file('build/libs')
-  archiveName = "${vertxmod.artifact}-${vertxmod.version}" + ".zip"
+  archiveName = "${project.artifact}-${project.version}" + ".zip"
   from copyMod
 }
 
 task pullInDeps(dependsOn: copyMod, description: 'Pull in all the module dependencies for the module into the nested mods directory') << {
   if (pullInDeps == 'true') {
     def pm = PlatformLocator.factory.createPlatformManager()
-    System.out.println("Pulling in dependencies for module $vertxmod.moduleName Please wait")
-    pm.pullInDependencies(vertxmod.moduleName)
+    System.out.println("Pulling in dependencies for module $project.moduleName Please wait")
+    pm.pullInDependencies(project.moduleName)
     System.out.println("Dependencies pulled into mods directory of module")
   }
 }
 
-task("run-$vertxmod.artifact", dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
+task("run-$project.artifact", dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
   def mutex = new Object()
 
   ModuleClassLoader.reverseLoadOrder = false
   def pm = PlatformLocator.factory.createPlatformManager()
-  pm.deployModule(vertxmod.moduleName, null, 1, new Handler<String>() {
+  pm.deployModule(project.moduleName, null, 1, new Handler<String>() {
     public void handle(String deploymentID) {
       if (!deploymentID){
         error 'Verticle failed to deploy.'
