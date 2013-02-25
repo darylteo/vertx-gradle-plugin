@@ -16,7 +16,7 @@ dependencies {
 }
 
 test {
-  /* Configure which tests are included
+  /* Configure which tests are includedgit
   include 'org/foo/**'
   exclude 'org/boo/**'
   */
