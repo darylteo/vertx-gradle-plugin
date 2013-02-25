@@ -57,7 +57,7 @@
 
 // Convenient and informative logging
 allprojects {
-  project.apply from: "$rootDir/gradle/project-logging.gradle"
+  project.apply from: rootProject.file('gradle/util/project-logging.gradle')
 }
 
 info "Beginning Configuration\n"
@@ -70,12 +70,12 @@ subprojects {
   project.apply plugin: 'eclipse'
 
   info('Begin Configuration')
-  project.apply from: "$rootDir/gradle/modules/common-configuration.gradle"
+  project.apply from: rootProject.file('gradle/modules/module-configuration.gradle')
   info("Configuration Complete\n")
 }
 
-// Helper Functions
-def isModuleProject(Project project){
-  def result = new File("$project.projectDir/$VERTX_GRADLE_FILENAME").canRead()
-  return result
+// Root Configuration
+task clean << {
+  delete rootProject.file('mods')
 }
+
