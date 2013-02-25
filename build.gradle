@@ -72,7 +72,7 @@ subprojects {
   // Ignore this project if it is not one of our vertx modules
   if(isModuleProject(project)){
     info "Is a vert.x module."
-    project.apply from: "$rootDir/gradle/module-configuration.gradle"
+    project.apply from: "$rootDir/gradle/modules/common-configuration.gradle"
     info("Configuration Complete\n")
   } else {
     info "Not a vert.x module. Ignoring.\n"

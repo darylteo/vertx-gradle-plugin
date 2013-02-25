@@ -3,12 +3,12 @@ info "Loading vertx.properties and vertx.gradle"
 loadProperties()
 loadBuildfile()
 
-info "Module Name: $verticle.moduleName"
+info "Module Name: $vertxmod.moduleName"
 
-if (verticle.runnable) {
-  project.apply from: "$rootDir/gradle/runnable-configuration.gradle"
+if (vertxmod.runnable) {
+  project.apply from: "$rootDir/gradle/modules/runnable-configuration.gradle"
 } else {
-  project.apply from: "$rootDir/gradle/nonrunnable-configuration.gradle"
+  project.apply from: "$rootDir/gradle/modules/nonrunnable-configuration.gradle"
 }
 
 def loadBuildfile() {
@@ -23,11 +23,11 @@ def loadProperties() {
     return
   }
 
-  extensions.create('verticle', ModuleProps)
+  extensions.create('vertxmod', ModuleProps)
 
   config.load(new FileInputStream(propFile))
   for (Map.Entry property in config) {
-    verticle[property.key] = property.value;
+    vertxmod[property.key] = property.value;
   }
 }
 
