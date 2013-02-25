@@ -17,7 +17,7 @@ buildscript {
   }
 }
 
-task("run-$project.artifact", dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
+task("run-$project.modulename", dependsOn: copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
   def mutex = new Object()
 
   ModuleClassLoader.reverseLoadOrder = false

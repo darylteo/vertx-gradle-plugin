@@ -35,10 +35,6 @@ task copyMod(type:Copy, dependsOn: 'classes', description: 'Assemble the module 
   from compileJava
   from 'src/main/resources'
 
-  println ""
-  println project.configurations.compile
-  println ""
-
   // and then into module library directory
   into( 'lib' ) {
     from configurations.compile.copy {
@@ -51,7 +47,7 @@ task modZip(type: Zip, dependsOn: 'pullInDeps', description: 'Package the module
   group = 'vert.x'
   description = "Assembles a vert.x module"
   destinationDir = project.file('build/libs')
-  archiveName = "${project.artifact}-${project.ext.version}" + ".zip"
+  archiveName = "${project.modulename}-${project.ext.version}" + ".zip"
   from copyMod
 }
 

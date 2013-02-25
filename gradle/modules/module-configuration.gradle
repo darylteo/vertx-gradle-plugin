@@ -3,18 +3,18 @@ project.apply from: rootProject.file('gradle/modules/helpers.gradle')
 
 project.loadProps from: project.file(MODULE_PROPERTIES_FILENAME), defaults: [
   repotype: 'local',
-  artifact: project.name
+  modulename: project.name
 ]
 project.loadBuildscript from: project.file(MODULE_SCRIPT_FILENAME)
 
-if (ext.isModule) {
+if (project.isModule) {
   info ("Configuring Module")
 
   // maven build script is applied after vertx.gradle as it needs to
   // find the configurePom method that is defined in vertx.gradle
-  if(ext.repotype == 'maven'){
+  if(project.repotype == 'maven'){
     info "Configuring Maven"
-    project.ext.moduleName = "${ext.repotype}:${ext.groupname}:${ext.artifact}:${ext.version}"
+    project.ext.moduleName = "${project.repotype}:${project.groupname}:${project.modulename}:${project.ext.version}"
 
     if(!project.hasProperty('configurePom')){
       warn "configurePom has not been implemented in vertx.gradle. You will not be able to properly upload your artifact."
@@ -28,7 +28,7 @@ if (ext.isModule) {
 
   // Apply the configuration files
   project.apply from: rootProject.file('gradle/modules/common-configuration.gradle')
-  if (ext.runnable) {
+  if (project.runnable == true) {
     project.apply from: rootProject.file('gradle/modules/runnable-configuration.gradle')
   }
 
