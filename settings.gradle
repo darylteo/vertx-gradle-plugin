@@ -1,1 +1,17 @@
-include 'nonverticle', 'verticle_runnable', 'verticle_runnable_with_lib'
+def root = rootProject.projectDir
+
+def list = root.listFiles()
+
+def ignore = [
+  '.git',
+  '.gradle'
+]
+
+for (f in list) {
+  if (f.isDirectory() && !f.name.startsWith('.')){
+    if (new File(f, 'vertx.properties').canRead()) {
+      println "Including Project: ${f.name}"
+      include f.name
+    }
+  }
+}
