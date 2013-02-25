@@ -37,14 +37,16 @@ modZip - creates the module zip into build/libs
 
 clean - cleans everything up
 
-test - runs the tests. An nice html test report is created in build/reports/tests (index.html)
+test - runs the tests. An nice html test report is created in
+      build/reports/tests (index.html)
 
 run-<modulename> - runs the specified module. This is similar to executing
       vertx runmod from the command line except that it does not use the
       version of Vert.x installed and on the PATH to run it. Instead it uses
       the version of Vert.x that the module was compiled and tested against.
 
-pullInDeps - pulls in all dependencies of the module into a nested module directory
+pullInDeps - pulls in all dependencies of the module into a nested module
+      directory
 
 uploadArchives - upload the module zip file (and jar if one has been created)
       to Nexus. You will need to configure sonatypeUsername and
