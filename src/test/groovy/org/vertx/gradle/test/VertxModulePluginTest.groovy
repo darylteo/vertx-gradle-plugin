@@ -9,7 +9,7 @@ import org.vertx.gradle.*
 class VertxModulePluginTest {
   @Test
   public void testModulePluginApplied() {
-    File testDir = new File('src/test/resources/runnable')
+    File testDir = new File('src/test/resources/rootproject/runnable')
     Project project = ProjectBuilder.builder().withProjectDir(testDir).build()
     project.apply plugin: VertxModulePlugin
 
@@ -21,7 +21,7 @@ class VertxModulePluginTest {
 
   @Test
   public void testModulePluginRunnable() {
-    File testDir = new File('src/test/resources/runnable')
+    File testDir = new File('src/test/resources/rootproject/runnable')
     Project project = ProjectBuilder.builder().withProjectDir(testDir).build()
     project.apply plugin: VertxModulePlugin
 
@@ -31,7 +31,7 @@ class VertxModulePluginTest {
 
   @Test
   public void testModulePluginNonRunnable() {
-    File testDir = new File('src/test/resources/nonrunnable')
+    File testDir = new File('src/test/resources/rootproject/nonrunnable')
     Project project = ProjectBuilder.builder().withProjectDir(testDir).build()
     project.apply plugin: VertxModulePlugin
 

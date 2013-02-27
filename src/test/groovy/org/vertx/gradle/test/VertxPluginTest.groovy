@@ -10,7 +10,8 @@ class VertxPluginTest {
 
   @Test
   public void testVertxPluginApplied() {
-    Project project = ProjectBuilder.builder().build()
+    File testDir = new File('src/test/resources/rootproject')
+    Project project = ProjectBuilder.builder().withProjectDir(testDir).build()
     project.apply plugin: VertxPlugin
 
     assertTrue('VertxPlugin not applied', project.vertx)
