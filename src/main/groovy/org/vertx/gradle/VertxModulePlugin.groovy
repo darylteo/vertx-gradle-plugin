@@ -20,4 +20,8 @@ class VertxModulePlugin implements Plugin<Project> {
 
 class VertxModuleProperties {
   String main
+
+  boolean getRunnable() {
+    return this.main != null
+  }
 }
