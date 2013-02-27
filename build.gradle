@@ -1,7 +1,17 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
 
+repositories {
+  mavenCentral()
+}
+
 dependencies {
   compile gradleApi()
   groovy localGroovy()
+
+  testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+test {
+  testLogging.showStandardStreams = true
 }
