@@ -3,6 +3,7 @@ apply plugin: 'maven'
 
 repositories {
   mavenCentral()
+  mavenLocal()
 }
 
 dependencies {
