@@ -13,6 +13,11 @@ class VertxModulePlugin implements Plugin<Project> {
     def props = new String(Files.readAllBytes(project.file('src/main/resources/mod.json').toPath()))
     def modjson = new JsonSlurper().parseText(props)
 
-    println modjson.main
+    project.extensions.create('props', VertxModuleProperties)
+    project.props.main = modjson.main
   }
+}
+
+class VertxModuleProperties {
+  String main
 }
