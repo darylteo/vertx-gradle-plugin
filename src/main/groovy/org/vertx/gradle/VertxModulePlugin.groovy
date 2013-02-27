@@ -10,12 +10,20 @@ class VertxModulePlugin implements Plugin<Project> {
   void apply(Project project) {
     project.ext.vertx = true
 
-    def props = new String(Files.readAllBytes(project.file('src/main/resources/mod.json').toPath()))
-    def modjson = new JsonSlurper().parseText(props)
+    project.file('src/main/resources/mod.json').withReader { def reader ->
+      def modjson = new JsonSlurper().parse(reader)
 
-    project.extensions.create('props', VertxModuleProperties)
-    project.props.main = modjson.main
+      project.extensions.create('props', VertxModuleProperties)
+      project.props.main = modjson.main
+    }
   }
+
+  void setupTasks(Project project){
+    project.task("run-${project.name}") << {
+      println project.name
+    }
+  }
+
 }
 
 class VertxModuleProperties {
