@@ -20,3 +20,9 @@ dependencies {
 test {
   testLogging.showStandardStreams = true
 }
+
+install {
+  repositories.mavenInstaller {
+    pom.artifactId = artifact
+  }
+}
