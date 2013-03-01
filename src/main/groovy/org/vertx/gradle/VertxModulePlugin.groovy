@@ -160,7 +160,7 @@ class VertxModuleProperties {
 
   String getModuleName() {
     if (repotype != 'local') {
-      return "$repotype:groupname:artifact:version"
+      return "$repotype:$groupname:$artifact:$version"
     }else {
       return "$groupname-$artifact-$version"
     }
