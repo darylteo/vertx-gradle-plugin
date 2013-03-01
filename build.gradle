@@ -3,12 +3,16 @@ apply plugin: 'maven'
 
 repositories {
   mavenCentral()
+  maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
   mavenLocal()
 }
 
 dependencies {
   compile gradleApi()
   groovy localGroovy()
+
+  compile "io.vertx:vertx-core:$vertxVersion"
+  compile "io.vertx:vertx-platform:$vertxVersion"
 
   testCompile group: 'junit', name: 'junit', version: '4.+'
 }

@@ -12,8 +12,22 @@ class VertxPluginTest {
   public void testVertxPluginApplied() {
     File testDir = new File('src/test/resources/rootproject')
     Project project = ProjectBuilder.builder().withProjectDir(testDir).build()
-    project.apply plugin: VertxPlugin
 
+    loadProperties(project)
+    assertNotNull('Gradle Properties not loaded', project.vertxVersion)
+
+    project.apply plugin: VertxPlugin
     assertTrue('VertxPlugin not applied', project.vertx)
+  }
+
+  def loadProperties(Project project){
+    project.file('gradle.properties').withReader { def reader ->
+      def props = new Properties()
+      props.load(reader)
+
+      props.each { k,v ->
+        project.ext[k] = v
+      }
+    }
   }
 }
