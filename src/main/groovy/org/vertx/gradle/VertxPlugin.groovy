@@ -6,7 +6,7 @@ class VertxPlugin implements Plugin<Project> {
   void apply(Project project) {
     project.ext.vertx = true
 
-    project.allprojects { def child ->
+    project.subprojects { def child ->
       setupDependencies(child)
     }
   }
@@ -48,5 +48,7 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
     }
+
+    project.apply plugin: VertxModulePlugin
   }
 }

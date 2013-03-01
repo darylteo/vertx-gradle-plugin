@@ -40,7 +40,7 @@ class VertxModulePlugin implements Plugin<Project> {
       def moduleName = project.props.moduleName
 
       into project.rootProject.file("mods/$moduleName")
-      // from project.compileJava
+      from project.compileJava
       from project.file('src/main/resources')
 
       // and then into module library directory
