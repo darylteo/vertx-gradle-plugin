@@ -46,6 +46,8 @@ class VertxPluginTest {
 
     assertEquals('VertxModulePlugin did not set props main properly', runnable.props.main, 'app.js')
     assertTrue('Module should be runnable', runnable.props.runnable)
+
+    assertNotNull('Run Task was not created', runnable.tasks.getByPath('run-module1'))
   }
 
   @Test
@@ -57,6 +59,12 @@ class VertxPluginTest {
 
     assertNull('VertxModulePlugin did not set props main properly', nonrunnable.props.main)
     assertFalse('Module should not be runnable', nonrunnable.props.runnable)
+
+    try {
+      assertNull(nonrunnable.tasks.getByPath('run-module2'))
+      fail('Run Task was created!')
+    } catch(UnknownTaskException e) {
+    }
   }
 
 

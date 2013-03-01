@@ -16,6 +16,11 @@ class VertxModulePlugin implements Plugin<Project> {
   void apply(Project project) {
     project.ext.vertx = true
 
+    loadConfigurations(project)
+    setupTasks(project)
+  }
+
+  private void loadConfigurations(Project project) {
     project.extensions.create('props', VertxModuleProperties)
 
     loadVertxProperties(project).each { k,v ->
@@ -28,8 +33,6 @@ class VertxModulePlugin implements Plugin<Project> {
 
     def config = loadModuleConfig(project)
     project.props.main = config.main
-
-    setupTasks(project)
   }
 
   private void setupTasks(Project project){
@@ -69,8 +72,8 @@ class VertxModulePlugin implements Plugin<Project> {
     }
 
     // run task
-    if (project.props.runnable) {
-      project.task("run-${project.props.moduleName}", dependsOn: project.tasks.copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
+    if (project.props.runnable == true) {
+      project.task("run-${project.props.artifact}", dependsOn: project.tasks.copyMod, description: 'Run the module using all the build dependencies (not using installed vertx)') << {
         def mutex = new Object()
 
         ModuleClassLoader.reverseLoadOrder = false
@@ -102,13 +105,23 @@ class VertxModulePlugin implements Plugin<Project> {
   }
 
   def loadModuleConfig(Project project){
-    project.file('src/main/resources/mod.json').withReader { def reader ->
+    def f = project.file('src/main/resources/mod.json')
+    if(!f.canRead()){
+      return [:]
+    }
+
+    f.withReader { def reader ->
       return new JsonSlurper().parse(reader)
     }
   }
 
   def loadModuleProperties(Project project){
-    project.file('module.properties').withReader { def reader ->
+    def f = project.file('module.properties')
+    if(!f.canRead()){
+      return [:]
+    }
+
+    f.withReader { def reader ->
       def props = new Properties()
       props.load(reader)
 
@@ -119,7 +132,7 @@ class VertxModulePlugin implements Plugin<Project> {
   def loadVertxProperties(Project project){
     def f = project.file('gradle.properties')
     if(!f.canRead()){
-      return
+      return [:]
     }
 
     props.withReader { def reader ->
@@ -144,8 +157,6 @@ class VertxModuleProperties {
 
   String main = null
   String testtimeout = '300'
-
-  boolean runnable = false
 
   String getModuleName() {
     if (repotype != 'local') {

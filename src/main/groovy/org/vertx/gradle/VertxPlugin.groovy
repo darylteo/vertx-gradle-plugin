@@ -7,6 +7,7 @@ class VertxPlugin implements Plugin<Project> {
     project.ext.vertx = true
 
     project.subprojects { def child ->
+      println "Configuring Module: $child"
       setupDependencies(child)
     }
   }
