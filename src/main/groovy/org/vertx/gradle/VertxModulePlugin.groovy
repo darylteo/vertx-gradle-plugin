@@ -33,6 +33,14 @@ class VertxModulePlugin implements Plugin<Project> {
 
     def config = loadModuleConfig(project)
     project.props.main = config.main
+
+    project.ext.isLibrary = {
+      return !project.file('src/main/resources/mod.json').canRead()
+    }
+
+    project.ext.isModule = {
+      return !project.file('src/main/resources/mod.json').canRead()
+    }
   }
 
   private void setupTasks(Project project){
@@ -49,7 +57,7 @@ class VertxModulePlugin implements Plugin<Project> {
       // and then into module library directory
       into( 'lib' ) {
         from project.configurations.compile.copy {
-          return it.dependencyProject.library
+          return it.dependencyProject.isLibrary
         }
       }
     }
