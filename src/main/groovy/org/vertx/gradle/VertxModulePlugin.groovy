@@ -1,6 +1,7 @@
 package org.vertx.gradle
 
 import org.gradle.api.*
+import org.gradle.api.logging.*;
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.Zip
 
@@ -13,6 +14,8 @@ import org.vertx.java.platform.PlatformLocator
 import org.vertx.java.platform.impl.ModuleClassLoader
 
 class VertxModulePlugin implements Plugin<Project> {
+  def logger = Logging.getLogger(VertxModulePlugin.class)
+
   void apply(Project project) {
     project.ext.vertx = true
 
