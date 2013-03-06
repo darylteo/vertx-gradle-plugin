@@ -10,6 +10,20 @@ class VertxPlugin implements Plugin<Project> {
       ext.vertx = true
 
       subprojects {
+        if (file('module.gradle').exists()){
+
+          ext.isModule = true
+          ext.isLibrary = false
+
+        } else {
+
+          ext.isModule = false
+          ext.isLibrary = true
+
+        }
+      }
+
+      subprojects {
         println "Configuring Module: $it"
 
         apply plugin: 'java'
@@ -47,23 +61,10 @@ class VertxPlugin implements Plugin<Project> {
           }
         }
 
-        if (file('module.gradle').exists()){
-
-          ext.isModule = true
-          ext.isLibrary = false
-
-        } else {
-
-          ext.isModule = false
-          ext.isLibrary = true
-
-        }
-      }
-
-      subprojects {
         if (isModule) {
           apply plugin: VertxModulePlugin
         }
+
       }
 
     }

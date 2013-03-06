@@ -25,8 +25,7 @@ class VertxModulePlugin implements Plugin<Project> {
       loadModuleConfig(it)
       loadBuildScript(it)
 
-      ext.moduleName = "${ext.repotype}:${ext.group}:${ext.artifact}:${ext.version}"
-      println moduleName
+      ext.moduleName = "${repotype}:${group}:${artifact}:${version}"
       ext.isRunnable = config.main != null
 
       defaultTasks = ['assemble']
@@ -127,8 +126,11 @@ class VertxModulePlugin implements Plugin<Project> {
       props.load(reader)
 
       props.each { k,v ->
-        println "$k:$v"
-        project.ext[k] = v
+        if (project.hasProperty(k)){
+          project[k] = v
+        } else {
+          project.ext[k] = v
+        }
       }
     }
   }

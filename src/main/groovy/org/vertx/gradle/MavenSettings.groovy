@@ -22,6 +22,15 @@ import org.gradle.api.artifacts.maven.*;
 public class MavenSettings implements Plugin<Project> {
   void apply(Project project) {
     def sonatypeUsername, sonatypePassword
+    def configurePom = { def pom ->
+      if(project.hasProperty('artifact')){
+        pom.artifactId = project.artifact
+      }
+
+      if (project.hasProperty('configurePom')){
+       project.configurePom(pom)
+      }
+    }
 
     project.with {
       apply plugin: 'maven'
@@ -72,6 +81,12 @@ public class MavenSettings implements Plugin<Project> {
         sign configurations.archives
       }
 
+      install {
+        repositories.mavenInstaller {
+          configurePom(pom)
+        }
+      }
+
       uploadArchives {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
@@ -95,9 +110,7 @@ public class MavenSettings implements Plugin<Project> {
               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
             }
 
-            if (project.hasProperty('configurePom')){
-              project.configurePom(pom)
-            }
+            configurePom(pom)
           }
         }
       }
