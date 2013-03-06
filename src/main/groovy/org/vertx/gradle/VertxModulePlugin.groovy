@@ -25,7 +25,8 @@ class VertxModulePlugin implements Plugin<Project> {
       loadModuleConfig(it)
       loadBuildScript(it)
 
-      ext.moduleName = "$repotype:$groupId:$artifactId:${ext.version}"
+      ext.moduleName = "${ext.repotype}:${ext.group}:${ext.artifact}:${ext.version}"
+      println moduleName
       ext.isRunnable = config.main != null
 
       defaultTasks = ['assemble']
@@ -67,7 +68,7 @@ class VertxModulePlugin implements Plugin<Project> {
 
       // run task
       if (isRunnable == true) {
-        task("run-${artifactId}", dependsOn: 'copyMod', description: 'Run the module using all the build dependencies (not using installed vertx)') << {
+        task("run-${artifact}", dependsOn: 'copyMod', description: 'Run the module using all the build dependencies (not using installed vertx)') << {
           def mutex = new Object()
 
           ModuleClassLoader.reverseLoadOrder = false
@@ -126,6 +127,7 @@ class VertxModulePlugin implements Plugin<Project> {
       props.load(reader)
 
       props.each { k,v ->
+        println "$k:$v"
         project.ext[k] = v
       }
     }
