@@ -47,6 +47,10 @@ class VertxModulePlugin implements Plugin<Project> {
   }
 
   private void setupTasks(Project project){
+    if(project.props.repotype == 'maven'){
+      project.apply plugin: MavenSettings
+    }
+
     project.defaultTasks = ['assemble']
 
     project.task('copyMod', type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
