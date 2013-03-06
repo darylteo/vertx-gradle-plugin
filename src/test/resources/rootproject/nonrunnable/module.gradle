@@ -1,6 +1,4 @@
-info "Performing custom configuration."
-// warn "Warning Message"
-// error "Error Message"
+println "Performing custom configuration."
 
 dependencies {
   /*
@@ -57,3 +55,6 @@ ext.configurePom = { def pom ->
   }
 }
 */
+
+// used for test, not for production use
+ext.applied = true

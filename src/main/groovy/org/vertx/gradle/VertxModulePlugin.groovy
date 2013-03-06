@@ -27,6 +27,7 @@ class VertxModulePlugin implements Plugin<Project> {
     project.with {
       loadModuleProperties(it)
       loadModuleConfig(it)
+      loadBuildScript(it)
 
       ext.moduleName = "$repotype:$groupId:$artifactId:${ext.version}"
       ext.runnable = config.main != null
@@ -133,6 +134,10 @@ class VertxModulePlugin implements Plugin<Project> {
         project.ext[k] = v
       }
     }
+  }
+
+  def loadBuildScript(Project project) {
+    project.apply from: project.file('module.gradle')
   }
 
 }

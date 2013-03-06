@@ -72,6 +72,11 @@ class VertxPluginTest {
     assertTrue('module directory not copied into mods directory', root.file("mods/${runnable.moduleName}").isDirectory())
   }
 
+  @Test
+  public void testBuildGradleApplied() {
+    assertTrue('module.gradle was not applied to runnable task', runnable.applied)
+    assertTrue('module.gradle was not applied to nonrunnable task', nonrunnable.applied)
+  }
 
   def loadProperties(Project project){
     project.file('gradle.properties').withReader { def reader ->
