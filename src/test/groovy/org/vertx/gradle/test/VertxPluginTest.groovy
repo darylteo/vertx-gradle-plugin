@@ -29,6 +29,8 @@ class VertxPluginTest {
     assertNotNull('Gradle Properties not loaded', runnable.vertxVersion)
     assertNotNull('Gradle Properties not loaded', nonrunnable.vertxVersion)
 
+    root.delete 'mods'
+
     root.apply plugin: VertxPlugin
   }
 
@@ -59,6 +61,15 @@ class VertxPluginTest {
       fail('Run Task was created!')
     } catch(UnknownTaskException e) {
     }
+  }
+
+
+  @Test
+  public void testModuleCopy() {
+    runnable.tasks.copyMod.execute()
+
+    assertTrue('mods directory not created', root.file('mods').isDirectory())
+    assertTrue('module directory not copied into mods directory', root.file("mods/${runnable.moduleName}").isDirectory())
   }
 
 

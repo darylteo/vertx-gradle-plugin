@@ -110,7 +110,8 @@ class VertxModulePlugin implements Plugin<Project> {
   def loadModuleConfig(Project project){
     def f = project.file('src/main/resources/mod.json')
     if(!f.canRead()){
-      return [:]
+      project.ext.config = [:]
+      return
     }
 
     f.withReader { def reader ->
