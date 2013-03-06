@@ -27,21 +27,23 @@ public class MavenSettings implements Plugin<Project> {
       apply plugin: 'maven'
       apply plugin: 'signing'
 
-      def console = System.console()
-      if (!console) {
-        console = new Console()
-      }
+      task('getCredentials') << {
+        def console = System.console()
+        if (!console) {
+          console = new Console()
+        }
 
-      if (!hasProperty('sonatypeUsername')) {
-        sonatypeUsername = console.readLine('Enter Sonatype Username: ')
-      } else {
-        sonatypeUsername = project.sonatypeUsername
-      }
+        if (!hasProperty('sonatypeUsername')) {
+          sonatypeUsername = console.readLine('Enter Sonatype Username: ')
+        } else {
+          sonatypeUsername = project.sonatypeUsername
+        }
 
-      if (!hasProperty('sonatypePassword')) {
-        sonatypePassword = console.readPassword("Enter Sonatype Password for $sonatypeUsername: ")
-      } else {
-        sonatypePassword = project.sonatypePassword
+        if (!hasProperty('sonatypePassword')) {
+          sonatypePassword = console.readPassword("Enter Sonatype Password for $sonatypeUsername: ")
+        } else {
+          sonatypePassword = project.sonatypePassword
+        }
       }
 
       // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,6 +59,7 @@ public class MavenSettings implements Plugin<Project> {
       uploadArchives {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
+        dependsOn 'getCredentials'
 
         repositories {
           mavenDeployer {
