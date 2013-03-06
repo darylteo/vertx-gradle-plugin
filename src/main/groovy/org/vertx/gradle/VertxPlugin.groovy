@@ -51,13 +51,18 @@ class VertxPlugin implements Plugin<Project> {
 
           ext.isModule = true
           ext.isLibrary = false
-          apply plugin: VertxModulePlugin
 
         } else {
 
           ext.isModule = false
           ext.isLibrary = true
 
+        }
+      }
+
+      subprojects {
+        if (isModule) {
+          apply plugin: VertxModulePlugin
         }
       }
 
