@@ -41,11 +41,8 @@ class VertxPluginTest {
   public void testModulePluginRunnable() {
     assertTrue('VertxModulePlugin not applied', runnable.vertx)
 
-    assertNotNull('VertxModulePlugin did not set props', runnable.props)
-    assertTrue('VertxModulePlugin did not set props of right type', runnable.props instanceof VertxModuleProperties)
-
-    assertEquals('VertxModulePlugin did not set props main properly', runnable.props.main, 'app.js')
-    assertTrue('Module should be runnable', runnable.props.runnable)
+    assertEquals('VertxModulePlugin did not set props main properly', runnable.config.main, 'app.js')
+    assertTrue('Module should be runnable', runnable.runnable)
 
     assertNotNull('Run Task was not created', runnable.tasks.getByPath('run-module1'))
   }
@@ -54,11 +51,8 @@ class VertxPluginTest {
   public void testModulePluginNonRunnable() {
     assertTrue('VertxModulePlugin not applied', nonrunnable.vertx)
 
-    assertNotNull('VertxModulePlugin did not set props', nonrunnable.props)
-    assertTrue('VertxModulePlugin did not set props of right type', nonrunnable.props instanceof VertxModuleProperties)
-
-    assertNull('VertxModulePlugin did not set props main properly', nonrunnable.props.main)
-    assertFalse('Module should not be runnable', nonrunnable.props.runnable)
+    assertNull('VertxModulePlugin did not set props main properly', nonrunnable.config.main)
+    assertFalse('Module should not be runnable', nonrunnable.runnable)
 
     try {
       assertNull(nonrunnable.tasks.getByPath('run-module2'))

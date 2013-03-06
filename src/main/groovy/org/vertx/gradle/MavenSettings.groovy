@@ -46,6 +46,22 @@ public class MavenSettings implements Plugin<Project> {
         }
       }
 
+      artifacts {
+        archives modZip
+      }
+
+      test {
+        dependsOn 'copyMod'
+
+        // Make sure tests are always run!
+        outputs.upToDateWhen { false }
+
+        // Show output
+        testLogging.showStandardStreams = true
+
+        testLogging { exceptionFormat "full" }
+      }
+
       // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       // maven task configuration
 
