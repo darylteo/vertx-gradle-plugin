@@ -17,26 +17,16 @@ class VertxModulePlugin implements Plugin<Project> {
   def logger = Logging.getLogger(VertxModulePlugin.class)
 
   void apply(Project project) {
-    project.ext.vertx = true
-
-    loadConfigurations(project)
-    setupTasks(project)
-  }
-
-  private void loadConfigurations(Project project) {
     project.with {
+      ext.vertx = true
+
       loadModuleProperties(it)
       loadModuleConfig(it)
       loadBuildScript(it)
 
       ext.moduleName = "$repotype:$groupId:$artifactId:${ext.version}"
-      ext.runnable = config.main != null
-    }
-  }
+      ext.isRunnable = config.main != null
 
-  private void setupTasks(Project project){
-
-    project.with {
       defaultTasks = ['assemble']
 
       task('copyMod', type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
@@ -71,7 +61,7 @@ class VertxModulePlugin implements Plugin<Project> {
       }
 
       // run task
-      if (runnable == true) {
+      if (isRunnable == true) {
         task("run-${artifactId}", dependsOn: 'copyMod', description: 'Run the module using all the build dependencies (not using installed vertx)') << {
           def mutex = new Object()
 

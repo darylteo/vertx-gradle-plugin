@@ -5,53 +5,63 @@ import org.gradle.api.*
 class VertxPlugin implements Plugin<Project> {
 
   void apply(Project project) {
-    project.ext.vertx = true
 
-    project.subprojects { def child ->
-      println "Configuring Module: $child"
-      setupDependencies(child)
-    }
-  }
-
-  private void setupDependencies(Project project) {
     project.with {
-      apply plugin: 'java'
-      apply plugin: 'groovy'
-      apply plugin: 'scala'
-      apply plugin: 'eclipse'
-      apply plugin: 'idea'
+      ext.vertx = true
 
-      defaultTasks = ['assemble']
+      subprojects {
+        println "Configuring Module: $it"
 
-      sourceCompatibility = '1.7'
-      targetCompatibility = '1.7'
+        apply plugin: 'java'
+        apply plugin: 'groovy'
+        apply plugin: 'scala'
+        apply plugin: 'eclipse'
+        apply plugin: 'idea'
 
-      configurations {
-        provided
-        testCompile.extendsFrom provided
-      }
+        defaultTasks = ['assemble']
 
-      repositories {
-        mavenLocal()
-        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-        mavenCentral()
-      }
+        sourceCompatibility = '1.7'
+        targetCompatibility = '1.7'
 
-      dependencies {
-        provided "io.vertx:vertx-core:${vertxVersion}"
-        provided "io.vertx:vertx-platform:${vertxVersion}"
-        testCompile "junit:junit:${junitVersion}"
-        testCompile "io.vertx:testtools:${toolsVersion}"
-      }
+        configurations {
+          provided
+          testCompile.extendsFrom provided
+        }
 
-      sourceSets {
-        main {
-          compileClasspath = compileClasspath + configurations.provided
+        repositories {
+          mavenLocal()
+          maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+          mavenCentral()
+        }
+
+        dependencies {
+          provided "io.vertx:vertx-core:${vertxVersion}"
+          provided "io.vertx:vertx-platform:${vertxVersion}"
+          testCompile "junit:junit:${junitVersion}"
+          testCompile "io.vertx:testtools:${toolsVersion}"
+        }
+
+        sourceSets {
+          main {
+            compileClasspath = compileClasspath + configurations.provided
+          }
+        }
+
+        if (file('module.gradle').exists()){
+
+          ext.isModule = true
+          ext.isLibrary = false
+          apply plugin: VertxModulePlugin
+
+        } else {
+
+          ext.isModule = false
+          ext.isLibrary = true
+
         }
       }
-    }
 
-    project.apply plugin: VertxModulePlugin
+    }
   }
 
 }

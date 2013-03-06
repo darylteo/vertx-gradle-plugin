@@ -9,7 +9,7 @@ import org.vertx.gradle.*
 class VertxPluginTest {
   def builder
 
-  def root, runnable, nonrunnable
+  def root, runnable, nonrunnable, library
 
   @Before
   public void before(){
@@ -24,11 +24,10 @@ class VertxPluginTest {
     projectDir = new File('src/test/resources/rootproject/nonrunnable')
     nonrunnable = builder.withProjectDir(projectDir).withParent(root).withName('nonrunnable').build()
 
-    loadProperties(root)
-    assertNotNull('Gradle Properties not loaded', root.vertxVersion)
-    assertNotNull('Gradle Properties not loaded', runnable.vertxVersion)
-    assertNotNull('Gradle Properties not loaded', nonrunnable.vertxVersion)
+    projectDir = new File('src/test/resources/rootproject/library')
+    library = builder.withProjectDir(projectDir).withParent(root).withName('library').build()
 
+    loadProperties(root)
     root.delete 'mods'
 
     root.apply plugin: VertxPlugin
@@ -37,14 +36,18 @@ class VertxPluginTest {
   @Test
   public void testVertxPluginApplied() {
     assertTrue('VertxPlugin not applied', root.vertx)
+    assertNotNull('Gradle Properties not loaded', root.vertxVersion)
   }
 
   @Test
   public void testModulePluginRunnable() {
     assertTrue('VertxModulePlugin not applied', runnable.vertx)
 
+    assertTrue('isModule should be true', runnable.isModule)
+    assertFalse('isLibrary should be false', runnable.isLibrary)
+
     assertEquals('VertxModulePlugin did not set props main properly', runnable.config.main, 'app.js')
-    assertTrue('Module should be runnable', runnable.runnable)
+    assertTrue('Module should be runnable', runnable.isRunnable)
 
     assertNotNull('Run Task was not created', runnable.tasks.getByPath('run-module1'))
   }
@@ -53,8 +56,11 @@ class VertxPluginTest {
   public void testModulePluginNonRunnable() {
     assertTrue('VertxModulePlugin not applied', nonrunnable.vertx)
 
+    assertTrue('isModule should be true', nonrunnable.isModule)
+    assertFalse('isLibrary should be false', nonrunnable.isLibrary)
+
     assertNull('VertxModulePlugin did not set props main properly', nonrunnable.config.main)
-    assertFalse('Module should not be runnable', nonrunnable.runnable)
+    assertFalse('Module should not be runnable', nonrunnable.isRunnable)
 
     try {
       assertNull(nonrunnable.tasks.getByPath('run-module2'))
@@ -63,6 +69,11 @@ class VertxPluginTest {
     }
   }
 
+  @Test
+  public void testClassLibrary() {
+    assertFalse('isModule should be false', library.isModule)
+    assertTrue('isLibrary should be true', library.isLibrary)
+  }
 
   @Test
   public void testModuleCopy() {
