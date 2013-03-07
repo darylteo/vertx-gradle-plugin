@@ -33,7 +33,6 @@ class VertxPlugin implements Plugin<Project> {
         apply plugin: 'idea'
 
         defaultTasks = ['assemble']
-        jar.enabled = false
 
         sourceCompatibility = '1.7'
         targetCompatibility = '1.7'
