@@ -59,10 +59,11 @@ public class MavenSettings implements Plugin<Project> {
         }
       }
 
-      configurations.archives.artifacts.clear()
-      println configurations.archives.artifacts
-      artifacts {
-        archives modZip
+      task('setupArchives') {
+        configurations.archives.artifacts.clear()
+        artifacts {
+          archives modZip
+        }
       }
 
       test {
@@ -96,7 +97,7 @@ public class MavenSettings implements Plugin<Project> {
       uploadArchives {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
-        dependsOn 'getCredentials'
+        dependsOn 'setupArchives', 'getCredentials'
 
         repositories {
           mavenDeployer {
