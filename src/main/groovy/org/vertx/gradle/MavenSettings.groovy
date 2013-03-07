@@ -37,7 +37,7 @@ public class MavenSettings implements Plugin<Project> {
       apply plugin: 'signing'
 
       configurations {
-        archives
+        mavenArchives
       }
 
       task('getCredentials') << {
@@ -59,6 +59,8 @@ public class MavenSettings implements Plugin<Project> {
         }
       }
 
+      configurations.archives.artifacts.clear()
+      println configurations.archives.artifacts
       artifacts {
         archives modZip
       }
