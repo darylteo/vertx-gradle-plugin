@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.maven.*;
 
 public class MavenSettings implements Plugin<Project> {
   void apply(Project project) {
-    def sonatypeUsername, sonatypePassword
     def configurePom = { def pom ->
       if(project.hasProperty('artifact')){
         pom.artifactId = project.artifact
@@ -46,16 +45,12 @@ public class MavenSettings implements Plugin<Project> {
           console = new Console()
         }
 
-        if (!hasProperty('sonatypeUsername')) {
-          sonatypeUsername = console.readLine('Enter Sonatype Username: ')
-        } else {
-          sonatypeUsername = project.sonatypeUsername
+        if (!rootProject.hasProperty('sonatypeUsername')) {
+          rootProject.ext.sonatypeUsername = console.readLine('Enter Sonatype Username: ')
         }
 
-        if (!hasProperty('sonatypePassword')) {
-          sonatypePassword = console.readPassword("Enter Sonatype Password for $sonatypeUsername: ")
-        } else {
-          sonatypePassword = project.sonatypePassword
+        if (!project.hasProperty('sonatypePassword')) {
+          rootProject.ext.sonatypePassword = console.readPassword("Enter Sonatype Password for $sonatypeUsername: ")
         }
       }
 
@@ -115,6 +110,10 @@ public class MavenSettings implements Plugin<Project> {
 
             if (isReleaseVersion) {
               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            }
+
+            pom.project {
+              packaging = 'zip'
             }
 
             configurePom(pom)
