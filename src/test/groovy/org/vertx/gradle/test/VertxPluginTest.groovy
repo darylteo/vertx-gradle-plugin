@@ -84,6 +84,16 @@ class VertxPluginTest {
   }
 
   @Test
+  public void testModuleZip() {
+    runnable.tasks.modZip.execute()
+
+    Thread.sleep(1000)
+
+    println runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists()
+    assertTrue('zip not created', runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists())
+  }
+
+  @Test
   public void testBuildGradleApplied() {
     assertTrue('module.gradle was not applied to runnable task', runnable.applied)
     assertTrue('module.gradle was not applied to nonrunnable task', nonrunnable.applied)
@@ -95,7 +105,11 @@ class VertxPluginTest {
       props.load(reader)
 
       props.each { k,v ->
-        project.ext[k] = v
+        if (project.hasProperty(k)){
+          project[k] = v
+        } else {
+          project.ext[k] = v
+        }
       }
     }
   }

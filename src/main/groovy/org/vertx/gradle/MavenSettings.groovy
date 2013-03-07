@@ -36,6 +36,10 @@ public class MavenSettings implements Plugin<Project> {
       apply plugin: 'maven'
       apply plugin: 'signing'
 
+      configurations {
+        archives
+      }
+
       task('getCredentials') << {
         def console = System.console()
         if (!console) {

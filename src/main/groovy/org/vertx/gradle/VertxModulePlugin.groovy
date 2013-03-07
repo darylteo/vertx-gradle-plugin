@@ -51,8 +51,8 @@ class VertxModulePlugin implements Plugin<Project> {
       task('modZip', type: Zip, dependsOn: 'pullInDeps', description: 'Package the module .zip file') {
         group = 'vert.x'
         description = "Assembles a vert.x module"
-        destinationDir = project.file('build/libs')
-        archiveName = "${moduleName}-${version}" + ".zip"
+        destinationDir = file("$buildDir/libs")
+        archiveName = "${artifact}-${version}.zip"
         from tasks.copyMod
       }
 
