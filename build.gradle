@@ -1,5 +1,6 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'signing'
 
 repositories {
   mavenCentral()
@@ -21,8 +22,64 @@ test {
   testLogging.showStandardStreams = true
 }
 
+// maven settings
+ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
+
+configurations {
+  archives
+}
+
+signing {
+  required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+  sign configurations.archives
+}
+
 install {
   repositories.mavenInstaller {
     pom.artifactId = artifact
+  }
+}
+
+uploadArchives {
+  group 'build'
+  description = "Does a maven deploy of archives artifacts"
+
+  println project.version
+
+  repositories {
+    mavenDeployer {
+      setUniqueVersion(false)
+
+      configuration = configurations.archives
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: sonatypeUsername, password: sonatypePassword)
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: sonatypeUsername, password: sonatypePassword)
+      }
+
+      if (isReleaseVersion) {
+        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+      }
+
+      pom {
+        artifactId = artifact
+
+        project {
+          inceptionYear '2008'
+
+          licenses {
+            license {
+              name 'The Apache Software License, Version 2.0'
+              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+              distribution 'repo'
+            }
+          }
+        }
+
+      }
+    }
   }
 }
