@@ -25,10 +25,6 @@ test {
 // maven settings
 ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
 
-configurations {
-  archives
-}
-
 signing {
   required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
   sign configurations.archives

@@ -1,4 +1,4 @@
-import org.vertx.gradle.VertxModulePlugin
+import com.darylteo.gradle.VertxModulePlugin
 
 buildscript {
   repositories {
