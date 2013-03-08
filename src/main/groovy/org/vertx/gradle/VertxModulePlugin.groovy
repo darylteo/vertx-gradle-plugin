@@ -21,6 +21,7 @@ class VertxModulePlugin implements Plugin<Project> {
     project.with {
       ext.vertx = true
 
+      loadDefaults(it)
       loadModuleProperties(it)
       loadModuleConfig(it)
       loadBuildScript(it)
@@ -100,6 +101,21 @@ class VertxModulePlugin implements Plugin<Project> {
         apply plugin: MavenSettings
       }
 
+    }
+  }
+
+  def loadDefaults(Project project){
+    [
+      group: 'my-company',
+      artifact: project.name,
+      version: '1.0.0-SNAPSHOT',
+      repotype: 'local'
+    ].each { k,v ->
+      if (project.hasProperty(k)){
+        project[k] = v
+      } else {
+        project.ext[k] = v
+      }
     }
   }
 
