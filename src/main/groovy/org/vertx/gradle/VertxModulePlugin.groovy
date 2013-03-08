@@ -21,6 +21,65 @@ class VertxModulePlugin implements Plugin<Project> {
     project.with {
       ext.vertx = true
 
+      apply plugin: PropertiesLoader
+
+      println "Configuring Module: $it"
+
+      apply plugin: 'eclipse'
+      apply plugin: 'idea'
+
+      defaultTasks = ['assemble']
+
+      configurations {
+        provided
+        testCompile.extendsFrom provided
+      }
+
+      repositories {
+        mavenLocal()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        mavenCentral()
+      }
+
+      dependencies {
+        provided "io.vertx:vertx-core:${vertxVersion}"
+        provided "io.vertx:vertx-platform:${vertxVersion}"
+        testCompile "junit:junit:${junitVersion}"
+        testCompile "io.vertx:testtools:${toolsVersion}"
+      }
+
+      if (file('src/main/java').isDirectory()) {
+        apply plugin: 'java'
+        sourceCompatibility = '1.7'
+        targetCompatibility = '1.7'
+
+        sourceSets {
+          main {
+            compileClasspath = compileClasspath + configurations.provided
+          }
+        }
+      }
+
+      if (file('src/main/groovy').isDirectory()) {
+        apply plugin: 'groovy'
+
+        sourceSets {
+          main {
+            compileClasspath = compileClasspath + configurations.provided
+          }
+        }
+      }
+
+      if (file('src/main/scala').isDirectory()) {
+        apply plugin: 'scala'
+
+        sourceSets {
+          main {
+            compileClasspath = compileClasspath + configurations.provided
+          }
+        }
+      }
+
       loadDefaults(it)
       loadModuleProperties(it)
       loadModuleConfig(it)
@@ -31,21 +90,25 @@ class VertxModulePlugin implements Plugin<Project> {
 
       defaultTasks = ['assemble']
 
-      task('copyMod', type:Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
+      task('copyMod', dependsOn: 'classes', description: 'Assemble the module into the local mods directory') << {
         // Copy into module directory
-        into rootProject.file("mods/$moduleName")
-        from compileJava
-        from file('src/main/resources')
+        copy {
 
-        // and then into module library directory
-        into( 'lib' ) {
-          from configurations.compile.copy {
-            if (it instanceof ProjectDependency) {
-              return it.dependencyProject.isLibrary
-            } else {
-              return true
+          into rootProject.file("mods/$moduleName")
+          from compileJava
+          from file('src/main/resources')
+
+          // and then into module library directory
+          into( 'lib' ) {
+            from configurations.compile.copy {
+              if (it instanceof ProjectDependency) {
+                return it.dependencyProject.isLibrary
+              } else {
+                return true
+              }
             }
           }
+
         }
       }
 
@@ -100,22 +163,26 @@ class VertxModulePlugin implements Plugin<Project> {
       if(repotype == 'maven'){
         apply plugin: MavenSettings
       }
-
     }
   }
 
   def loadDefaults(Project project){
-    [
-      group: 'my-company',
-      artifact: project.name,
-      version: '1.0.0-SNAPSHOT',
-      repotype: 'local'
-    ].each { k,v ->
-      if (project.hasProperty(k)){
-        project[k] = v
-      } else {
-        project.ext[k] = v
-      }
+    project.loadProperties(
+      [
+        group: 'my-company',
+        artifact: project.name,
+        version: '1.0.0-SNAPSHOT',
+        repotype: 'local',
+
+        isModule: false,
+        isLibrary: false
+      ]
+    )
+
+    if (project.file('module.gradle').exists()){
+      project.isModule = true
+    } else {
+      project.isLibrary = true
     }
   }
 
@@ -152,6 +219,11 @@ class VertxModulePlugin implements Plugin<Project> {
   }
 
   def loadBuildScript(Project project) {
+    def f = project.file('module.gradle')
+    if(!f.canRead()){
+      return [:]
+    }
+
     project.apply from: project.file('module.gradle')
   }
 

@@ -35,23 +35,17 @@ public class MavenSettings implements Plugin<Project> {
       apply plugin: 'maven'
       apply plugin: 'signing'
 
-      configurations {
-        mavenArchives
+      // default values to satisfy compiler
+      if (!hasProperty('sonatypeUsername')){
+        ext.sonatypeUsername = ''
       }
 
-      task('getCredentials') << {
-        def console = System.console()
-        if (!console) {
-          console = new Console()
-        }
+      if (!hasProperty('sonatypePassword')){
+        ext.sonatypePassword = ''
+      }
 
-        if (!rootProject.hasProperty('sonatypeUsername')) {
-          rootProject.ext.sonatypeUsername = console.readLine('Enter Sonatype Username: ')
-        }
-
-        if (!project.hasProperty('sonatypePassword')) {
-          rootProject.ext.sonatypePassword = console.readPassword("Enter Sonatype Password for $sonatypeUsername: ")
-        }
+      configurations {
+        mavenArchives
       }
 
       task('setupArchives') {
@@ -92,7 +86,7 @@ public class MavenSettings implements Plugin<Project> {
       uploadArchives {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
-        dependsOn 'setupArchives', 'getCredentials'
+        dependsOn 'setupArchives'
 
         repositories {
           mavenDeployer {
