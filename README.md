@@ -6,6 +6,16 @@ Clone this and adapt it to easily develop Vert.x modules using Gradle as your bu
 
 See the [build script](build.gradle) for the list of useful tasks
 
+## Installation
+
+Just place this line in your root project's build.gradle
+
+```groovy
+apply from: 'https://raw.github.com/darylteo/vertx-gradle-template/magic-apply/apply/all.gradle'
+```
+
+Done!
+
 ## Usage
 
 ````
@@ -53,3 +63,4 @@ uploadArchives - upload the module zip file (and jar if one has been created)
       sonatypePassword in ~/.gradle/gradle.properties.
 
 install - install any jars produced to the local Maven repository (.m2)
+````
