@@ -106,10 +106,6 @@ public class MavenSettings implements Plugin<Project> {
               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
             }
 
-            pom.project {
-              packaging = 'zip'
-            }
-
             configurePom(pom)
           }
         }
