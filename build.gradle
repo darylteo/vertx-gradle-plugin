@@ -14,8 +14,11 @@ dependencies {
 
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-platform:$vertxVersion"
+  compile "io.vertx:testtools:$toolsVersion"
 
   testCompile group: 'junit', name: 'junit', version: '4.+'
+
+  runtime "$group:$artifact:$version"
 }
 
 test {
@@ -39,8 +42,6 @@ install {
 uploadArchives {
   group 'build'
   description = "Does a maven deploy of archives artifacts"
-
-  println project.version
 
   repositories {
     mavenDeployer {

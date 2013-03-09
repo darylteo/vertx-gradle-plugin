@@ -4,7 +4,7 @@ import org.gradle.testfixtures.*;
 import org.junit.*
 import static org.junit.Assert.*
 
-import org.vertx.gradle.*
+import com.darylteo.gradle.*
 
 class VertxPluginTest {
   def builder
@@ -30,19 +30,19 @@ class VertxPluginTest {
     loadProperties(root)
     root.delete 'mods'
 
-    runnable.apply plugin: VertxModulePlugin
-    nonrunnable.apply plugin: VertxModulePlugin
-    library.apply plugin: VertxModulePlugin
+    runnable.apply plugin: VertxPlugin
+    nonrunnable.apply plugin: VertxPlugin
+    library.apply plugin: VertxPlugin
   }
 
   @Test
   public void testModulePluginRunnable() {
-    assertTrue('VertxModulePlugin not applied', runnable.vertx)
+    assertTrue('VertxPlugin not applied', runnable.vertx)
 
     assertTrue('isModule should be true', runnable.isModule)
     assertFalse('isLibrary should be false', runnable.isLibrary)
 
-    assertEquals('VertxModulePlugin did not set props main properly', runnable.config.main, 'app.js')
+    assertEquals('VertxPlugin did not set props main properly', runnable.config.main, 'app.js')
     assertTrue('Module should be runnable', runnable.isRunnable)
 
     assertNotNull('Run Task was not created', runnable.tasks.getByPath('run-module1'))
@@ -50,12 +50,12 @@ class VertxPluginTest {
 
   @Test
   public void testModulePluginNonRunnable() {
-    assertTrue('VertxModulePlugin not applied', nonrunnable.vertx)
+    assertTrue('VertxPlugin not applied', nonrunnable.vertx)
 
     assertTrue('isModule should be true', nonrunnable.isModule)
     assertFalse('isLibrary should be false', nonrunnable.isLibrary)
 
-    assertNull('VertxModulePlugin did not set props main properly', nonrunnable.config.main)
+    assertNull('VertxPlugin did not set props main properly', nonrunnable.config.main)
     assertFalse('Module should not be runnable', nonrunnable.isRunnable)
 
     try {

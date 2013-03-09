@@ -21,6 +21,8 @@ import org.gradle.api.logging.*;
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.Zip
 
+import org.gradle.plugins.ide.idea.IdeaPlugin;
+
 import groovy.json.*
 
 import java.nio.file.Files
@@ -29,8 +31,8 @@ import org.vertx.java.core.Handler
 import org.vertx.java.platform.PlatformLocator
 import org.vertx.java.platform.impl.ModuleClassLoader
 
-class VertxModulePlugin implements Plugin<Project> {
-  def logger = Logging.getLogger(VertxModulePlugin.class)
+class VertxPlugin implements Plugin<Project> {
+  def logger = Logging.getLogger(VertxPlugin.class)
 
   void apply(Project project) {
     project.with {
@@ -51,10 +53,20 @@ class VertxModulePlugin implements Plugin<Project> {
       }
 
       repositories {
-        mavenLocal()
+        if (System.getenv("JENKINS_HOME") == null) {
+          // We don't want to use mavenLocal when running on CI - mavenLocal is only useful in Gradle for
+          // publishing artifacts locally for development purposes - maven local is also not threadsafe when there
+          // are concurrent builds
+          mavenLocal()
+        }
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         mavenCentral()
       }
+
+      // Language Plugins
+      apply plugin: 'java'
+      apply plugin: 'scala'
+      apply plugin: 'groovy'
 
       dependencies {
         provided "io.vertx:vertx-core:${vertxVersion}"
@@ -63,38 +75,16 @@ class VertxModulePlugin implements Plugin<Project> {
         testCompile "io.vertx:testtools:${toolsVersion}"
       }
 
-      if (file('src/main/java').isDirectory()) {
-        apply plugin: 'java'
-        sourceCompatibility = '1.7'
-        targetCompatibility = '1.7'
+      sourceCompatibility = '1.7'
+      targetCompatibility = '1.7'
 
-        sourceSets {
-          main {
-            compileClasspath = compileClasspath + configurations.provided
-          }
+      sourceSets {
+        main {
+          compileClasspath = compileClasspath + configurations.provided
         }
       }
 
-      if (file('src/main/groovy').isDirectory()) {
-        apply plugin: 'groovy'
-
-        sourceSets {
-          main {
-            compileClasspath = compileClasspath + configurations.provided
-          }
-        }
-      }
-
-      if (file('src/main/scala').isDirectory()) {
-        apply plugin: 'scala'
-
-        sourceSets {
-          main {
-            compileClasspath = compileClasspath + configurations.provided
-          }
-        }
-      }
-
+      // Project configuration
       loadDefaults(it)
       loadModuleProperties(it)
       loadModuleConfig(it)
@@ -138,7 +128,7 @@ class VertxModulePlugin implements Plugin<Project> {
       task('pullInDeps', dependsOn: 'copyMod', description: 'Pull in all the module dependencies for the module into the nested mods directory') << {
         if (pullInDeps == 'true') {
           def pm = PlatformLocator.factory.createPlatformManager()
-          System.out.println("Pulling in dependencies for module ${properites.moduleName}. Please wait...")
+          System.out.println("Pulling in dependencies for module $moduleName. Please wait...")
           pm.pullInDependencies(moduleName)
           System.out.println("Dependencies pulled into mods directory of module")
         }
@@ -178,6 +168,19 @@ class VertxModulePlugin implements Plugin<Project> {
       if(repotype == 'maven'){
         apply plugin: MavenSettings
       }
+
+      // Map the 'provided' dependency configuration to the appropriate IDEA visibility scopes.
+      plugins.withType(IdeaPlugin) {
+        idea {
+          module {
+            scopes.PROVIDED.plus += configurations.provided
+            scopes.COMPILE.minus += configurations.provided
+            scopes.TEST.minus += configurations.provided
+            scopes.RUNTIME.minus += configurations.provided
+          }
+        }
+      }
+
     }
   }
 
