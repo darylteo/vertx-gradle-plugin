@@ -185,7 +185,7 @@ class VertxPlugin implements Plugin<Project> {
   }
 
   def loadDefaults(Project project){
-    project.loadProperties(
+    (
       [
         group: 'my-company',
         artifact: project.name,
@@ -195,7 +195,12 @@ class VertxPlugin implements Plugin<Project> {
         isModule: false,
         isLibrary: false
       ]
-    )
+    ).each { def k,v ->
+      if (!project.hasProperty(k) && !project.ext.hasProperty(k)){
+        println("$k:$v")
+        project.ext[k] = v
+      }
+    }
 
     if (project.file('module.gradle').exists()){
       project.isModule = true
@@ -228,6 +233,7 @@ class VertxPlugin implements Plugin<Project> {
 
       props.each { k,v ->
         if (project.hasProperty(k)){
+          println("$k:$v")
           project[k] = v
         } else {
           project.ext[k] = v
