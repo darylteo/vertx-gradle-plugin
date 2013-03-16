@@ -100,24 +100,20 @@ class VertxPlugin implements Plugin<Project> {
 
       defaultTasks = ['assemble']
 
-      task('copyMod', dependsOn: 'classes', description: 'Assemble the module into the local mods directory') << {
-        // Copy into module directory
-        copy {
-          into rootProject.file("mods/$moduleName")
-          from compileJava
-          from file('src/main/resources')
+      task('copyMod', type: Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
+        into rootProject.file("mods/$moduleName")
+        from compileJava
+        from file('src/main/resources')
 
-          // and then into module library directory
-          into( 'lib' ) {
-            from configurations.compile.copy {
-              if (it instanceof ProjectDependency) {
-                return it.dependencyProject.isLibrary
-              } else {
-                return true
-              }
+        // and then into module library directory
+        into( 'lib' ) {
+          from configurations.compile.copy {
+            if (it instanceof ProjectDependency) {
+              return it.dependencyProject.isLibrary
+            } else {
+              return true
             }
           }
-
         }
       }
 

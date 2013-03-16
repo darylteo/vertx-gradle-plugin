@@ -48,6 +48,7 @@ public class MavenSettings implements Plugin<Project> {
         mavenArchives
       }
 
+      // This is to clear any jars output by the project
       task('setupArchives') {
         configurations.archives.artifacts.clear()
         artifacts {
