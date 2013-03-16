@@ -38,7 +38,17 @@ class VertxPlugin implements Plugin<Project> {
     project.with {
       ext.vertx = true
 
-      apply plugin: PropertiesLoader
+      println "Loading properties for Module: $it"
+
+      loadDefaults(it)
+
+      // We  have to explicitly load props from the user home dir - on CI we set
+      // GRADLE_USER_HOME to a different dir to avoid problems with concurrent builds corrupting
+      // a shared Maven local and using Gradle wrapper concurrently
+      loadGlobalProperties(it)
+
+      loadModuleConfig(it)
+      loadModuleProperties(it)
 
       println "Configuring Module: $it"
 
@@ -84,22 +94,35 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
 
-      // Project configuration
-      loadDefaults(it)
-
-      // We  have to explicitly load props from the user home dir - on CI we set
-      // GRADLE_USER_HOME to a different dir to avoid problems with concurrent builds corrupting
-      // a shared Maven local and using Gradle wrapper concurrently
-      loadGlobalProperties(it)
-      loadModuleProperties(it)
-      loadModuleConfig(it)
-      loadBuildScript(it)
-
-      ext.moduleName = "${group}~${artifact}~${version}"
-      ext.isRunnable = config.main != null
-
       defaultTasks = ['assemble']
 
+      if(isModule(it)){
+        addModuleTasks(it)
+      }
+
+      // Evaluate custom build scripts
+      loadBuildScript(it)
+      if(repotype == 'maven'){
+        apply plugin: MavenSettings
+      }
+
+      // Map the 'provided' dependency configuration to the appropriate IDEA visibility scopes.
+      plugins.withType(IdeaPlugin) {
+        idea {
+          module {
+            scopes.PROVIDED.plus += configurations.provided
+            scopes.COMPILE.minus += configurations.provided
+            scopes.TEST.minus += configurations.provided
+            scopes.RUNTIME.minus += configurations.provided
+          }
+        }
+      }
+
+    }
+  }
+
+  def addModuleTasks(Project project){
+    project.with {
       task('copyMod', type: Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
         into rootProject.file("mods/$moduleName")
         from compileJava
@@ -108,8 +131,9 @@ class VertxPlugin implements Plugin<Project> {
         // and then into module library directory
         into( 'lib' ) {
           from configurations.compile.copy {
+            // remove any project dependencies that are configured as modules
             if (it instanceof ProjectDependency) {
-              return it.dependencyProject.isLibrary
+              return !isModule(it.dependencyProject)
             } else {
               return true
             }
@@ -164,25 +188,9 @@ class VertxPlugin implements Plugin<Project> {
           }
         }
       }
-
-      if(repotype == 'maven'){
-        apply plugin: MavenSettings
-      }
-
-      // Map the 'provided' dependency configuration to the appropriate IDEA visibility scopes.
-      plugins.withType(IdeaPlugin) {
-        idea {
-          module {
-            scopes.PROVIDED.plus += configurations.provided
-            scopes.COMPILE.minus += configurations.provided
-            scopes.TEST.minus += configurations.provided
-            scopes.RUNTIME.minus += configurations.provided
-          }
-        }
-      }
-
     }
   }
+
 
   def loadDefaults(Project project){
     (
@@ -191,25 +199,20 @@ class VertxPlugin implements Plugin<Project> {
         artifact: project.name,
         version: '1.0.0-SNAPSHOT',
         repotype: 'local',
-
-        isModule: false,
-        isLibrary: false
+        uploadJar: false
       ]
     ).each { def k,v ->
       if (!project.hasProperty(k) && !project.ext.hasProperty(k)){
         project.ext[k] = v
       }
     }
-
-    if (project.file('src/main/resources/mod.json').exists()){
-      project.isModule = true
-    } else {
-      project.isLibrary = true
-    }
   }
 
   def loadModuleProperties(Project project){
     loadProperties(project, project.file('module.properties'))
+
+    project.ext.moduleName = "${project.group}~${project.artifact}~${project.version}"
+    project.ext.isRunnable = project.config.main != null
   }
 
   def loadGlobalProperties(Project project){
@@ -254,6 +257,10 @@ class VertxPlugin implements Plugin<Project> {
     f.withReader { def reader ->
       project.ext.config = new JsonSlurper().parse(reader)
     }
+  }
+
+  def isModule(Project project){
+    return project.file('src/main/resources/mod.json').isFile()
   }
 
 }

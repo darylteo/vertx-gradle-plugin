@@ -11,6 +11,4 @@ buildscript {
   }
 }
 
-subprojects {
-  apply plugin: VertxModulePlugin
-}
+subprojects { apply plugin: VertxModulePlugin }

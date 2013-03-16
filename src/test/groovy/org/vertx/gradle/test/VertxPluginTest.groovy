@@ -37,38 +37,42 @@ class VertxPluginTest {
 
   @Test
   public void testModulePluginRunnable() {
-    assertTrue('VertxPlugin not applied', runnable.vertx)
+    runnable.with {
+      assertTrue('VertxPlugin not applied', vertx)
 
-    assertTrue('isModule should be true', runnable.isModule)
-    assertFalse('isLibrary should be false', runnable.isLibrary)
+      assertNotNull('VertxPlugin did not set props main properly', config.main)
+      assertTrue('Module should be runnable', isRunnable)
 
-    assertEquals('VertxPlugin did not set props main properly', runnable.config.main, 'app.js')
-    assertTrue('Module should be runnable', runnable.isRunnable)
-
-    assertNotNull('Run Task was not created', runnable.tasks.getByPath('run-module1'))
+      assertNotNull(tasks.findByPath('copyMod'))
+      assertNotNull(tasks.findByPath('modZip'))
+      assertNotNull(tasks.findByPath('run-module1'))
+    }
   }
 
   @Test
   public void testModulePluginNonRunnable() {
-    assertTrue('VertxPlugin not applied', nonrunnable.vertx)
+    nonrunnable.with {
+      assertTrue('VertxPlugin not applied', vertx)
 
-    assertTrue('isModule should be true', nonrunnable.isModule)
-    assertFalse('isLibrary should be false', nonrunnable.isLibrary)
+      assertNull('VertxPlugin did not set props main properly', config.main)
+      assertFalse('Module should not be runnable', isRunnable)
 
-    assertNull('VertxPlugin did not set props main properly', nonrunnable.config.main)
-    assertFalse('Module should not be runnable', nonrunnable.isRunnable)
-
-    try {
-      assertNull(nonrunnable.tasks.getByPath('run-module2'))
-      fail('Run Task was created!')
-    } catch(UnknownTaskException e) {
+      assertNotNull(tasks.findByPath('copyMod'))
+      assertNotNull(tasks.findByPath('modZip'))
+      assertNull(tasks.findByPath('run-module1'))
+      assertNull(tasks.findByPath('run-module2'))
     }
   }
 
   @Test
   public void testClassLibrary() {
-    assertFalse('isModule should be false', library.isModule)
-    assertTrue('isLibrary should be true', library.isLibrary)
+    // test make sure tasks not applied to this
+    library.with {
+      assertNull(tasks.findByPath('copyMod'))
+      assertNull(tasks.findByPath('modZip'))
+      assertNull(tasks.findByPath('run-module1'))
+      assertNull(tasks.findByPath('run-module2'))
+    }
   }
 
   @Test
@@ -91,8 +95,9 @@ class VertxPluginTest {
 
   @Test
   public void testBuildGradleApplied() {
-    assertTrue('module.gradle was not applied to runnable task', runnable.applied)
-    assertTrue('module.gradle was not applied to nonrunnable task', nonrunnable.applied)
+    // If either of these fails, then that means the module.gradle script was not applied to the project
+    assertTrue('module.gradle was not applied to runnable project', runnable.applied)
+    assertTrue('module.gradle was not applied to nonrunnable project', nonrunnable.applied)
   }
 
   def loadProperties(Project project){
