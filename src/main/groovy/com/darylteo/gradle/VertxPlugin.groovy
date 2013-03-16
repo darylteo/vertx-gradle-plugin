@@ -86,11 +86,16 @@ class VertxPlugin implements Plugin<Project> {
 
       // Project configuration
       loadDefaults(it)
+
+      // We  have to explicitly load props from the user home dir - on CI we set
+      // GRADLE_USER_HOME to a different dir to avoid problems with concurrent builds corrupting
+      // a shared Maven local and using Gradle wrapper concurrently
+      loadGlobalProperties(it)
       loadModuleProperties(it)
       loadModuleConfig(it)
       loadBuildScript(it)
 
-      ext.moduleName = "${repotype}:${group}:${artifact}:${version}"
+      ext.moduleName = "${group}~${artifact}~${version}"
       ext.isRunnable = config.main != null
 
       defaultTasks = ['assemble']
@@ -98,7 +103,6 @@ class VertxPlugin implements Plugin<Project> {
       task('copyMod', dependsOn: 'classes', description: 'Assemble the module into the local mods directory') << {
         // Copy into module directory
         copy {
-
           into rootProject.file("mods/$moduleName")
           from compileJava
           from file('src/main/resources')
@@ -197,16 +201,51 @@ class VertxPlugin implements Plugin<Project> {
       ]
     ).each { def k,v ->
       if (!project.hasProperty(k) && !project.ext.hasProperty(k)){
-        println("$k:$v")
         project.ext[k] = v
       }
     }
 
-    if (project.file('module.gradle').exists()){
+    if (project.file('src/main/resources/mod.json').exists()){
       project.isModule = true
     } else {
       project.isLibrary = true
     }
+  }
+
+  def loadModuleProperties(Project project){
+    loadProperties(project, project.file('module.properties'))
+  }
+
+  def loadGlobalProperties(Project project){
+    loadProperties(project, new File("${System.getProperty('user.home')}/.gradle/gradle.properties"));
+  }
+
+  def loadProperties(Project project, File file) {
+    if(file == null || !file.canRead()){
+      return;
+    }
+
+    file.withReader { def reader ->
+      def props = new Properties()
+      props.load(reader)
+
+      props.each { k,v ->
+        if (project.hasProperty(k)){
+          project[k] = v
+        } else {
+          project.ext[k] = v
+        }
+      }
+    }
+  }
+
+  def loadBuildScript(Project project) {
+    def f = project.file('module.gradle')
+    if(!f.canRead()){
+      return
+    }
+
+    project.apply from: project.file('module.gradle')
   }
 
   def loadModuleConfig(Project project){
@@ -219,36 +258,6 @@ class VertxPlugin implements Plugin<Project> {
     f.withReader { def reader ->
       project.ext.config = new JsonSlurper().parse(reader)
     }
-  }
-
-  def loadModuleProperties(Project project){
-    def f = project.file('module.properties')
-    if(!f.canRead()){
-      return [:]
-    }
-
-    f.withReader { def reader ->
-      def props = new Properties()
-      props.load(reader)
-
-      props.each { k,v ->
-        if (project.hasProperty(k)){
-          println("$k:$v")
-          project[k] = v
-        } else {
-          project.ext[k] = v
-        }
-      }
-    }
-  }
-
-  def loadBuildScript(Project project) {
-    def f = project.file('module.gradle')
-    if(!f.canRead()){
-      return [:]
-    }
-
-    project.apply from: project.file('module.gradle')
   }
 
 }
