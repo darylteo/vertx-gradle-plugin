@@ -38,7 +38,7 @@ class VertxPlugin implements Plugin<Project> {
     project.with {
       ext.vertx = true
 
-      println "Loading properties for Module: $it"
+      println "Loading properties for Project: $it"
 
       loadDefaults(it)
 
@@ -47,13 +47,31 @@ class VertxPlugin implements Plugin<Project> {
       // a shared Maven local and using Gradle wrapper concurrently
       loadGlobalProperties(it)
 
+      if (it.isModule) {
+        configureModule(it)
+      }
+
+      if(repotype == 'maven'){
+        apply plugin: MavenSettings
+      }
+
+    }
+  }
+
+
+  def configureModule(Project project) {
+    println "Configuring Module: $project"
+
+    project.with {
+      /* Module Properties */
       loadModuleConfig(it)
       loadModuleProperties(it)
 
-      println "Configuring Module: $it"
-
-      apply plugin: 'eclipse'
-      apply plugin: 'idea'
+      /* Module Configuration */
+      // Language Plugins
+      apply plugin: 'java'
+      apply plugin: 'scala'
+      apply plugin: 'groovy'
 
       defaultTasks = ['assemble']
 
@@ -63,7 +81,7 @@ class VertxPlugin implements Plugin<Project> {
       }
 
       repositories {
-        if (System.getenv("JENKINS_HOME") == null) {
+        if (System.getenv('JENKINS_HOME') == null) {
           // We don't want to use mavenLocal when running on CI - mavenLocal is only useful in Gradle for
           // publishing artifacts locally for development purposes - maven local is also not threadsafe when there
           // are concurrent builds
@@ -72,11 +90,6 @@ class VertxPlugin implements Plugin<Project> {
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         mavenCentral()
       }
-
-      // Language Plugins
-      apply plugin: 'java'
-      apply plugin: 'scala'
-      apply plugin: 'groovy'
 
       dependencies {
         provided "io.vertx:vertx-core:${vertxVersion}"
@@ -94,17 +107,9 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
 
-      defaultTasks = ['assemble']
-
-      if(isModule(it)){
-        addModuleTasks(it)
-      }
-
-      // Evaluate custom build scripts
-      loadBuildScript(it)
-      if(repotype == 'maven'){
-        apply plugin: MavenSettings
-      }
+      /* IDE Configuration */
+      apply plugin: 'eclipse'
+      apply plugin: 'idea'
 
       // Map the 'provided' dependency configuration to the appropriate IDEA visibility scopes.
       plugins.withType(IdeaPlugin) {
@@ -118,10 +123,15 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
 
+      /* Task Configuration */
+      addModuleTasks(project)
+
+      // Evaluate custom build scripts for configurations
+      loadBuildScript(it)
     }
   }
 
-  def addModuleTasks(Project project){
+  def addModuleTasks(Project project) {
     project.with {
       task('copyMod', type: Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
         into rootProject.file("mods/$moduleName")
@@ -130,10 +140,10 @@ class VertxPlugin implements Plugin<Project> {
 
         // and then into module library directory
         into( 'lib' ) {
-          from configurations.compile.copy {
+          from configurations.compile.copy { def dependency ->
             // remove any project dependencies that are configured as modules
-            if (it instanceof ProjectDependency) {
-              return !isModule(it.dependencyProject)
+            if (dependency instanceof ProjectDependency) {
+              return !dependency.isModule
             } else {
               return true
             }
@@ -188,6 +198,7 @@ class VertxPlugin implements Plugin<Project> {
           }
         }
       }
+
     }
   }
 
@@ -199,13 +210,17 @@ class VertxPlugin implements Plugin<Project> {
         artifact: project.name,
         version: '1.0.0-SNAPSHOT',
         repotype: 'local',
-        uploadJar: false
+        uploadJar: false,
+
+        isModule: false
       ]
     ).each { def k,v ->
       if (!project.hasProperty(k) && !project.ext.hasProperty(k)){
         project.ext[k] = v
       }
     }
+
+    project.isModule = project.file('src/main/resources/mod.json').isFile()
   }
 
   def loadModuleProperties(Project project){
@@ -257,10 +272,6 @@ class VertxPlugin implements Plugin<Project> {
     f.withReader { def reader ->
       project.ext.config = new JsonSlurper().parse(reader)
     }
-  }
-
-  def isModule(Project project){
-    return project.file('src/main/resources/mod.json').isFile()
   }
 
 }

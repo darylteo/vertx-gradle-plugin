@@ -28,7 +28,11 @@ class VertxPluginTest {
     library = builder.withProjectDir(projectDir).withParent(root).withName('library').build()
 
     loadProperties(root)
-    root.delete 'mods'
+
+    root.with {
+      root.delete 'mods'
+      root.delete "$buildDir/libs"
+    }
 
     runnable.apply plugin: VertxPlugin
     nonrunnable.apply plugin: VertxPlugin
@@ -89,8 +93,7 @@ class VertxPluginTest {
 
     Thread.sleep(1000)
 
-    println runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists()
-    // assertTrue('zip not created', runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists())
+    assertTrue('zip not created', runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists())
   }
 
   @Test
