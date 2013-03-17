@@ -36,11 +36,12 @@ public class MavenSettings implements Plugin<Project> {
       apply plugin: 'signing'
 
       // default values to satisfy compiler
-      if (!hasProperty('sonatypeUsername')){
+      // use it as workaround for bug http://issues.gradle.org/browse/GRADLE-1826
+      if (!it.hasProperty('sonatypeUsername')){
         ext.sonatypeUsername = ''
       }
 
-      if (!hasProperty('sonatypePassword')){
+      if (!it.hasProperty('sonatypePassword')){
         ext.sonatypePassword = ''
       }
 
