@@ -65,25 +65,9 @@ public class MavenSettings implements Plugin<Project> {
         }
       }
 
-      task('setupArchives') {
-        // This is to clear any jars output by the project
-        if (isModule) {
-          configurations.archives.artifacts.clear()
-
-          artifacts {
-            archives modZip
-            if (produceJar) {
-              archives jar
-            }
-          }
-
-        }
-      }
-
       uploadArchives {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
-        dependsOn 'setupArchives'
 
         repositories {
           mavenDeployer {

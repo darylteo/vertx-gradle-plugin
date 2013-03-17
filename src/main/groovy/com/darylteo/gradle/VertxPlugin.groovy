@@ -138,13 +138,27 @@ class VertxPlugin implements Plugin<Project> {
         testCompile "junit:junit:${junitVersion}"
         testCompile "io.vertx:testtools:${toolsVersion}"
       }
+    }
 
-      test {
-        dependsOn 'copyMod'
+    // Need dependencies from subproject build.gradle
+    project.afterEvaluate { def p ->
+      p.with {
+        /* Task Configuration */
+        addModuleTasks(it)
+
+        test {
+          dependsOn copyMod
+        }
+
+        configurations.archives.artifacts.clear()
+
+        artifacts {
+          archives modZip
+          if (produceJar) {
+            archives jar
+          }
+        }
       }
-
-      /* Task Configuration */
-      addModuleTasks(project)
     }
   }
 
@@ -157,6 +171,7 @@ class VertxPlugin implements Plugin<Project> {
 
         // and then into module library directory
         into( 'lib' ) {
+          println configurations.compile
           from configurations.compile.copy { def dependency ->
             // remove any project dependencies that are configured as modules
             if (dependency instanceof ProjectDependency) {
