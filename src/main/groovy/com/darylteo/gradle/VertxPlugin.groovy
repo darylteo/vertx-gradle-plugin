@@ -46,32 +46,23 @@ class VertxPlugin implements Plugin<Project> {
       // GRADLE_USER_HOME to a different dir to avoid problems with concurrent builds corrupting
       // a shared Maven local and using Gradle wrapper concurrently
       loadGlobalProperties(it)
-
-      if (it.isModule) {
-        configureModule(it)
-      }
-
-      if(repotype == 'maven'){
-        apply plugin: MavenSettings
-      }
-
+      configureCommon(it)
     }
   }
 
 
-  def configureModule(Project project) {
+  def configureCommon(Project project) {
     println "Configuring Module: $project"
 
     project.with {
-      /* Module Properties */
-      loadModuleConfig(it)
-      loadModuleProperties(it)
-
-      /* Module Configuration */
       // Language Plugins
       apply plugin: 'java'
       apply plugin: 'scala'
       apply plugin: 'groovy'
+
+      /* IDE Configuration */
+      apply plugin: 'eclipse'
+      apply plugin: 'idea'
 
       defaultTasks = ['assemble']
 
@@ -91,11 +82,15 @@ class VertxPlugin implements Plugin<Project> {
         mavenCentral()
       }
 
-      dependencies {
-        provided "io.vertx:vertx-core:${vertxVersion}"
-        provided "io.vertx:vertx-platform:${vertxVersion}"
-        testCompile "junit:junit:${junitVersion}"
-        testCompile "io.vertx:testtools:${toolsVersion}"
+
+      test {
+        // Make sure tests are always run!
+        outputs.upToDateWhen { false }
+
+        // Show output
+        testLogging.showStandardStreams = true
+
+        testLogging { exceptionFormat "full" }
       }
 
       sourceCompatibility = '1.7'
@@ -106,10 +101,6 @@ class VertxPlugin implements Plugin<Project> {
           compileClasspath = compileClasspath + configurations.provided
         }
       }
-
-      /* IDE Configuration */
-      apply plugin: 'eclipse'
-      apply plugin: 'idea'
 
       // Map the 'provided' dependency configuration to the appropriate IDEA visibility scopes.
       plugins.withType(IdeaPlugin) {
@@ -123,11 +114,37 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
 
+      if (isModule) {
+        configureModule(it)
+      }
+
+      if(repotype == 'maven'){
+        apply plugin: MavenSettings
+      }
+    }
+  }
+
+  def configureModule(Project project) {
+
+    project.with {
+      /* Module Properties */
+      loadModuleConfig(it)
+      loadModuleProperties(it)
+
+      /* Module Configuration */
+      dependencies {
+        provided "io.vertx:vertx-core:${vertxVersion}"
+        provided "io.vertx:vertx-platform:${vertxVersion}"
+        testCompile "junit:junit:${junitVersion}"
+        testCompile "io.vertx:testtools:${toolsVersion}"
+      }
+
+      test {
+        dependsOn 'copyMod'
+      }
+
       /* Task Configuration */
       addModuleTasks(project)
-
-      // Evaluate custom build scripts for configurations
-      loadBuildScript(it)
     }
   }
 
@@ -210,7 +227,7 @@ class VertxPlugin implements Plugin<Project> {
         artifact: project.name,
         version: '1.0.0-SNAPSHOT',
         repotype: 'local',
-        uploadJar: false,
+        produceJar: false,
 
         isModule: false
       ]
@@ -224,8 +241,6 @@ class VertxPlugin implements Plugin<Project> {
   }
 
   def loadModuleProperties(Project project){
-    loadProperties(project, project.file('module.properties'))
-
     project.ext.moduleName = "${project.group}~${project.artifact}~${project.version}"
     project.ext.isRunnable = project.config.main != null
   }
@@ -251,15 +266,6 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
     }
-  }
-
-  def loadBuildScript(Project project) {
-    def f = project.file('module.gradle')
-    if(!f.canRead()){
-      return
-    }
-
-    project.apply from: project.file('module.gradle')
   }
 
   def loadModuleConfig(Project project){

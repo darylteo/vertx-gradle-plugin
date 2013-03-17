@@ -49,26 +49,6 @@ public class MavenSettings implements Plugin<Project> {
         mavenArchives
       }
 
-      // This is to clear any jars output by the project
-      task('setupArchives') {
-        configurations.archives.artifacts.clear()
-        artifacts {
-          archives modZip
-        }
-      }
-
-      test {
-        dependsOn 'copyMod'
-
-        // Make sure tests are always run!
-        outputs.upToDateWhen { false }
-
-        // Show output
-        testLogging.showStandardStreams = true
-
-        testLogging { exceptionFormat "full" }
-      }
-
       // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       // maven task configuration
 
@@ -82,6 +62,21 @@ public class MavenSettings implements Plugin<Project> {
       install {
         repositories.mavenInstaller {
           configurePom(pom)
+        }
+      }
+
+      task('setupArchives') {
+        // This is to clear any jars output by the project
+        if (isModule) {
+          configurations.archives.artifacts.clear()
+
+          artifacts {
+            archives modZip
+            if (produceJar) {
+              archives jar
+            }
+          }
+
         }
       }
 
