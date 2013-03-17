@@ -4,8 +4,6 @@ import org.gradle.testfixtures.*;
 import org.junit.*
 import static org.junit.Assert.*
 
-import com.darylteo.gradle.*
-
 class VertxPluginTest {
   def builder
 
@@ -13,30 +11,32 @@ class VertxPluginTest {
 
   @Before
   public void before(){
+    /* Simulating build lifecycle */
     this.builder = ProjectBuilder.builder()
 
-    File projectDir = new File('src/test/resources/rootproject')
-    root = builder.withProjectDir(projectDir).withName('root').build()
+    // creating project hierarchy
+    root = createProject('src/test/resources/rootproject', 'root', null)
+    runnable = createProject('src/test/resources/rootproject/runnable', 'runnable', root)
+    nonrunnable = createProject('src/test/resources/rootproject/nonrunnable', 'nonrunnable', root)
+    library = createProject('src/test/resources/rootproject/library', 'library', root)
 
-    projectDir = new File('src/test/resources/rootproject/runnable')
-    runnable = builder.withProjectDir(projectDir).withParent(root).withName('runnable').build()
+    // Clean up some stuff that are creating during tests
+    root.delete 'mods'
+    root.delete 'userHome'
+    runnable.delete 'build'
+    runnable.delete 'userHome'
+    nonrunnable.delete 'build'
+    runnable.delete 'userHome'
+    library.delete 'build'
+    library.delete 'userHome'
 
-    projectDir = new File('src/test/resources/rootproject/nonrunnable')
-    nonrunnable = builder.withProjectDir(projectDir).withParent(root).withName('nonrunnable').build()
+    // apply plugin from root build.gradle
+    applyScript(root)
 
-    projectDir = new File('src/test/resources/rootproject/library')
-    library = builder.withProjectDir(projectDir).withParent(root).withName('library').build()
-
-    loadProperties(root)
-
-    root.with {
-      root.delete 'mods'
-      root.delete "$buildDir/libs"
-    }
-
-    runnable.apply plugin: VertxPlugin
-    nonrunnable.apply plugin: VertxPlugin
-    library.apply plugin: VertxPlugin
+    // apply subproject scripts
+    applyScript(runnable)
+    applyScript(nonrunnable)
+    applyScript(library)
   }
 
   @Test
@@ -80,31 +80,32 @@ class VertxPluginTest {
   }
 
   @Test
-  public void testModuleCopy() {
+  public void testModuleAssembly() {
     runnable.tasks.copyMod.execute()
 
     assertTrue('mods directory not created', root.file('mods').isDirectory())
     assertTrue('module directory not copied into mods directory', root.file("mods/${runnable.moduleName}").isDirectory())
-  }
 
-  @Test
-  public void testModuleZip() {
     runnable.tasks.modZip.execute()
-
-    Thread.sleep(1000)
-
     assertTrue('zip not created', runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists())
   }
 
-  @Test
-  public void testBuildGradleApplied() {
-    // If either of these fails, then that means the module.gradle script was not applied to the project
-    assertTrue('module.gradle was not applied to runnable project', runnable.applied)
-    assertTrue('module.gradle was not applied to nonrunnable project', nonrunnable.applied)
+  def createProject(String path, String name, Project parent) {
+    def projectDir = new File(path)
+    def project = builder.withProjectDir(projectDir).withParent(parent).withName(name).build()
+    loadProperties(project)
+
+    return project
   }
 
-  def loadProperties(Project project){
-    project.file('gradle.properties').withReader { def reader ->
+  def loadProperties(Project project) {
+    def file = project.file('gradle.properties')
+
+    if (!file.canRead()) {
+      return
+    }
+
+    file.withReader { def reader ->
       def props = new Properties()
       props.load(reader)
 
@@ -116,5 +117,15 @@ class VertxPluginTest {
         }
       }
     }
+  }
+
+  def applyScript(Project project) {
+    def file = project.file('build.gradle')
+
+    if (!file.canRead()) {
+      return
+    }
+
+    project.apply from: file
   }
 }

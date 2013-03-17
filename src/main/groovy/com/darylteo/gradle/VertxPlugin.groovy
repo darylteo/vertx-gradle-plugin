@@ -143,7 +143,7 @@ class VertxPlugin implements Plugin<Project> {
           from configurations.compile.copy { def dependency ->
             // remove any project dependencies that are configured as modules
             if (dependency instanceof ProjectDependency) {
-              return !dependency.isModule
+              return !dependency.dependencyProject.isModule
             } else {
               return true
             }
