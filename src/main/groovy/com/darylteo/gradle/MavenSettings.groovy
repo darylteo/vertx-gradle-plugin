@@ -55,9 +55,18 @@ public class MavenSettings implements Plugin<Project> {
         }
       }
 
+      signing {
+        required { version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask("uploadArchives") }
+        sign configurations.archives
+      }
+
       uploadArchives {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
+
+        if (version.endsWith('-SNAPSHOT')) {
+          beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+        }
 
         repositories {
           mavenDeployer {
@@ -78,23 +87,6 @@ public class MavenSettings implements Plugin<Project> {
         }
       }
 
-      task('snapshot', dependsOn: 'uploadArchives') << {
-        doFirst {
-          version = "$version-SNAPSHOT"
-        }
-      }
-
-      task('release', dependsOn: 'uploadArchives') << {
-        doFirst {
-          signing {
-            sign configurations.archives
-          }
-
-          uploadArchives {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-          }
-        }
-      }
     }
   }
 }
