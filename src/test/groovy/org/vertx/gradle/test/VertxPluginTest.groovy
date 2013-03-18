@@ -87,6 +87,7 @@ class VertxPluginTest {
     assertTrue('module directory not copied into mods directory', root.file("mods/${runnable.moduleName}").isDirectory())
 
     runnable.tasks.modZip.execute()
+    println "${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip"
     assertTrue('zip not created', runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists())
   }
 

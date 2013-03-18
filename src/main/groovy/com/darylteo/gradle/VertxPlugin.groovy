@@ -39,6 +39,7 @@ class VertxPlugin implements Plugin<Project> {
       ext.vertx = true
 
       loadDefaults(it)
+      println project.version
 
       // We  have to explicitly load props from the user home dir - on CI we set
       // GRADLE_USER_HOME to a different dir to avoid problems with concurrent builds corrupting
@@ -231,19 +232,26 @@ class VertxPlugin implements Plugin<Project> {
       [
         group: 'my-company',
         artifact: project.name,
-        version: '1.0.0-SNAPSHOT',
+        version: '1.0.0',
         repotype: 'local',
         produceJar: false,
 
-        isModule: false
+        isModule: false,
+
+        release: false
       ]
     ).each { def k,v ->
       if (!project.hasProperty(k) && !project.ext.hasProperty(k)){
         project.ext[k] = v
+      } else if(project[k] == 'unspecified') {
+        project[k] = v
       }
     }
 
     project.isModule = project.file('src/main/resources/mod.json').isFile()
+    if(!project.release) {
+      project.version = "${project.version}-SNAPSHOT"
+    }
   }
 
   def loadModuleProperties(Project project){

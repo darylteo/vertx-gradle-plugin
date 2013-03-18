@@ -35,15 +35,7 @@ public class MavenSettings implements Plugin<Project> {
       apply plugin: 'maven'
       apply plugin: 'signing'
 
-      // default values to satisfy compiler
-      // use it as workaround for bug http://issues.gradle.org/browse/GRADLE-1826
-      if (!it.hasProperty('sonatypeUsername')){
-        ext.sonatypeUsername = ''
-      }
-
-      if (!it.hasProperty('sonatypePassword')){
-        ext.sonatypePassword = ''
-      }
+      loadDefaults(it)
 
       configurations {
         mavenArchives
@@ -56,7 +48,7 @@ public class MavenSettings implements Plugin<Project> {
       }
 
       signing {
-        required { version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask("uploadArchives") }
+        required { release && gradle.taskGraph.hasTask("uploadArchives") }
         sign configurations.archives
       }
 
@@ -64,7 +56,7 @@ public class MavenSettings implements Plugin<Project> {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
 
-        if (version.endsWith('-SNAPSHOT')) {
+        if (release) {
           beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
         }
 
@@ -86,7 +78,19 @@ public class MavenSettings implements Plugin<Project> {
           }
         }
       }
+    }
+  }
 
+  def loadDefaults(Project project){
+    (
+      [
+        sonatypeUsername: '',
+        sonatypePassword: ''
+      ]
+    ).each { def k,v ->
+      if (!project.hasProperty(k) && !project.ext.hasProperty(k)){
+        project.ext[k] = v
+      }
     }
   }
 }
