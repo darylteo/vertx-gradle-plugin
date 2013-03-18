@@ -38,8 +38,6 @@ class VertxPlugin implements Plugin<Project> {
     project.with {
       ext.vertx = true
 
-      println "Loading properties for Project: $it"
-
       loadDefaults(it)
 
       // We  have to explicitly load props from the user home dir - on CI we set
@@ -52,8 +50,6 @@ class VertxPlugin implements Plugin<Project> {
 
 
   def configureCommon(Project project) {
-    println "Configuring Module: $project"
-
     project.with {
       // Language Plugins
       apply plugin: 'java'
@@ -125,7 +121,6 @@ class VertxPlugin implements Plugin<Project> {
   }
 
   def configureModule(Project project) {
-
     project.with {
       /* Module Properties */
       loadModuleConfig(it)
@@ -138,31 +133,28 @@ class VertxPlugin implements Plugin<Project> {
         testCompile "junit:junit:${junitVersion}"
         testCompile "io.vertx:testtools:${toolsVersion}"
       }
-    }
 
-    // Need dependencies from subproject build.gradle
-    project.afterEvaluate { def p ->
-      p.with {
-        /* Task Configuration */
-        addModuleTasks(it)
+      /* Task Configuration */
+      addModuleTasks(it)
 
-        test {
-          dependsOn copyMod
-        }
+      test {
+        dependsOn copyMod
+      }
 
-        configurations.archives.artifacts.clear()
+      configurations.archives.artifacts.clear()
 
-        artifacts {
-          archives modZip
-          if (produceJar) {
-            archives jar
-          }
+      artifacts {
+        archives modZip
+        if (produceJar) {
+          archives jar
         }
       }
+
     }
   }
 
   def addModuleTasks(Project project) {
+    println "Adding tasks to $project"
     project.with {
       task('copyMod', type: Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
         into rootProject.file("mods/$moduleName")
@@ -171,7 +163,6 @@ class VertxPlugin implements Plugin<Project> {
 
         // and then into module library directory
         into( 'lib' ) {
-          println configurations.compile
           from configurations.compile.copy { def dependency ->
             // remove any project dependencies that are configured as modules
             if (dependency instanceof ProjectDependency) {
@@ -201,7 +192,7 @@ class VertxPlugin implements Plugin<Project> {
       }
 
       // run task
-      if (isRunnable == true) {
+      if (isRunnable) {
         task("run-${artifact}", dependsOn: 'copyMod', description: 'Run the module using all the build dependencies (not using installed vertx)') << {
           def mutex = new Object()
 

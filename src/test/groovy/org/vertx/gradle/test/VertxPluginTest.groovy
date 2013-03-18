@@ -47,9 +47,9 @@ class VertxPluginTest {
       assertNotNull('VertxPlugin did not set props main properly', config.main)
       assertTrue('Module should be runnable', isRunnable)
 
-      assertNotNull(tasks.findByPath('copyMod'))
-      assertNotNull(tasks.findByPath('modZip'))
-      assertNotNull(tasks.findByPath('run-module1'))
+      assertNotNull('Could not find copy task', tasks.findByPath('copyMod'))
+      assertNotNull('Could not find zip task', tasks.findByPath('modZip'))
+      assertNotNull('Could not find run task', tasks.findByPath('run-plugin-module1'))
     }
   }
 
@@ -61,10 +61,10 @@ class VertxPluginTest {
       assertNull('VertxPlugin did not set props main properly', config.main)
       assertFalse('Module should not be runnable', isRunnable)
 
-      assertNotNull(tasks.findByPath('copyMod'))
-      assertNotNull(tasks.findByPath('modZip'))
-      assertNull(tasks.findByPath('run-module1'))
-      assertNull(tasks.findByPath('run-module2'))
+      assertNotNull('Could not find copy task', tasks.findByPath('copyMod'))
+      assertNotNull('Could not find zip task', tasks.findByPath('modZip'))
+      assertNull('Nonrunnable should not have run task for runnable module', tasks.findByPath('run-module1'))
+      assertNull('Nonrunnable should not have run task for itself', tasks.findByPath('run-plugin-module2'))
     }
   }
 
@@ -88,6 +88,11 @@ class VertxPluginTest {
 
     runnable.tasks.modZip.execute()
     assertTrue('zip not created', runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists())
+  }
+
+  @Test
+  public void testMavenUpload() {
+    runnable.tasks.snapshot.execute()
   }
 
   def createProject(String path, String name, Project parent) {

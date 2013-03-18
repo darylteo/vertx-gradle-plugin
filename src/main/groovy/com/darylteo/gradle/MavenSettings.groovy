@@ -49,16 +49,6 @@ public class MavenSettings implements Plugin<Project> {
         mavenArchives
       }
 
-      // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      // maven task configuration
-
-      ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-
-      signing {
-        required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
-        sign configurations.archives
-      }
-
       install {
         repositories.mavenInstaller {
           configurePom(pom)
@@ -83,30 +73,28 @@ public class MavenSettings implements Plugin<Project> {
               authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
 
-            if (isReleaseVersion) {
-              beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            }
-
             configurePom(pom)
           }
         }
       }
 
+      task('snapshot', dependsOn: 'uploadArchives') << {
+        doFirst {
+          version = "$version-SNAPSHOT"
+        }
+      }
 
+      task('release', dependsOn: 'uploadArchives') << {
+        doFirst {
+          signing {
+            sign configurations.archives
+          }
+
+          uploadArchives {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+          }
+        }
+      }
     }
-  }
-}
-
-class Console {
-  String readLine(String message){
-    print (message)
-    print "test\n"
-    return "test"
-  }
-
-  String readPassword(String message){
-    print (message)
-    print "pass\n"
-    return "pass"
   }
 }
