@@ -56,12 +56,12 @@ public class MavenSettings implements Plugin<Project> {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
 
-        if (release) {
-          beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-        }
-
         repositories {
           mavenDeployer {
+            if (release) {
+              beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            }
+
             setUniqueVersion(false)
 
             configuration = configurations.archives

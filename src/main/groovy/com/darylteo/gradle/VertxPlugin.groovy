@@ -39,7 +39,6 @@ class VertxPlugin implements Plugin<Project> {
       ext.vertx = true
 
       loadDefaults(it)
-      println project.version
 
       // We  have to explicitly load props from the user home dir - on CI we set
       // GRADLE_USER_HOME to a different dir to avoid problems with concurrent builds corrupting
