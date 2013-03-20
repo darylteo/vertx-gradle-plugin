@@ -123,6 +123,11 @@ class VertxPlugin implements Plugin<Project> {
         classifier = 'sources'
       }
 
+      artifacts {
+        archives javadocJar
+        archives sourcesJar
+      }
+
       if (isModule) {
         configureModule(it)
       }
@@ -157,9 +162,17 @@ class VertxPlugin implements Plugin<Project> {
       // If we're not producing a jar, then remove all jar and related artifacts
       if (!produceJar) {
         def artifacts = configurations.archives.artifacts
+
         artifacts.removeAll(
-          artifacts.withType(Jar)
+          artifacts.findAll {
+            it.type == 'jar'
+          }
         )
+
+        artifacts.each {
+          println it
+          println it.type
+        }
       }
       artifacts {
         archives modZip
