@@ -21,18 +21,6 @@ import org.gradle.api.artifacts.maven.*;
 
 public class MavenSettings implements Plugin<Project> {
   void apply(Project project) {
-    def configurePom = { def pom ->
-      if(project.hasProperty('artifact')){
-        pom.artifactId = project.artifact
-      }
-
-      if (project.hasProperty('configurePom')){
-        project.configurePom(pom)
-      } else {
-        println("$project does not provide a configurePom(). Maven validation may fail when attempting to close a staged artifact.")
-      }
-    }
-
     project.with {
       apply plugin: 'maven'
       apply plugin: 'signing'
@@ -43,7 +31,7 @@ public class MavenSettings implements Plugin<Project> {
         archives
       }
 
-      install {
+      install.doFirst {
         repositories.mavenInstaller {
           configurePom(pom)
         }
@@ -54,7 +42,7 @@ public class MavenSettings implements Plugin<Project> {
         sign configurations.archives
       }
 
-      uploadArchives {
+      uploadArchives.doFirst {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
 
@@ -80,6 +68,18 @@ public class MavenSettings implements Plugin<Project> {
           }
         }
       }
+    }
+  }
+
+  def configurePom = { def pom ->
+    if(project.hasProperty('artifact')){
+      pom.artifactId = project.artifact
+    }
+
+    if (project.hasProperty('configurePom')){
+      project.configurePom(pom)
+    } else {
+      println("$project does not provide a configurePom(). Maven validation may fail when attempting to close a staged artifact.")
     }
   }
 
