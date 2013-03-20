@@ -3,9 +3,17 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 repositories {
-  mavenCentral()
-  maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
   mavenLocal()
+  maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+  mavenCentral()
+}
+
+if (!project.hasProperty('release')){
+  ext.release = false;
+}
+
+if(!release){
+  version = "$version-SNAPSHOT"
 }
 
 dependencies {
@@ -18,20 +26,11 @@ dependencies {
 
   testCompile group: 'junit', name: 'junit', version: '4.+'
 
-  runtime "$group:$artifact:$version"
+  testRuntime "$group:$artifact:$version"
 }
 
 test {
   testLogging.showStandardStreams = true
-}
-
-// maven settings
-if (!project.hasProperty('release')){
-  ext.release = false;
-}
-
-if(!release){
-  version = "$version-SNAPSHOT"
 }
 
 // These tasks are required for maven/sonatype
@@ -85,35 +84,34 @@ uploadArchives {
 
       pom {
         artifactId = artifact
-
-        description 'Gradle Plugin for Vert.x Projects'
-        inceptionYear '2013'
-        url 'http://github.com/darylteo/vertx-gradle-template'
-
-        developers {
-          developer {
-            id 'darylteo'
-            name 'Daryl Teo'
-            email 'i.am@darylteo.com'
-          }
-        }
-
-        scm {
+        project {
+          description 'Gradle Plugin for Vert.x Projects'
+          inceptionYear '2013'
           url 'http://github.com/darylteo/vertx-gradle-template'
-        }
 
-        licenses {
-          license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
+          developers {
+            developer {
+              id 'darylteo'
+              name 'Daryl Teo'
+              email 'i.am@darylteo.com'
+            }
+          }
+
+          scm {
+            url 'http://github.com/darylteo/vertx-gradle-template'
+          }
+
+          licenses {
+            license {
+              name 'The Apache Software License, Version 2.0'
+              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+              distribution 'repo'
+            }
+          }
+          properties {
+            setProperty('project.build.sourceEncoding', 'UTF8')
           }
         }
-
-        properties {
-          setProperty('project.build.sourceEncoding', 'UTF8')
-        }
-
       }
     }
   }

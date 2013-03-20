@@ -113,12 +113,12 @@ class VertxPlugin implements Plugin<Project> {
 
       // These tasks are required for maven/sonatype
       // we will remove them in modules if produceJar is false
-      task javadocJar(type: Jar, dependsOn: javadoc) {
+      task('javadocJar', type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
         from "$buildDir/docs/javadoc"
       }
 
-      task sourcesJar(type: Jar) {
+      task('sourcesJar', type: Jar) {
         from sourceSets.main.allSource
         classifier = 'sources'
       }
