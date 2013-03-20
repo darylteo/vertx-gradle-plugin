@@ -85,6 +85,7 @@ uploadArchives {
       pom {
         artifactId = artifact
         project {
+          name 'Vertx Gradle Plugin'
           description 'Gradle Plugin for Vert.x Projects'
           inceptionYear '2013'
           url 'http://github.com/darylteo/vertx-gradle-template'
