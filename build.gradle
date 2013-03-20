@@ -34,6 +34,22 @@ if(!release){
   version = "$version-SNAPSHOT"
 }
 
+// These tasks are required for maven/sonatype
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from "$buildDir/docs/javadoc"
+}
+
+task sourcesJar(type: Jar) {
+  from sourceSets.main.allSource
+  classifier = 'sources'
+}
+
+artifacts {
+  archives javadocJar
+  archives sourcesJar
+}
+
 signing {
   required { release && gradle.taskGraph.hasTask("uploadArchives") }
   sign configurations.archives
@@ -70,16 +86,32 @@ uploadArchives {
       pom {
         artifactId = artifact
 
-        project {
-          inceptionYear '2013'
+        description 'Gradle Plugin for Vert.x Projects'
+        inceptionYear '2013'
+        url 'http://github.com/darylteo/vertx-gradle-template'
 
-          licenses {
-            license {
-              name 'The Apache Software License, Version 2.0'
-              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              distribution 'repo'
-            }
+        developers {
+          developer {
+            id 'darylteo'
+            name 'Daryl Teo'
+            email 'i.am@darylteo.com'
           }
+        }
+
+        scm {
+          url 'http://github.com/darylteo/vertx-gradle-template'
+        }
+
+        licenses {
+          license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+          }
+        }
+
+        properties {
+          setProperty('project.build.sourceEncoding', 'UTF8')
         }
 
       }

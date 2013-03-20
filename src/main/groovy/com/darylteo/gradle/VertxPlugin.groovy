@@ -16,12 +16,13 @@
 package com.darylteo.gradle
 
 import org.gradle.api.*
-import org.gradle.api.artifacts.*;
-import org.gradle.api.logging.*;
+import org.gradle.api.artifacts.*
+import org.gradle.api.logging.*
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 
-import org.gradle.plugins.ide.idea.IdeaPlugin;
+import org.gradle.plugins.ide.idea.IdeaPlugin
 
 import groovy.json.*
 
@@ -110,6 +111,18 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
 
+      // These tasks are required for maven/sonatype
+      // we will remove them in modules if produceJar is false
+      task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from "$buildDir/docs/javadoc"
+      }
+
+      task sourcesJar(type: Jar) {
+        from sourceSets.main.allSource
+        classifier = 'sources'
+      }
+
       if (isModule) {
         configureModule(it)
       }
@@ -141,13 +154,15 @@ class VertxPlugin implements Plugin<Project> {
         dependsOn copyMod
       }
 
-      configurations.archives.artifacts.clear()
-
+      // If we're not producing a jar, then remove all jar and related artifacts
+      if (!produceJar) {
+        def artifacts = configurations.archives.artifacts
+        artifacts.removeAll(
+          artifacts.withType(Jar)
+        )
+      }
       artifacts {
         archives modZip
-        if (produceJar) {
-          archives jar
-        }
       }
 
     }

@@ -27,7 +27,9 @@ public class MavenSettings implements Plugin<Project> {
       }
 
       if (project.hasProperty('configurePom')){
-       project.configurePom(pom)
+        project.configurePom(pom)
+      } else {
+        println("$project does not provide a configurePom(). Maven validation may fail when attempting to close a staged artifact.")
       }
     }
 
@@ -38,7 +40,7 @@ public class MavenSettings implements Plugin<Project> {
       loadDefaults(it)
 
       configurations {
-        mavenArchives
+        archives
       }
 
       install {
