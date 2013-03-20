@@ -26,10 +26,16 @@ test {
 }
 
 // maven settings
-ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
+if (!project.hasProperty('release')){
+  ext.release = false;
+}
+
+if(!release){
+  version = "$version-SNAPSHOT"
+}
 
 signing {
-  required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+  required { release && gradle.taskGraph.hasTask("uploadArchives") }
   sign configurations.archives
 }
 
@@ -57,7 +63,7 @@ uploadArchives {
         authentication(userName: sonatypeUsername, password: sonatypePassword)
       }
 
-      if (isReleaseVersion) {
+      if (release) {
         beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
       }
 
@@ -65,7 +71,7 @@ uploadArchives {
         artifactId = artifact
 
         project {
-          inceptionYear '2008'
+          inceptionYear '2013'
 
           licenses {
             license {
