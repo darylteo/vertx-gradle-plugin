@@ -24,8 +24,6 @@ dependencies {
   compile "io.vertx:vertx-platform:$vertxVersion"
   compile "io.vertx:testtools:$toolsVersion"
 
-  testCompile group: 'junit', name: 'junit', version: '4.+'
-
   testRuntime "$group:$artifact:$version"
 }
 

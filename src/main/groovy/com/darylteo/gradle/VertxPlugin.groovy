@@ -37,6 +37,7 @@ class VertxPlugin implements Plugin<Project> {
 
   void apply(Project project) {
     project.with {
+      println "Configuring $project"
       ext.vertx = true
 
       loadDefaults(it)
@@ -53,9 +54,12 @@ class VertxPlugin implements Plugin<Project> {
   def configureCommon(Project project) {
     project.with {
       // Language Plugins
-      apply plugin: 'java'
-      apply plugin: 'scala'
-      apply plugin: 'groovy'
+      ['java','scala','groovy'].each { def lang ->
+        if(it.file("src/main/$lang").isDirectory() || it.file("src/test/$lang").isDirectory()){
+          println "Language $lang detected. Applying $lang plugin."
+          it.apply plugin: lang
+        }
+      }
 
       /* IDE Configuration */
       apply plugin: 'eclipse'
@@ -139,6 +143,8 @@ class VertxPlugin implements Plugin<Project> {
   }
 
   def configureModule(Project project) {
+    println "Detected vert.x module, performing module configuration"
+
     project.with {
       /* Module Properties */
       loadModuleConfig(it)
