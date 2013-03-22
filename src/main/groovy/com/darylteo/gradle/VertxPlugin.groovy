@@ -83,15 +83,19 @@ class VertxPlugin implements Plugin<Project> {
         mavenCentral()
       }
 
+      if (test) {
+        dependencies {
+          testCompile "junit:junit:${junitVersion}"
+        }
 
-      test {
-        // Make sure tests are always run!
-        outputs.upToDateWhen { false }
+        test {
+          // Make sure tests are always run!
+          outputs.upToDateWhen { false }
 
-        // Show output
-        testLogging.showStandardStreams = true
-
-        testLogging { exceptionFormat "full" }
+          // Show output
+          testLogging.showStandardStreams = true
+          testLogging { exceptionFormat "full" }
+        }
       }
 
       sourceCompatibility = '1.7'
@@ -154,7 +158,6 @@ class VertxPlugin implements Plugin<Project> {
       dependencies {
         provided "io.vertx:vertx-core:${vertxVersion}"
         provided "io.vertx:vertx-platform:${vertxVersion}"
-        testCompile "junit:junit:${junitVersion}"
         testCompile "io.vertx:testtools:${toolsVersion}"
       }
 
