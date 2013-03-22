@@ -33,13 +33,13 @@ test {
 
 // These tasks are required for maven/sonatype
 task docJar(type: Jar, dependsOn: groovydoc) {
-  classifier = 'docs'
+  classifier = 'javadoc'
   from tasks.groovydoc.destinationDir
 }
 
 task sourcesJar(type: Jar) {
-  from sourceSets.main.allSource
   classifier = 'sources'
+  from sourceSets.main.allSource
 }
 
 artifacts {
