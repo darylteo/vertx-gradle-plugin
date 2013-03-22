@@ -32,9 +32,9 @@ test {
 }
 
 // These tasks are required for maven/sonatype
-task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier = 'javadoc'
-  from "$buildDir/docs/javadoc"
+task docJar(type: Jar, dependsOn: groovydoc) {
+  classifier = 'docs'
+  from tasks.groovydoc.destinationDir
 }
 
 task sourcesJar(type: Jar) {
@@ -43,7 +43,7 @@ task sourcesJar(type: Jar) {
 }
 
 artifacts {
-  archives javadocJar
+  archives docJar
   archives sourcesJar
 }
 
