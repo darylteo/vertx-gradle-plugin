@@ -33,11 +33,8 @@ import org.vertx.java.platform.PlatformLocator
 import org.vertx.java.platform.impl.ModuleClassLoader
 
 class VertxPlugin implements Plugin<Project> {
-  def logger = Logging.getLogger(VertxPlugin.class)
-
   void apply(Project project) {
     project.with {
-      println "Configuring $project"
       ext.vertx = true
 
       loadDefaults(it)
@@ -47,6 +44,10 @@ class VertxPlugin implements Plugin<Project> {
       // a shared Maven local and using Gradle wrapper concurrently
       loadGlobalProperties(it)
       configureCommon(it)
+
+      if (isModule) {
+        configureModule(it)
+      }
     }
   }
 
@@ -61,16 +62,16 @@ class VertxPlugin implements Plugin<Project> {
         }
       }
 
+      configurations {
+        provided
+        testCompile.extendsFrom provided
+      }
+
       /* IDE Configuration */
       apply plugin: 'eclipse'
       apply plugin: 'idea'
 
       defaultTasks = ['assemble']
-
-      configurations {
-        provided
-        testCompile.extendsFrom provided
-      }
 
       repositories {
         if (System.getenv('JENKINS_HOME') == null) {
@@ -136,10 +137,6 @@ class VertxPlugin implements Plugin<Project> {
         archives sourcesJar
       }
 
-      if (isModule) {
-        configureModule(it)
-      }
-
       if(repotype == 'maven'){
         apply plugin: MavenSettings
       }
@@ -158,7 +155,14 @@ class VertxPlugin implements Plugin<Project> {
       dependencies {
         provided "io.vertx:vertx-core:${vertxVersion}"
         provided "io.vertx:vertx-platform:${vertxVersion}"
+
         testCompile "io.vertx:testtools:${toolsVersion}"
+      }
+
+      sourceSets {
+        main {
+          compileClasspath = compileClasspath + configurations.provided
+        }
       }
 
       /* Task Configuration */
@@ -177,11 +181,6 @@ class VertxPlugin implements Plugin<Project> {
             it.type == 'jar'
           }
         )
-
-        artifacts.each {
-          println it
-          println it.type
-        }
       }
       artifacts {
         archives modZip
@@ -193,24 +192,36 @@ class VertxPlugin implements Plugin<Project> {
   def addModuleTasks(Project project) {
     println "Adding tasks to $project"
     project.with {
-      task('copyMod', type: Copy, dependsOn: 'classes', description: 'Assemble the module into the local mods directory') {
-        into rootProject.file("mods/$moduleName")
-        from compileJava
-        from file('src/main/resources')
 
-        // and then into module library directory
-        into( 'lib' ) {
-          from configurations.compile.copy { def dependency ->
-            // remove any project dependencies that are configured as modules
-            if (dependency instanceof ProjectDependency) {
-              return !dependency.dependencyProject.isModule
-            } else {
-              return true
+      // Adding and configuring the copyMod task:
+      //
+      // This is done in this manner instead of using the copy task type because we need
+      // to evaluate properties of the project only after they have been evaluated. Thus
+      // we want to do this only when the task is being executed.
+      task('copyMod', dependsOn: 'classes', description: 'Assemble the module into the local mods directory') << {
+        copy {
+          into rootProject.file("mods/$moduleName")
+          from compileJava
+          from file('src/main/resources')
+
+          // and then into module library directory
+          into( 'lib' ) {
+            from configurations.compile.copy { def dependency ->
+              // remove any project dependencies that are configured as modules
+              if (dependency instanceof ProjectDependency) {
+                return !dependency.dependencyProject.isModule
+              } else {
+                return true
+              }
             }
           }
         }
       }
+      copyMod {
+        outputs.dir "mods/$moduleName"
+      }
 
+      // Zipping up the module
       task('modZip', type: Zip, dependsOn: 'pullInDeps', description: 'Package the module .zip file') {
         group = 'vert.x'
         description = "Assembles a vert.x module"
@@ -238,7 +249,7 @@ class VertxPlugin implements Plugin<Project> {
           pm.deployModule(moduleName, null, 1, new Handler<String>() {
             public void handle(String deploymentID) {
               if (!deploymentID){
-                logger.error 'Verticle failed to deploy.'
+                println.error 'Verticle failed to deploy.'
 
                 // Wake the main thread
                 synchronized(mutex){
@@ -247,8 +258,8 @@ class VertxPlugin implements Plugin<Project> {
                 return
               }
 
-              logger.info "Verticle deployed! Deployment ID is: $deploymentID"
-              logger.info 'CTRL-C to stop server'
+              println "Verticle deployed! Deployment ID is: $deploymentID"
+              println 'CTRL-C to stop server'
             }
           });
 

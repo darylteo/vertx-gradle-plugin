@@ -26,7 +26,6 @@ ext.configurePom = { def pom ->
   pom.project {
     description 'Description of your module here'
     inceptionYear '2013'
-    packaging 'zip'
     url 'Your project url'
 
     developers {

@@ -23,12 +23,10 @@ dependencies {
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-platform:$vertxVersion"
   compile "io.vertx:testtools:$toolsVersion"
-
-  testRuntime "$group:$artifact:$version"
 }
 
 test {
-  testLogging.showStandardStreams = true
+  testLogging.showStandardStreams = false
 }
 
 // These tasks are required for maven/sonatype
