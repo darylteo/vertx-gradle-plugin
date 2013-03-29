@@ -1,16 +1,19 @@
-import org.gradle.api.*
-import org.gradle.testfixtures.*;
-
-import org.junit.*
 import static org.junit.Assert.*
 
+import org.gradle.api.*
+import org.gradle.testfixtures.*
+import org.junit.*
+
+import com.darylteo.gradle.vertx.VertxProjectPlugin
+
+import groovyx.net.http.*
+
 class VertxPluginTest {
-  def builder
+  static builder
+  static root, runnable, nonrunnable, library
 
-  def root, runnable, nonrunnable, library
-
-  @Before
-  public void before(){
+  @BeforeClass
+  public static void beforeClass() {
     /* Simulating build lifecycle */
     this.builder = ProjectBuilder.builder()
 
@@ -26,79 +29,127 @@ class VertxPluginTest {
     nonrunnable.delete 'build'
     library.delete 'build'
 
-    applyScript(root)
+    root.delete "${System.getProperty('user.home')}/.m2/repositories/com/darylteo/plugin-module1"
+
+    def http = new HTTPBuilder('https://oss.sonatype.org/content/repositories/snapshots/com/darylteo/plugin-module1')
+    http.auth.basic(root.sonatypeUsername, root.sonatypePassword)
+
+    http.request(Method.DELETE, ContentType.ANY) { req ->
+      response.success = { resp, reader ->
+        println 'Deleted plugin snapshot'
+      }
+      response.failure = {
+        // no op
+      }
+    }
+
+    applyBuildScript(root)
+    evaluateProject(root)
   }
 
   @Test
-  public void testModulePluginRunnable() {
+  public void testRunnable() {
     runnable.with {
-      assertTrue('VertxPlugin not applied', vertx)
+      assertNotNull('VertxProjectPlugin not applied', plugins.getPlugin(VertxProjectPlugin))
 
-      assertNotNull('VertxPlugin did not set props main properly', config.main)
+      assertTrue('Project should be module', isModule)
       assertTrue('Module should be runnable', isRunnable)
 
-      assertNotNull('Could not find copy task', tasks.findByPath('copyMod'))
-      assertNotNull('Could not find zip task', tasks.findByPath('modZip'))
-      assertNotNull('Could not find run task', tasks.findByPath('run-plugin-module1'))
+      assertNotNull('Runnable should have copy task', tasks.findByPath('copyMod'))
+      assertNotNull('Runnable should have zip task', tasks.findByPath('modZip'))
+      assertNotNull('Runnable should have run task', tasks.findByPath('run-plugin-module1'))
     }
   }
 
   @Test
-  public void testModulePluginNonRunnable() {
+  public void testNonRunnable() {
     nonrunnable.with {
-      assertTrue('VertxPlugin not applied', vertx)
+      assertNotNull('VertxProjectPlugin not applied', plugins.getPlugin(VertxProjectPlugin))
 
-      assertNull('VertxPlugin did not set props main properly', config.main)
+      assertTrue('Project should be module', isModule)
       assertFalse('Module should not be runnable', isRunnable)
 
-      assertNotNull('Could not find copy task', tasks.findByPath('copyMod'))
-      assertNotNull('Could not find zip task', tasks.findByPath('modZip'))
+      assertNotNull('Nonrunnable should have copy task', tasks.findByPath('copyMod'))
+      assertNotNull('Nonrunnable should have zip task', tasks.findByPath('modZip'))
       assertNull('Nonrunnable should not have run task for runnable module', tasks.findByPath('run-module1'))
       assertNull('Nonrunnable should not have run task for itself', tasks.findByPath('run-plugin-module2'))
     }
   }
 
   @Test
-  public void testClassLibrary() {
-    // test make sure tasks not applied to this
+  public void testLibrary() {
     library.with {
-      assertNull(tasks.findByPath('copyMod'))
-      assertNull(tasks.findByPath('modZip'))
-      assertNull(tasks.findByPath('run-module1'))
-      assertNull(tasks.findByPath('run-module2'))
+      assertNotNull('VertxProjectPlugin not applied', plugins.getPlugin(VertxProjectPlugin))
+
+      assertFalse('Project should not be module', isModule)
+      assertFalse('Since not module should definitely not be runnable', isRunnable)
+
+      assertNull('Library should not have copy task', tasks.findByPath('copyMod'))
+      assertNull('Library should not have zip task', tasks.findByPath('modZip'))
+      assertNull('Library should not have run task for runnable module', tasks.findByPath('run-module1'))
     }
   }
 
   @Test
   public void testModuleAssembly() {
-    runnable.copyMod.execute()
-    runnable.modZip.execute()
+    executeTask(runnable.modZip)
 
     assertTrue('mods directory not created', root.file('mods').isDirectory())
     assertTrue('module directory not copied into mods directory', root.file("mods/${runnable.moduleName}").isDirectory())
 
-    // I cannot get this stupid tests to pass!
-    // assertTrue('lib directory not created', root.file("mods/${runnable.moduleName}/lib").isDirectory())
-    // assertTrue('library jar not copied into lib', root.file("mods/${runnable.moduleName}/lib/library-1.0.0-SNAPSHOT.jar").isFile())
-    // assertTrue('zip not created', runnable.file("${runnable.buildDir}/lib/${runnable.artifact}-${runnable.version}.zip").exists())
+    assertTrue('lib directory not created', root.file("mods/${runnable.moduleName}/lib").isDirectory())
+    assertFalse('nonrunnable should not be copied into lib', root.file("mods/${runnable.moduleName}/lib/nonrunnable-1.0.0-SNAPSHOT.jar").isFile())
+    assertTrue('library jar not copied into lib', root.file("mods/${runnable.moduleName}/lib/library-1.0.0-SNAPSHOT.jar").isFile())
+
+    assertTrue('zip not created', runnable.file("${runnable.buildDir}/libs/${runnable.artifact}-${runnable.version}.zip").exists())
+  }
+
+  @Test
+  public void testMavenInstall() {
+    executeTask(runnable.install)
+
+    def repo = "${System.getProperty('user.home')}/.m2/repository/com/darylteo/plugin-module1"
+
+    assertTrue('Create repo directory', root.file("$repo").isDirectory())
+    assertTrue('Create repo version', root.file("$repo/${runnable.version}").isDirectory())
+    assertTrue('Create repo zip', root.file("$repo/${runnable.version}/plugin-module1-${runnable.version}.zip").isFile())
   }
 
   @Test
   public void testMavenUpload() {
-    // TODO: test success of sonatype upload
+    executeTask(runnable.uploadArchives)
+
+    def http = new HTTPBuilder("https://oss.sonatype.org/content/repositories/snapshots/com/darylteo/plugin-module1/${runnable.version}/${runnable.artifact}-${runnable.version}.zip")
+
+    http.request(Method.GET, ContentType.ANY) { req ->
+      response.success = { resp, reader ->
+      }
+      response.failure = {
+        fail('Zip was not uploaded to maven')
+      }
+    }
   }
 
-  def createProject(String path, String name, Project parent) {
+  static createProject(String path, String name, Project parent) {
     def projectDir = new File(path)
     def project = builder.withProjectDir(projectDir).withParent(parent).withName(name).build()
+    loadProperties(project, "${System.getProperty('user.home')}/.gradle/gradle.properties")
     loadProperties(project)
 
     return project
   }
 
-  def loadProperties(Project project) {
-    def file = project.file('gradle.properties')
+  static loadProperties(Project project) {
+    loadProperties(project, 'gradle.properties')
+  }
 
+  static loadProperties(Project project, String filename) {
+    def file = project.file(filename)
+
+    loadProperties(project, file)
+  }
+
+  static loadProperties(Project project, File file) {
     if (!file.canRead()) {
       return
     }
@@ -117,7 +168,7 @@ class VertxPluginTest {
     }
   }
 
-  def applyScript(Project project) {
+  static applyBuildScript(Project project) {
     def file = project.file('build.gradle')
 
     if (!file.canRead()) {
@@ -125,10 +176,28 @@ class VertxPluginTest {
     }
 
     project.apply from: file
+
+    project.childProjects.each { def name, child ->
+      applyBuildScript(child)
+    }
   }
 
-  def executeTask(Task task) {
-    task.taskDependencies.dependencies(task).each { Task t ->
+  static evaluateProject(Project project) {
+    project.evaluate()
+
+    project.childProjects.each { def name, child ->
+      evaluateProject(child)
+    }
+  }
+
+  static executeTask(Project project, String taskName) {
+    Task task = project.tasks.findByPath(taskName)
+
+    return task ? executeTask(task) : null
+  }
+
+  static executeTask(Task task) {
+    for (t in task.taskDependencies.getDependencies(task)) {
       executeTask(t)
     }
 

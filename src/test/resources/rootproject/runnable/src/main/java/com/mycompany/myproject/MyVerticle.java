@@ -18,6 +18,7 @@ package com.mycompany.myproject;
  */
 
 import org.vertx.java.platform.Verticle;
+import com.darylteo.rx.promises.*;
 
 public class MyVerticle extends Verticle {
 
@@ -26,5 +27,12 @@ public class MyVerticle extends Verticle {
   }
 
   public void stop() {
+  }
+
+  // Testing vertx module transitive support
+  private Promise<String> makePromise() {
+    Promise<String> promise = Promise.defer();
+
+    return promise;
   }
 }

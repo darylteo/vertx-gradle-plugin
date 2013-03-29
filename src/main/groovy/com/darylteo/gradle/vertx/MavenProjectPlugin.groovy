@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.darylteo.gradle
+package com.darylteo.gradle.vertx
 
 import org.gradle.api.*
-import org.gradle.api.logging.*;
-import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.logging.*
+import org.gradle.api.artifacts.maven.*
 
-public class MavenSettings implements Plugin<Project> {
+public class MavenProjectPlugin implements org.gradle.api.Plugin<Project> {
   void apply(Project project) {
     project.with {
+      // apply required plugins
       apply plugin: 'maven'
       apply plugin: 'signing'
 
       loadDefaults(it)
 
-      configurations {
-        archives
-      }
+      configurations { archives }
 
-      install.doFirst {
-        repositories.mavenInstaller {
-          configurePom(pom)
-        }
+      install {
+        repositories.mavenInstaller { configurePom(project, pom) }
       }
 
       signing {
@@ -42,7 +39,7 @@ public class MavenSettings implements Plugin<Project> {
         sign configurations.archives
       }
 
-      uploadArchives.doFirst {
+      uploadArchives {
         group 'build'
         description = "Does a maven deploy of archives artifacts"
 
@@ -64,14 +61,15 @@ public class MavenSettings implements Plugin<Project> {
               authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
 
-            configurePom(pom)
+            configurePom(project, pom)
           }
         }
       }
-    }
+
+    } // end .with
   }
 
-  def configurePom = { def pom ->
+  def configurePom(Project project, def pom) {
     if(project.hasProperty('artifact')){
       pom.artifactId = project.artifact
     }
@@ -84,15 +82,9 @@ public class MavenSettings implements Plugin<Project> {
   }
 
   def loadDefaults(Project project){
-    (
-      [
-        sonatypeUsername: '',
-        sonatypePassword: ''
-      ]
-    ).each { def k,v ->
-      if (!project.hasProperty(k) && !project.ext.hasProperty(k)){
-        project.ext[k] = v
-      }
-    }
+    project.defaults (
+      sonatypeUsername: '',
+      sonatypePassword: ''
+    )
   }
 }

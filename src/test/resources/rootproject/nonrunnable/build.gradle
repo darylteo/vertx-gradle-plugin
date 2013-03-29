@@ -1,5 +1,9 @@
 println "Performing custom configuration."
 
+repositories {
+  mavenLocal()
+}
+
 dependencies {
   /*
   Add your module jar dependencies here
@@ -8,6 +12,8 @@ dependencies {
   testCompile "com.foo:foo-lib:1.0.1" - for test time deps
   provided "com.foo:foo-lib:1.0.1" - if you DON'T want it to be packaged in the module zip
    */
+
+  modules vertxModule('com.darylteo~vertx-promises~1.0.0-ALPHA1-SNAPSHOT')
 }
 
 test {

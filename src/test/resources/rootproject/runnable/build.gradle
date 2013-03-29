@@ -24,8 +24,8 @@ test {
 If you're uploading stuff to Maven, Gradle needs to generate a POM.
 Simply uncomment the following method and edit the details below.
  */
-/*
 ext.configurePom = { def pom ->
+  println "CONFIGURING POM"
   pom.project {
     description 'Description of your module here'
     inceptionYear '2013'
@@ -56,4 +56,3 @@ ext.configurePom = { def pom ->
     }
   }
 }
-*/

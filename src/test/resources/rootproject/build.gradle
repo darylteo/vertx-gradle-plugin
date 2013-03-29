@@ -1,3 +1,13 @@
-subprojects {
-  apply plugin: com.darylteo.gradle.VertxPlugin
+buildscript {
+  repositories {
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath "io.vertx:vertx-core:${vertxVersion}"
+    classpath "io.vertx:vertx-platform:${vertxVersion}"
+  }
 }
+
+apply plugin: com.darylteo.gradle.vertx.VertxPlugin
