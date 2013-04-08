@@ -19,6 +19,8 @@ import org.gradle.api.*
 import org.gradle.api.logging.*
 import org.gradle.api.artifacts.maven.*
 
+import com.darylteo.gradle.vertx.tasks.*
+
 public class MavenProjectPlugin implements org.gradle.api.Plugin<Project> {
   void apply(Project project) {
     project.with {
@@ -30,13 +32,17 @@ public class MavenProjectPlugin implements org.gradle.api.Plugin<Project> {
 
       configurations { archives }
 
-      install {
-        repositories.mavenInstaller { configurePom(project, pom) }
-      }
-
       signing {
         required { release && gradle.taskGraph.hasTask("uploadArchives") }
         sign configurations.archives
+      }
+
+      install {
+        repositories.mavenInstaller {
+          if(project.hasProperty('artifact')) {
+            pom.artifactId = project.artifact
+          }
+        }
       }
 
       uploadArchives {
@@ -61,24 +67,14 @@ public class MavenProjectPlugin implements org.gradle.api.Plugin<Project> {
               authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
 
-            configurePom(project, pom)
+            if(project.hasProperty('artifact')) {
+              pom.artifactId = project.artifact
+            }
           }
         }
       }
 
     } // end .with
-  }
-
-  def configurePom(Project project, def pom) {
-    if(project.hasProperty('artifact')){
-      pom.artifactId = project.artifact
-    }
-
-    if (project.hasProperty('configurePom')){
-      project.configurePom(pom)
-    } else {
-      println("$project does not provide a configurePom(). Maven validation may fail when attempting to close a staged artifact.")
-    }
   }
 
   def loadDefaults(Project project){

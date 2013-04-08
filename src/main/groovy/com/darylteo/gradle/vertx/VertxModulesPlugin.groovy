@@ -50,7 +50,7 @@ class VertxModulesPlugin implements Plugin<Project>{
       }
 
       // this task is responsible for extracting all the zip files
-      task('installModules', type:Sync, dependsOn: [configurations.modules]) {
+      task('installModules', type:Sync, dependsOn: configurations.modules) {
         // resolve and extract module zips
         allVertxModules
           // extract each
@@ -134,7 +134,7 @@ class VertxModulesPlugin implements Plugin<Project>{
       dependentProjects
         .collect({ dep -> dep.allVertxModules })
         .each({ files ->
-          result += files
+          result = result + files
         })
 
       _allModules = result
@@ -154,7 +154,7 @@ class VertxModulesPlugin implements Plugin<Project>{
     }
 
     String vertxModule(String group, String name, String version) {
-      return "$group:$name:$version"
+      return "$group:$name:$version@zip"
     }
   }
 

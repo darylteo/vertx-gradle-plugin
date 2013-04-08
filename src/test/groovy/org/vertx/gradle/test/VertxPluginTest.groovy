@@ -29,7 +29,9 @@ class VertxPluginTest {
     nonrunnable.delete 'build'
     library.delete 'build'
 
-    root.delete "${System.getProperty('user.home')}/.m2/repositories/com/darylteo/plugin-module1"
+    root.delete "${System.getProperty('user.home')}/.m2/repository/com/darylteo/plugin-module1"
+    root.delete "${System.getProperty('user.home')}/.m2/repository/com/darylteo/plugin-module2"
+    root.delete "${System.getProperty('user.home')}/.m2/repository/com/darylteo/library"
 
     def http = new HTTPBuilder('https://oss.sonatype.org/content/repositories/snapshots/com/darylteo/plugin-module1')
     http.auth.basic(root.sonatypeUsername, root.sonatypePassword)
@@ -106,13 +108,30 @@ class VertxPluginTest {
 
   @Test
   public void testMavenInstall() {
+    executeTask(library.install)
+    executeTask(nonrunnable.install)
     executeTask(runnable.install)
 
-    def repo = "${System.getProperty('user.home')}/.m2/repository/com/darylteo/plugin-module1"
+    def repo = "${System.getProperty('user.home')}/.m2/repository/com/darylteo/${runnable.artifact}"
 
-    assertTrue('Create repo directory', root.file("$repo").isDirectory())
-    assertTrue('Create repo version', root.file("$repo/${runnable.version}").isDirectory())
-    assertTrue('Create repo zip', root.file("$repo/${runnable.version}/plugin-module1-${runnable.version}.zip").isFile())
+    assertTrue('Create runnable repo directory', root.file("$repo").isDirectory())
+    assertTrue('Create runnable repo version', root.file("$repo/${runnable.version}").isDirectory())
+    assertTrue('Create runnable zip', root.file("$repo/${runnable.version}/${runnable.artifact}-${runnable.version}.zip").isFile())
+    assertFalse('Runnable Module should not have jar', root.file("$repo/${runnable.version}/${runnable.artifact}-${runnable.version}.jar").isFile())
+
+    repo = "${System.getProperty('user.home')}/.m2/repository/com/darylteo/${nonrunnable.artifact}"
+
+    assertTrue('Create nonrunnable repo directory', root.file("$repo").isDirectory())
+    assertTrue('Create nonrunnable repo version', root.file("$repo/${nonrunnable.version}").isDirectory())
+    assertTrue('Create nonrunnable zip', root.file("$repo/${nonrunnable.version}/${nonrunnable.artifact}-${nonrunnable.version}.zip").isFile())
+    assertTrue('Nonrunnable Module with produceJar should have jar', root.file("$repo/${nonrunnable.version}/${nonrunnable.artifact}-${nonrunnable.version}.jar").isFile())
+
+    repo = "${System.getProperty('user.home')}/.m2/repository/com/darylteo/${library.artifact}"
+
+    assertTrue('Create library repo directory', root.file("$repo").isDirectory())
+    assertTrue('Create library repo version', root.file("$repo/${library.version}").isDirectory())
+    assertFalse('Library should not have zip', root.file("$repo/${library.version}/${library.artifact}-${library.version}.zip").isFile())
+    assertTrue('Library should always have jar', root.file("$repo/${library.version}/${library.artifact}-${library.version}.jar").isFile())
   }
 
   @Test
