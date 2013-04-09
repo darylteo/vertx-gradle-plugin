@@ -18,6 +18,7 @@ class VertxModulesPlugin implements Plugin<Project>{
 
     project.configurations {
       modules
+      explodedModules
     }
 
     project.afterEvaluate {
@@ -51,45 +52,58 @@ class VertxModulesPlugin implements Plugin<Project>{
 
       // this task is responsible for extracting all the zip files
       task('installModules', type:Sync, dependsOn: configurations.modules) {
-        // resolve and extract module zips
-        allVertxModules
-          // extract each
-          .each { file ->
-            def modName = file.name - '.zip'
-            def modDir = rootProject.file("mods/$modName")
-
-            into modDir
-            from zipTree(file)
-          } // end .each
-
         doFirst { println "Installing Modules for $project" }
       }
 
       // Setting up the classpath for compilation
-      allVertxModules
-        .each { file ->
-          def modName = file.name - '.zip'
-          def modDir = "mods/$modName"
-          def modLibraries = rootProject.files(
-              rootProject.zipTree(file)
+      configurations.modules.dependencies.each { dep ->
+        def vertxName = "${dep.group}~${dep.name}~${dep.version}"
+        println "$project Dependency: $vertxName"
+
+        configurations.modules.files(dep)
+          // ignore non zips
+          .findAll { file ->
+            return file.name.endsWith('.zip')
+          }.each { file ->
+            // contents of zip
+            def modZip = rootProject.zipTree(file)
+
+            // destination of exploded zip
+            def modDir = "mods/$vertxName"
+
+            // destination of library jars. installModules will put them there
+            def modLibraries = rootProject.files(modZip
               .matching { include 'lib/*.jar' }
               .collect { f -> return "$modDir/lib/$f.name" }
             ) { builtBy installModules }
 
-          // This is required to compile locally
-          sourceSets {
-            all {
-              compileClasspath -= rootProject.files(file)
-              compileClasspath += rootProject.files(modDir)
-              compileClasspath += modLibraries
+            // Configure install modules to install this zip
+            installModules {
+              from modZip
+              into rootProject.file(modDir)
             }
+
+            println "Module Output ${installModules.outputs.files.collect { it.absolutePath }}"
+
+            dependencies.explodedModules rootProject.files(modDir)
+            dependencies.explodedModules modLibraries
+          } // end artifacts .each
+
+      } // end dependencies .each
+
+      sourceSets {
+        all {
+          dependentProjects.each { dependentProject ->
+            compileClasspath -= dependentProject.configurations.modules
+            compileClasspath += dependentProject.configurations.explodedModules
           }
 
-          if (vertxModules.contains(file)) {
-            dependencies.provided rootProject.files(modDir)
-            dependencies.provided modLibraries
-          }
-        } // end .each
+          compileClasspath -= configurations.modules
+          compileClasspath += configurations.explodedModules
+
+          println "$project CompileClasspath ${compileClasspath.collect { it.name }}"
+        }
+      } // end sourceSets
 
     } // end .with
   }
@@ -106,36 +120,26 @@ class VertxModulesPlugin implements Plugin<Project>{
       this.project = project
     }
 
-    def getVertxModules() {
+    def getModuleDependencies() {
       if (_vertxModules) {
         return _vertxModules
       }
 
-      // return empty filecollection if unresolved yet
-      if (!this.project.state.executed) {
-        return this.project.files()
-      }
-
-      _vertxModules = this.project.configurations.modules.incoming.files.filter({ file -> file.name.endsWith('.zip')})
+      _vertxModules = this.project.configurations.modules.allDependencies
       return _vertxModules
     }
 
-    def getAllVertxModules() {
+    def getAllModuleDependencies() {
       if (_allModules) {
         return _allModules
       }
 
-      // return empty filecollection if unresolved yet
-      if (!this.project.state.executed) {
-        return this.project.files()
-      }
+      def result = []
+      result += getModuleDependencies()
 
-      def result = getVertxModules()
-      dependentProjects
-        .collect({ dep -> dep.allVertxModules })
-        .each({ files ->
-          result = result + files
-        })
+      dependentProjects.each { dep ->
+        result += dep.allModuleDependencies
+      }
 
       _allModules = result
       return _allModules
@@ -154,6 +158,7 @@ class VertxModulesPlugin implements Plugin<Project>{
     }
 
     String vertxModule(String group, String name, String version) {
+      // Force zip artifact, in case jar exists
       return "$group:$name:$version@zip"
     }
   }
