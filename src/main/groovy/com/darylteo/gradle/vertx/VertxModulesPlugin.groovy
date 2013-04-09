@@ -19,6 +19,8 @@ class VertxModulesPlugin implements Plugin<Project>{
     project.configurations {
       modules
       explodedModules
+
+      provided.extendsFrom explodedModules
     }
 
     project.afterEvaluate {
@@ -91,7 +93,6 @@ class VertxModulesPlugin implements Plugin<Project>{
       sourceSets {
         all {
           dependentProjects.each { dependentProject ->
-            compileClasspath -= dependentProject.configurations.modules
             compileClasspath += dependentProject.configurations.explodedModules
           }
 

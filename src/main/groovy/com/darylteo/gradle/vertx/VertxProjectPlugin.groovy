@@ -188,25 +188,14 @@ class VertxProjectPlugin implements Plugin<Project> {
       }
 
       artifacts { archives modZip }
-      println "$project ProduceJar $produceJar"
       if (produceJar) {
         artifacts {
           archives javadocJar
           archives sourcesJar
         }
       } else {
-        println "Removing Jars"
-
-        configurations.archives.artifacts.all {
-          println it
-        }
         configurations.archives.artifacts.removeAll configurations.archives.artifacts.findAll { artifact ->
           jar.outputs.files.contains(artifact.file)
-        }
-
-        println "Done"
-        configurations.archives.artifacts.all {
-          println it
         }
       }
 
