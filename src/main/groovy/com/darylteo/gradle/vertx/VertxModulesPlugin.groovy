@@ -58,7 +58,6 @@ class VertxModulesPlugin implements Plugin<Project>{
       // Setting up the classpath for compilation
       configurations.modules.dependencies.each { dep ->
         def vertxName = "${dep.group}~${dep.name}~${dep.version}"
-        println "$project Dependency: $vertxName"
 
         configurations.modules.files(dep)
           // ignore non zips
@@ -83,8 +82,6 @@ class VertxModulesPlugin implements Plugin<Project>{
               into rootProject.file(modDir)
             }
 
-            println "Module Output ${installModules.outputs.files.collect { it.absolutePath }}"
-
             dependencies.explodedModules rootProject.files(modDir)
             dependencies.explodedModules modLibraries
           } // end artifacts .each
@@ -100,8 +97,6 @@ class VertxModulesPlugin implements Plugin<Project>{
 
           compileClasspath -= configurations.modules
           compileClasspath += configurations.explodedModules
-
-          println "$project CompileClasspath ${compileClasspath.collect { it.name }}"
         }
       } // end sourceSets
 
@@ -111,38 +106,10 @@ class VertxModulesPlugin implements Plugin<Project>{
   private class VertxModulesPluginConvention {
     private Project project
 
-    private _vertxModules
-    private _allModules
-
     def dependentProjects = []
 
     VertxModulesPluginConvention(Project project) {
       this.project = project
-    }
-
-    def getModuleDependencies() {
-      if (_vertxModules) {
-        return _vertxModules
-      }
-
-      _vertxModules = this.project.configurations.modules.allDependencies
-      return _vertxModules
-    }
-
-    def getAllModuleDependencies() {
-      if (_allModules) {
-        return _allModules
-      }
-
-      def result = []
-      result += getModuleDependencies()
-
-      dependentProjects.each { dep ->
-        result += dep.allModuleDependencies
-      }
-
-      _allModules = result
-      return _allModules
     }
 
     // Convenience Methods for converting vertx notation dependencies
