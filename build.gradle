@@ -1,10 +1,13 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies { classpath "com.darylteo:maven-plugin:1.1.0-ALPHA1-SNAPSHOT"  }
+}
+
 apply plugin: 'groovy'
-apply plugin: 'eclipse'
-
-apply plugin: 'maven'
-apply plugin: 'signing'
-
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+apply plugin: com.darylteo.gradle.plugins.MavenPlugin
 
 repositories {
   mavenLocal()
@@ -12,17 +15,9 @@ repositories {
   mavenCentral()
 }
 
-if (!project.hasProperty('release')){
-  ext.release = false;
-}
-
-if(!release){
-  version = "$version-SNAPSHOT"
-}
-
 dependencies {
   compile gradleApi()
-  groovy localGroovy()
+  compile localGroovy()
 
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-platform:$vertxVersion"
@@ -31,62 +26,16 @@ dependencies {
   testCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.6"
 }
 
-// These tasks are required for maven/sonatype
-task docJar(type: Jar, dependsOn: groovydoc) {
-  classifier = 'javadoc'
-  from tasks.groovydoc.destinationDir
-}
-
-task sourcesJar(type: Jar) {
-  classifier = 'sources'
-  from sourceSets.main.allSource
-}
-
-artifacts {
-  archives docJar
-  archives sourcesJar
-}
-
-signing {
-  required { release && gradle.taskGraph.hasTask("uploadArchives") }
-  sign configurations.archives
-}
-
-install {
-  repositories.mavenInstaller {
-    pom.artifactId = artifact
-  }
-}
-
 uploadArchives {
-  group 'build'
-  description = "Does a maven deploy of archives artifacts"
-
   repositories {
     mavenDeployer {
-      setUniqueVersion(false)
-
-      configuration = configurations.archives
-
-      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: sonatypeUsername, password: sonatypePassword)
-      }
-
-      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: sonatypeUsername, password: sonatypePassword)
-      }
-
-      if (release) {
-        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-      }
-
       pom {
         artifactId = artifact
         project {
           name 'Vertx Gradle Plugin'
           description 'Gradle Plugin for Vert.x Projects'
           inceptionYear '2013'
-          url 'http://github.com/darylteo/vertx-gradle-template'
+          url 'http://github.com/darylteo/vertx-gradle-plugin'
 
           developers {
             developer {
@@ -96,9 +45,7 @@ uploadArchives {
             }
           }
 
-          scm {
-            url 'http://github.com/darylteo/vertx-gradle-template'
-          }
+          scm { url 'http://github.com/darylteo/vertx-gradle-template' }
 
           licenses {
             license {
@@ -107,9 +54,7 @@ uploadArchives {
               distribution 'repo'
             }
           }
-          properties {
-            setProperty('project.build.sourceEncoding', 'UTF8')
-          }
+          properties { setProperty('project.build.sourceEncoding', 'UTF8') }
         }
       }
     }
