@@ -26,37 +26,40 @@ dependencies {
   testCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.6"
 }
 
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      pom {
-        artifactId = artifact
-        project {
-          name 'Vertx Gradle Plugin'
-          description 'Gradle Plugin for Vert.x Projects'
-          inceptionYear '2013'
-          url 'http://github.com/darylteo/vertx-gradle-plugin'
+maven {
+  group = 'com.darylteo'
+  version = '1.1.0-ALPHA1'
+  release = project.hasProperty('release') ? project.release : false
 
-          developers {
-            developer {
-              id 'darylteo'
-              name 'Daryl Teo'
-              email 'i.am@darylteo.com'
-            }
-          }
+  username = sonatypeUsername
+  password = sonatypePassword
 
-          scm { url 'http://github.com/darylteo/vertx-gradle-template' }
+  repository = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+  snapshotRepository = 'https://oss.sonatype.org/content/repositories/snapshots/'
 
-          licenses {
-            license {
-              name 'The Apache Software License, Version 2.0'
-              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              distribution 'repo'
-            }
-          }
-          properties { setProperty('project.build.sourceEncoding', 'UTF8') }
-        }
+  project {
+    name 'Vertx Gradle Plugin'
+    description 'Gradle Plugin for Vert.x Projects'
+    inceptionYear '2013'
+    url 'http://github.com/darylteo/vertx-gradle-plugin'
+
+    developers {
+      developer {
+        id 'darylteo'
+        name 'Daryl Teo'
+        email 'i.am@darylteo.com'
       }
     }
+
+    scm { url 'http://github.com/darylteo/vertx-gradle-plugin' }
+
+    licenses {
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }
+    }
+    properties { setProperty('project.build.sourceEncoding', 'UTF8') }
   }
 }

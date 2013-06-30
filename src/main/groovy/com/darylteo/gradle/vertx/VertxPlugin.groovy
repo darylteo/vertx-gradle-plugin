@@ -25,7 +25,6 @@ import org.vertx.java.platform.impl.ModuleClassLoader
 
 class VertxPlugin implements Plugin<Project> {
   void apply(Project project) {
-    project.allprojects { apply plugin: PropertiesPlugin }
     project.subprojects { apply plugin: VertxProjectPlugin }
     project.subprojects { apply plugin: VertxModulesPlugin }
   }
