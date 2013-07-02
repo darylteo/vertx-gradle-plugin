@@ -22,9 +22,6 @@ import org.vertx.java.platform.impl.ModuleClassLoader
 class VertxProjectPlugin implements Plugin<Project> {
   @Override
   public void apply(Project project) {
-    println project
-    project.extensions.create('_vertx', VertxProjectExtension)
-
     project.convention.plugins.projectPlugin = new ProjectPluginConvention(project)
     project.convention.plugins.jsonProperties = new ModuleJsonConvention(project)
 
@@ -256,6 +253,7 @@ class VertxProjectPlugin implements Plugin<Project> {
 
   private class ProjectPluginConvention {
     private Project project
+    private VertxProperties properties
 
     ProjectPluginConvention(Project project){
       this.project = project
@@ -267,22 +265,22 @@ class VertxProjectPlugin implements Plugin<Project> {
 
     def vertx(Closure closure) {
       def map = [:]
-      
+
       closure.setDelegate(map)
       closure.resolveStrategy = Closure.DELEGATE_FIRST
       closure(map)
-      
+
       vertx(map)
     }
 
     def vertx(Map values) {
       values.each { k,v ->
-        project._vertx[k] = v
+        properties[k] = v
       }
     }
 
     def getVertx() {
-      return project._vertx;
+      return properties
     }
   }
 
