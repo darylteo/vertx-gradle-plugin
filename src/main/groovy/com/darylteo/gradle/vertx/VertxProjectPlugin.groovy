@@ -30,6 +30,7 @@ class VertxProjectPlugin implements Plugin<Project> {
 
     project.beforeEvaluate {
       println "Before Evaluate"
+      println project.vertx
       println project.vertx.version
     }
     //    project.afterEvaluate { addModuleTasks project }
@@ -265,19 +266,9 @@ class VertxProjectPlugin implements Plugin<Project> {
     }
 
     def vertx(Closure closure) {
-      def map = [:]
-
-      closure.setDelegate(map)
+      closure.setDelegate(properties)
       closure.resolveStrategy = Closure.DELEGATE_FIRST
-      closure(map)
-
-      vertx(map)
-    }
-
-    def vertx(Map values) {
-      values.each { k,v ->
-        properties[k] = v
-      }
+      closure(properties)
     }
 
     def getVertx() {
