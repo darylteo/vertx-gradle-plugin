@@ -257,6 +257,7 @@ class VertxProjectPlugin implements Plugin<Project> {
 
     ProjectPluginConvention(Project project){
       this.project = project
+      this.properties = new VertxProperties()
     }
 
     String getModuleName() {
