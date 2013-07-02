@@ -21,7 +21,7 @@ dependencies {
 
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-platform:$vertxVersion"
-  compile "io.vertx:testtools:$toolsVersion"
+  compile "io.vertx:testtools:$vertxVersion"
 
   testCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.6"
 }

@@ -17,19 +17,25 @@ import org.vertx.java.platform.impl.ModuleClassLoader
  *
  * Required Properties
  *  * vertxVersion - version of Vertx to use
- *  * toolsVersion - version of Vertx Test Tools to use
  * @author Daryl Teo
  */
 class VertxProjectPlugin implements Plugin<Project> {
   @Override
   public void apply(Project project) {
+    println project
+    project.extensions.create('_vertx', VertxProjectExtension)
+
     project.convention.plugins.projectPlugin = new ProjectPluginConvention(project)
     project.convention.plugins.jsonProperties = new ModuleJsonConvention(project)
 
-    loadModuleProperties(project)
-    configureProject(project)
+    //    loadModuleProperties(project)
+    //    configureProject(project)
 
-    project.afterEvaluate { addModuleTasks project }
+    project.beforeEvaluate {
+      println "Before Evaluate"
+      println project.vertx.version
+    }
+    //    project.afterEvaluate { addModuleTasks project }
   }
 
   private void configureProject(Project project) {
@@ -150,21 +156,21 @@ class VertxProjectPlugin implements Plugin<Project> {
           ModuleClassLoader.reverseLoadOrder = false
           def pm = PlatformLocator.factory.createPlatformManager()
           pm.deployModule(moduleName, null, 1, new Handler<String>() {
-            public void handle(String deploymentID) {
-              if (!deploymentID){
-                println.error 'Verticle failed to deploy.'
+              public void handle(String deploymentID) {
+                if (!deploymentID){
+                  println.error 'Verticle failed to deploy.'
 
-                // Wake the main thread
-                synchronized(mutex){
-                  mutex.notify()
+                  // Wake the main thread
+                  synchronized(mutex){
+                    mutex.notify()
+                  }
+                  return
                 }
-                return
-              }
 
-              println "Verticle deployed! Deployment ID is: $deploymentID"
-              println 'CTRL-C to stop server'
-            }
-          });
+                println "Verticle deployed! Deployment ID is: $deploymentID"
+                println 'CTRL-C to stop server'
+              }
+            });
 
           // Waiting thread so that Verticle will continue running
           synchronized (mutex){
@@ -173,9 +179,7 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
       }
 
-      jar {
-        archiveName = "$artifact-${version}.jar"
-      }
+      jar { archiveName = "$artifact-${version}.jar" }
 
       task('javadocJar', type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
@@ -209,16 +213,16 @@ class VertxProjectPlugin implements Plugin<Project> {
   private void loadModuleProperties(Project project){
     // Load default properties
     project.defaults (
-        group: 'my-company',
-        artifact: project.name,
-        version: '1.0.0',
-        repotype: 'local',
-        produceJar: false,
+      group: 'my-company',
+      artifact: project.name,
+      version: '1.0.0',
+      repotype: 'local',
+      produceJar: false,
 
-        isModule: false,
+      isModule: false,
 
-        release: false
-        )
+      release: false
+      )
 
     if(!project.release) {
       project.version = "${project.version}-SNAPSHOT"
@@ -259,6 +263,26 @@ class VertxProjectPlugin implements Plugin<Project> {
 
     String getModuleName() {
       return "${project.group}~${project.artifact}~${project.version}"
+    }
+
+    def vertx(Closure closure) {
+      def map = [:]
+      
+      closure.setDelegate(map)
+      closure.resolveStrategy = Closure.DELEGATE_FIRST
+      closure(map)
+      
+      vertx(map)
+    }
+
+    def vertx(Map values) {
+      values.each { k,v ->
+        project._vertx[k] = v
+      }
+    }
+
+    def getVertx() {
+      return project._vertx;
     }
   }
 
