@@ -40,6 +40,9 @@ class VertxProjectPlugin implements Plugin<Project> {
           apply plugin: 'java'
         }
 
+        sourceCompatibility = '1.7'
+        targetCompatibility = '1.7'
+
         repositories {
           mavenCentral()
           maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
@@ -82,9 +85,32 @@ class VertxProjectPlugin implements Plugin<Project> {
   private void addModuleTasks(Project project){
     project.afterEvaluate {
       project.with {
-        task('copyMod', dependsOn: 'classes', type: Copy, description: 'Assemble the module into the local mods directory') {
+        task('generateModJson') {
+          def confdir = file("$buildDir/conf")
+          def modjson = file("$confdir/mod.json")
+          outputs.dir modjson
+
+          doLast{
+            confdir.mkdirs()
+            modjson.createNewFile()
+
+            modjson << JsonOutput.toJson(vertx.config)
+          }
+        }
+
+        task('copyMod', dependsOn: [classes, generateModJson], type: Copy) {
+          group = 'vert.x'
+          description = 'Assemble the module into the local mods directory'
+
           into rootProject.file("mods/${project.moduleName}")
-          sourceSets.all { from it.output }
+
+          sourceSets.all {
+            if (it.name != 'test'){
+              println it.name
+              from it.output
+            }
+          }
+          from generateModJson
 
           // and then into module library directory
           into ('lib') {
@@ -93,110 +119,10 @@ class VertxProjectPlugin implements Plugin<Project> {
           }
 
         }
+
+        test { dependsOn copyMod }
       }
     }
-    //      test { dependsOn copyMod }
-    //
-    //      // Zipping up the module
-    //      task('modZip', type: Zip, dependsOn: 'pullInDeps', description: 'Package the module .zip file') {
-    //        group = 'vert.x'
-    //        description = "Assembles a vert.x module"
-    //        destinationDir = file("$buildDir/libs")
-    //        archiveName = "${artifact}-${version}.zip"
-    //
-    //        from copyMod
-    //      }
-    //
-    //      // Adding Tasks
-    //      task('pullInDeps', dependsOn: 'copyMod', description: 'Pull in all the module dependencies for the module into the nested mods directory') << {
-    //        if (pullInDeps == 'true') {
-    //          def pm = PlatformLocator.factory.createPlatformManager()
-    //          System.out.println("Pulling in dependencies for module $moduleName. Please wait...")
-    //          pm.pullInDependencies(moduleName)
-    //          System.out.println("Dependencies pulled into mods directory of module")
-    //        }
-    //      }
-    //
-    //      // run task
-    //      if (isRunnable) {
-    //        task("run-${artifact}", dependsOn: 'copyMod', description: 'Run the module using all the build dependencies (not using installed vertx)') << {
-    //          def mutex = new Object()
-    //
-    //          ModuleClassLoader.reverseLoadOrder = false
-    //          def pm = PlatformLocator.factory.createPlatformManager()
-    //          pm.deployModule(moduleName, null, 1, new Handler<String>() {
-    //              public void handle(String deploymentID) {
-    //                if (!deploymentID){
-    //                  println.error 'Verticle failed to deploy.'
-    //
-    //                  // Wake the main thread
-    //                  synchronized(mutex){
-    //                    mutex.notify()
-    //                  }
-    //                  return
-    //                }
-    //
-    //                println "Verticle deployed! Deployment ID is: $deploymentID"
-    //                println 'CTRL-C to stop server'
-    //              }
-    //            });
-    //
-    //          // Waiting thread so that Verticle will continue running
-    //          synchronized (mutex){
-    //            mutex.wait()
-    //          }
-    //        }
-    //      }
-    //
-    //      jar { archiveName = "$artifact-${version}.jar" }
-    //
-    //      task('javadocJar', type: Jar, dependsOn: javadoc) {
-    //        classifier = 'javadoc'
-    //        from "$buildDir/docs/javadoc"
-    //      }
-    //
-    //      task('sourcesJar', type: Jar) {
-    //        from sourceSets.main.allSource
-    //        classifier = 'sources'
-    //      }
-    //
-    //      artifacts { archives modZip }
-    //      if (produceJar) {
-    //        artifacts {
-    //          archives javadocJar
-    //          archives sourcesJar
-    //        }
-    //      } else {
-    //        configurations.archives.artifacts.removeAll configurations.archives.artifacts.findAll { artifact ->
-    //          jar.outputs.files.contains(artifact.file)
-    //        }
-    //      }
-
-  }
-
-  private void applyLanguagePlugins(Project project) {
-    def applied = false
-
-    project.with {
-      // Apply language plugins
-      ['java', 'scala', 'groovy'].each { def lang ->
-        if(it.file("src/main/$lang").isDirectory() || it.file("src/test/$lang").isDirectory()){
-          println "$it: $lang detected. Applying $lang plugin."
-          it.apply plugin: lang
-          applied = true
-        }
-      }
-
-      if (!applied) {
-        apply plugin: 'java' // required for test task and copying of resources dir
-      }
-
-      sourceCompatibility = '1.7'
-      targetCompatibility = '1.7'
-
-      defaultTasks = ['assemble']
-    }
-
   }
 
   private class ProjectPluginConvention {
