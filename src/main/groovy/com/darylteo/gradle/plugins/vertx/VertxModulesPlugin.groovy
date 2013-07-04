@@ -1,4 +1,4 @@
-package com.darylteo.gradle.vertx
+package com.darylteo.gradle.plugins.vertx
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

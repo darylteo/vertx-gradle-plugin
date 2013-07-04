@@ -1,3 +1,4 @@
+package org.vertx.gradle.plugins.vertx.test;
 import static org.junit.Assert.*
 
 import org.gradle.api.*

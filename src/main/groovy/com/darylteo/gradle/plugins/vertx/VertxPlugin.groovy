@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.darylteo.gradle.vertx
+package com.darylteo.gradle.plugins.vertx
 
 import org.gradle.api.*
 import org.gradle.api.artifacts.*
