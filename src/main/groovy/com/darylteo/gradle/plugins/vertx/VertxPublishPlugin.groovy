@@ -19,22 +19,58 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.*
 import org.gradle.api.file.*
 import org.gradle.api.logging.*
-import org.vertx.java.core.Handler
-import org.vertx.java.platform.PlatformLocator
-import org.vertx.java.platform.impl.ModuleClassLoader
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
 
 class VertxPublishPlugin implements Plugin<Project> {
   void apply(Project project) {
-    project.afterEvaluate{
-      // Zipping up the module
-      task('modZip', type: Zip, dependsOn: copyMod) {
-        group = 'vert.x'
-        description: 'Assemble the module into a zip file'
+    project.with {
+      apply: com.darylteo.gradle.plugins.MavenPlugin;
 
-        destinationDir = file("$buildDir/libs")
-        archiveName = "${name}-${version}.zip"
+      beforeEvaluate {
+        // Zipping up the module
+        task('modZip', type: Zip, dependsOn: copyMod) {
+          group = 'vert.x publishing'
+          description: 'Assemble the module into a zip file'
 
-        from copyMod
+          destinationDir = file("$buildDir/libs")
+          classifier = 'mod'
+
+          from copyMod
+        }
+        
+        if(project.vertx?.config?.main) {
+          configurations.archives.artifacts.clear()
+        } else {
+          jar { classifier = 'mod' }
+
+          task('sourcesJar', type: Jar, dependsOn: classes) {
+            classifier = 'sources'
+            sourceSets.all {  from allSource }
+          }
+
+          artifacts { archives sourcesJar }
+
+          if(tasks.findByName('javadoc')) {
+            task('javadocJar', type: Jar, dependsOn: javadoc) {
+              classifier = 'javadoc'
+              from javadoc.destinationDir
+            }
+
+            artifacts { archives javadocJar }
+          }
+
+          if(tasks.findByName('groovydoc')) {
+            task('groovydocJar', type: Jar, dependsOn: groovydoc) {
+              classifier = 'groovydoc'
+              from groovydoc.destinationDir
+            }
+
+            artifacts { archives groovydocJar }
+          }
+        }
+
+        artifacts { archives modZip }
       }
     }
   }

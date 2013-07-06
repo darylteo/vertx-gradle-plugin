@@ -6,6 +6,9 @@ buildscript {
   dependencies { classpath "com.darylteo:maven-plugin:1.1.0-ALPHA1-SNAPSHOT"  }
 }
 
+group = 'com.darylteo'
+version = '1.1.0-ALPHA1'
+
 apply plugin: 'groovy'
 apply plugin: com.darylteo.gradle.plugins.MavenPlugin
 
@@ -23,12 +26,12 @@ dependencies {
   compile "io.vertx:vertx-platform:$vertxVersion"
   compile "io.vertx:testtools:$vertxVersion"
 
+  compile "com.darylteo:maven-plugin:$mavenPluginVersion"
+
   testCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.6"
 }
 
 maven {
-  group = 'com.darylteo'
-  version = '1.1.0-ALPHA1'
   release = project.hasProperty('release') ? project.release : false
 
   username = sonatypeUsername

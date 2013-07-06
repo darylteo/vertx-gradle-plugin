@@ -46,17 +46,17 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
 
         configurations {
-          vertxdeps
+          provided      // compile time dependencies that should not be packed in
 
           vertxcore     // holds all core vertx jars
           vertxincludes // holds all included modules
           vertxlibs     // holds all libs from included modules
 
-          vertxdeps.extendsFrom vertxcore
-          vertxdeps.extendsFrom vertxincludes
-          vertxdeps.extendsFrom vertxlibs
+          provided.extendsFrom vertxcore
+          provided.extendsFrom vertxincludes
+          provided.extendsFrom vertxlibs
 
-          compile.extendsFrom vertxdeps
+          compile.extendsFrom provided
         }
 
         /* Module Configuration */
@@ -69,17 +69,17 @@ class VertxProjectPlugin implements Plugin<Project> {
 
         // Configuring Classpath
         sourceSets {
-          all { compileClasspath += configurations.vertxdeps }
+          all { compileClasspath += configurations.provided }
         }
 
         // Map the 'provided' dependency configuration to the appropriate IDEA visibility scopes.
         plugins.withType(IdeaPlugin) {
           idea {
             module {
-              scopes.PROVIDED.plus += configurations.vertxdeps
-              scopes.COMPILE.minus += configurations.vertxdeps
-              scopes.TEST.minus += configurations.vertxdeps
-              scopes.RUNTIME.minus += configurations.vertxdeps
+              scopes.PROVIDED.plus += configurations.provided
+              scopes.COMPILE.minus += configurations.provided
+              scopes.TEST.minus += configurations.provided
+              scopes.RUNTIME.minus += configurations.provided
             }
           }
         }
@@ -122,14 +122,13 @@ class VertxProjectPlugin implements Plugin<Project> {
           // and then into module library directory
           into ('lib') {
             from configurations.compile
-            exclude { it.file in configurations.vertxdeps.files }
+            exclude { it.file in configurations.provided.files }
           }
 
         }
 
         test { dependsOn copyMod }
       }
-
     }
   }
 
@@ -148,9 +147,7 @@ class VertxProjectPlugin implements Plugin<Project> {
     project.afterEvaluate {
       project.with {
         dependencies {
-          vertx.config?.includes?.each {
-            vertxincludes convertNotation(it)
-          }
+          vertx.config?.includes?.each { vertxincludes convertNotation(it) }
 
           configurations.vertxincludes.each {
             vertxlibs project.zipTree(it).matching { include : 'lib/*.jar' }
