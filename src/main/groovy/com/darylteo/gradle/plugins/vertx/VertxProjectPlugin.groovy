@@ -3,7 +3,7 @@ package com.darylteo.gradle.plugins.vertx
 import groovy.json.*
 
 import org.gradle.api.*
-import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Sync
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
@@ -26,40 +26,40 @@ class VertxProjectPlugin implements Plugin<Project> {
   }
 
   private void configureProject(Project project) {
-    project.beforeEvaluate {
-      project.with {
-        println "Configuring $it"
+    project.with {
+      println "Configuring $it"
 
-        // configure language plugins
-        if(vertx.language in ['java', 'groovy', 'scala']){
-          apply plugin: vertx.language
-        } else {
-          apply plugin: 'java'
-        }
+      // configure language plugins
+      if(vertx.language in ['java', 'groovy', 'scala']){
+        apply plugin: vertx.language
+      } else {
+        apply plugin: 'java'
+      }
 
-        sourceCompatibility = '1.7'
-        targetCompatibility = '1.7'
+      sourceCompatibility = '1.7'
+      targetCompatibility = '1.7'
 
-        repositories {
-          mavenCentral()
-          maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-        }
+      repositories {
+        mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+      }
 
-        configurations {
-          provided      // compile time dependencies that should not be packed in
+      configurations {
+        provided      // compile time dependencies that should not be packed in
 
-          vertxcore     // holds all core vertx jars
-          vertxincludes // holds all included modules
-          vertxlibs     // holds all libs from included modules
+        vertxcore     // holds all core vertx jars
+        vertxincludes // holds all included modules
+        vertxlibs     // holds all libs from included modules
 
-          provided.extendsFrom vertxcore
-          provided.extendsFrom vertxincludes
-          provided.extendsFrom vertxlibs
+        provided.extendsFrom vertxcore
+        provided.extendsFrom vertxincludes
+        provided.extendsFrom vertxlibs
 
-          compile.extendsFrom provided
-        }
+        compile.extendsFrom provided
+      }
 
-        /* Module Configuration */
+      /* Module Configuration */
+      afterEvaluate {
         dependencies {
           vertxcore "io.vertx:vertx-core:${vertx.version}"
           vertxcore "io.vertx:vertx-platform:${vertx.version}"
@@ -84,32 +84,33 @@ class VertxProjectPlugin implements Plugin<Project> {
           }
         }
       }
+
     }
   }
 
   private void addModuleTasks(Project project){
-    project.beforeEvaluate {
-      project.with {
-        task('generateModJson') {
-          def confdir = file("$buildDir/conf")
-          def modjson = file("$confdir/mod.json")
-          outputs.file modjson
+    project.with {
+      task('generateModJson') {
+        def confdir = file("$buildDir/conf")
+        def modjson = file("$confdir/mod.json")
+        outputs.file modjson
 
-          doLast{
-            confdir.mkdirs()
-            modjson.createNewFile()
+        doLast {
+          confdir.mkdirs()
+          modjson.createNewFile()
 
-            modjson << JsonOutput.toJson(vertx.config)
-          }
+          modjson << JsonOutput.toJson(vertx.config)
         }
+      }
 
-        task('copyMod', dependsOn: [
-          classes,
-          generateModJson
-        ], type: Copy) {
-          group = 'vert.x'
-          description = 'Assemble the module into the local mods directory'
+      task('copyMod', dependsOn: [
+        classes,
+        generateModJson
+      ], type: Sync) {
+        group = 'vert.x'
+        description = 'Assemble the module into the local mods directory'
 
+        doFirst {
           into rootProject.file("mods/${project.moduleName}")
 
           sourceSets.all {
@@ -124,30 +125,22 @@ class VertxProjectPlugin implements Plugin<Project> {
             from configurations.compile
             exclude { it.file in configurations.provided.files }
           }
-
         }
-
-        test { dependsOn copyMod }
       }
+
+      test { dependsOn copyMod }
+
     }
   }
 
   private void registerIncludes(Project project) {
-    project.beforeEvaluate{
-      project.with {
-        task('copyIncludedMods') {
-          group = 'vert.x'
-          description = 'Copies all included Vert.x modules into the local mods folder'
-        }
-
-        build.dependsOn copyIncludedMods
-      }
-    }
-
-    project.afterEvaluate {
-      project.with {
+    project.with {
+      afterEvaluate {
         dependencies {
-          vertx.config?.includes?.each { vertxincludes convertNotation(it) }
+          vertx.config?.includes?.each {
+            def (group, name, version) = it.split('~')
+            vertxincludes group: group, name: name, version: version
+          }
 
           configurations.vertxincludes.each {
             vertxlibs project.zipTree(it).matching { include : 'lib/*.jar' }
@@ -155,12 +148,6 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
       }
     }
-  }
-
-  private String convertNotation(String notation) {
-    def (group, name, version) = notation.split('~')
-
-    return "$group:$name:$version@zip"
   }
 
   private class ProjectPluginConvention {

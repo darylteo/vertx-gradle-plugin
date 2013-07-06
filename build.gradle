@@ -3,7 +3,7 @@ buildscript {
     mavenLocal()
     mavenCentral()
   }
-  dependencies { classpath "com.darylteo:maven-plugin:1.1.0-ALPHA1-SNAPSHOT"  }
+  dependencies { classpath "com.darylteo:maven-plugin:${mavenPluginVersion}"  }
 }
 
 group = 'com.darylteo'

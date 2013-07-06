@@ -22,56 +22,58 @@ import org.gradle.api.logging.*
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 
+import com.darylteo.gradle.plugins.MavenPlugin
+
 class VertxPublishPlugin implements Plugin<Project> {
   void apply(Project project) {
     project.with {
-      apply: com.darylteo.gradle.plugins.MavenPlugin;
+      println "Publish Plugin Configuration: $project"
+      apply plugin: MavenPlugin;
 
-      beforeEvaluate {
-        // Zipping up the module
-        task('modZip', type: Zip, dependsOn: copyMod) {
-          group = 'vert.x publishing'
-          description: 'Assemble the module into a zip file'
+      // Zipping up the module
+      task('modZip', type: Zip, dependsOn: copyMod) {
+        group = 'vert.x publishing'
+        description: 'Assemble the module into a zip file'
 
-          destinationDir = file("$buildDir/libs")
-          classifier = 'mod'
+        destinationDir = file("$buildDir/libs")
+        classifier = 'mod'
 
-          from copyMod
-        }
-        
-        if(project.vertx?.config?.main) {
-          configurations.archives.artifacts.clear()
-        } else {
-          jar { classifier = 'mod' }
-
-          task('sourcesJar', type: Jar, dependsOn: classes) {
-            classifier = 'sources'
-            sourceSets.all {  from allSource }
-          }
-
-          artifacts { archives sourcesJar }
-
-          if(tasks.findByName('javadoc')) {
-            task('javadocJar', type: Jar, dependsOn: javadoc) {
-              classifier = 'javadoc'
-              from javadoc.destinationDir
-            }
-
-            artifacts { archives javadocJar }
-          }
-
-          if(tasks.findByName('groovydoc')) {
-            task('groovydocJar', type: Jar, dependsOn: groovydoc) {
-              classifier = 'groovydoc'
-              from groovydoc.destinationDir
-            }
-
-            artifacts { archives groovydocJar }
-          }
-        }
-
-        artifacts { archives modZip }
+        from copyMod
       }
+
+      if(project.vertx?.config?.main) {
+        configurations.archives.artifacts.clear()
+      } else {
+        jar { classifier = 'mod' }
+
+        task('sourcesJar', type: Jar, dependsOn: classes) {
+          classifier = 'sources'
+          sourceSets.all {  from allSource }
+        }
+
+        artifacts { archives sourcesJar }
+
+        if(tasks.findByName('javadoc')) {
+          task('javadocJar', type: Jar, dependsOn: javadoc) {
+            classifier = 'javadoc'
+            from javadoc.destinationDir
+          }
+
+          artifacts { archives javadocJar }
+        }
+
+        if(tasks.findByName('groovydoc')) {
+          task('groovydocJar', type: Jar, dependsOn: groovydoc) {
+            classifier = 'groovydoc'
+            from groovydoc.destinationDir
+          }
+
+          artifacts { archives groovydocJar }
+        }
+      }
+
+      artifacts { archives modZip }
+
     }
   }
 }
