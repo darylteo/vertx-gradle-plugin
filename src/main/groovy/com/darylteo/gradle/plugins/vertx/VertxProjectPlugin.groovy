@@ -3,14 +3,10 @@ package com.darylteo.gradle.plugins.vertx
 import groovy.json.*
 
 import org.gradle.api.*
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.vertx.java.core.Handler
-import org.vertx.java.platform.PlatformLocator
-import org.vertx.java.platform.impl.ModuleClassLoader
+
+import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
 
 /**
  * Plugin responsible for configuring a vertx enabled project
@@ -25,6 +21,7 @@ class VertxProjectPlugin implements Plugin<Project> {
     project.convention.plugins.projectPlugin = new ProjectPluginConvention(project)
 
     configureProject project
+    registerIncludes project
     addModuleTasks project
   }
 
@@ -49,9 +46,17 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
 
         configurations {
-          vertxcore
+          vertxdeps
 
-          compile.extendsFrom vertxcore
+          vertxcore     // holds all core vertx jars
+          vertxincludes // holds all included modules
+          vertxlibs     // holds all libs from included modules
+
+          vertxdeps.extendsFrom vertxcore
+          vertxdeps.extendsFrom vertxincludes
+          vertxdeps.extendsFrom vertxlibs
+
+          compile.extendsFrom vertxdeps
         }
 
         /* Module Configuration */
@@ -64,17 +69,17 @@ class VertxProjectPlugin implements Plugin<Project> {
 
         // Configuring Classpath
         sourceSets {
-          all { compileClasspath += configurations.vertxcore }
+          all { compileClasspath += configurations.vertxdeps }
         }
 
         // Map the 'provided' dependency configuration to the appropriate IDEA visibility scopes.
         plugins.withType(IdeaPlugin) {
           idea {
             module {
-              scopes.PROVIDED.plus += configurations.vertxcore
-              scopes.COMPILE.minus += configurations.vertxcore
-              scopes.TEST.minus += configurations.vertxcore
-              scopes.RUNTIME.minus += configurations.vertxcore
+              scopes.PROVIDED.plus += configurations.vertxdeps
+              scopes.COMPILE.minus += configurations.vertxdeps
+              scopes.TEST.minus += configurations.vertxdeps
+              scopes.RUNTIME.minus += configurations.vertxdeps
             }
           }
         }
@@ -83,12 +88,12 @@ class VertxProjectPlugin implements Plugin<Project> {
   }
 
   private void addModuleTasks(Project project){
-    project.afterEvaluate {
+    project.beforeEvaluate {
       project.with {
         task('generateModJson') {
           def confdir = file("$buildDir/conf")
           def modjson = file("$confdir/mod.json")
-          outputs.dir modjson
+          outputs.file modjson
 
           doLast{
             confdir.mkdirs()
@@ -98,7 +103,10 @@ class VertxProjectPlugin implements Plugin<Project> {
           }
         }
 
-        task('copyMod', dependsOn: [classes, generateModJson], type: Copy) {
+        task('copyMod', dependsOn: [
+          classes,
+          generateModJson
+        ], type: Copy) {
           group = 'vert.x'
           description = 'Assemble the module into the local mods directory'
 
@@ -106,7 +114,6 @@ class VertxProjectPlugin implements Plugin<Project> {
 
           sourceSets.all {
             if (it.name != 'test'){
-              println it.name
               from it.output
             }
           }
@@ -115,14 +122,48 @@ class VertxProjectPlugin implements Plugin<Project> {
           // and then into module library directory
           into ('lib') {
             from configurations.compile
-            exclude { it.file in configurations.vertxcore.files }
+            exclude { it.file in configurations.vertxdeps.files }
           }
 
         }
 
         test { dependsOn copyMod }
       }
+
     }
+  }
+
+  private void registerIncludes(Project project) {
+    project.beforeEvaluate{
+      project.with {
+        task('copyIncludedMods') {
+          group = 'vert.x'
+          description = 'Copies all included Vert.x modules into the local mods folder'
+        }
+
+        build.dependsOn copyIncludedMods
+      }
+    }
+
+    project.afterEvaluate {
+      project.with {
+        dependencies {
+          vertx.config?.includes?.each {
+            vertxincludes convertNotation(it)
+          }
+
+          configurations.vertxincludes.each {
+            vertxlibs project.zipTree(it).matching { include : 'lib/*.jar' }
+          }
+        }
+      }
+    }
+  }
+
+  private String convertNotation(String notation) {
+    def (group, name, version) = notation.split('~')
+
+    return "$group:$name:$version@zip"
   }
 
   private class ProjectPluginConvention {

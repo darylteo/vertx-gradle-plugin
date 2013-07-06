@@ -1,4 +1,4 @@
-package com.darylteo.gradle.plugins.vertx;
+package com.darylteo.gradle.plugins.vertx.handlers;
 
 public class VertxPropertiesHandler {
   /* public properties */
