@@ -44,8 +44,6 @@ class VertxPublishPlugin implements Plugin<Project> {
       if(project.vertx?.config?.main) {
         configurations.archives.artifacts.clear()
       } else {
-        jar { classifier = 'mod' }
-
         task('sourcesJar', type: Jar, dependsOn: classes) {
           classifier = 'sources'
           sourceSets.all {  from allSource }

@@ -3,7 +3,7 @@ package com.darylteo.gradle.plugins.vertx
 import groovy.json.*
 
 import org.gradle.api.*
-import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.Copy
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
@@ -106,11 +106,11 @@ class VertxProjectPlugin implements Plugin<Project> {
       task('copyMod', dependsOn: [
         classes,
         generateModJson
-      ], type: Sync) {
+      ], type: Copy) {
         group = 'vert.x'
         description = 'Assemble the module into the local mods directory'
 
-        doFirst {
+        afterEvaluate {
           into rootProject.file("mods/${project.moduleName}")
 
           sourceSets.all {
@@ -137,9 +137,10 @@ class VertxProjectPlugin implements Plugin<Project> {
     project.with {
       afterEvaluate {
         dependencies {
+          def resolver = new VertxModuleResolver()
+
           vertx.config?.includes?.each {
-            def (group, name, version) = it.split('~')
-            vertxincludes group: group, name: name, version: version
+            vertxincludes resolver.getIdentifier(it)
           }
 
           configurations.vertxincludes.each {
