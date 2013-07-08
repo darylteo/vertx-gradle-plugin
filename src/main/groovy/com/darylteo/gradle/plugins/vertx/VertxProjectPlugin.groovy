@@ -1,5 +1,3 @@
-
-
 package com.darylteo.gradle.plugins.vertx
 
 import groovy.json.*
@@ -144,41 +142,46 @@ class VertxProjectPlugin implements Plugin<Project> {
   }
 
   private void registerIncludes(Project project) {
-    project.with {
-      afterEvaluate {
-        def platform = PlatformLocator.factory.createPlatformManager()
-        def includes = vertx.config?.includes.size()
-        def latch = new CountDownLatch(includes ? includes : 0);
 
-        vertx.config?.includes?.each { mod ->
-          println "Installing $mod"
-          platform.installModule(mod, new AsyncResultHandler<Void>() {
-              public void handle(AsyncResult<Void> result) {
-                if(result.succeeded()){
-                  println "Installation of $mod: complete"
+    project.afterEvaluate {
+      def platform = PlatformLocator.factory.createPlatformManager()
+      def includes = project.vertx.config?.includes.size()
+      def latch = new CountDownLatch(includes ? includes : 0);
+
+      project.vertx.config?.includes?.each {
+        println "Installing it"
+        platform.installModule(it, new AsyncResultHandler<Void>() {
+            public void handle(AsyncResult<Void> result) {
+              if(result.succeeded()){
+                addModule(it);
+              } else {
+                def message = result.cause().message;
+
+                // TODO: create custom exception types for this
+                if(!message.contains('Module is already installed')) {
+                  println "Installation of $mod: ${message}"
                 } else {
-                  def message = result.cause().message;
-
-                  // TODO: create custom exception types for this
-                  if(!message.contains('Module is already installed')) {
-                    println "Installation of $mod: ${message}"
-                  } else {
-
-                  }
+                  addModule(it);
                 }
-                latch.countDown();
               }
 
-              private void addModule(){
-                dependencies { vertxlibs fileTree("mods/$mod/lib/*.jar") }
+              latch.countDown();
+            }
+
+            private void addModule(def mod){
+              println "Installation of $mod: complete"
+              project.dependencies {
+                vertxincludes project.rootProject.files("mods/$mod")
+                vertxlibs project.rootProject.fileTree("mods/$mod") { 
+                  include 'lib/*.jar'
+                }
               }
-            })
-
-
-        }
-
-        latch.await();
+            }
+          })
       }
+
+      latch.await();
+
     }
   }
 
