@@ -1,10 +1,17 @@
+
+
 package com.darylteo.gradle.plugins.vertx
 
 import groovy.json.*
 
+import java.util.concurrent.CountDownLatch
+
 import org.gradle.api.*
 import org.gradle.api.tasks.Copy
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.vertx.java.core.AsyncResult
+import org.vertx.java.core.AsyncResultHandler
+import org.vertx.java.platform.PlatformLocator
 
 import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
 
@@ -136,17 +143,25 @@ class VertxProjectPlugin implements Plugin<Project> {
   private void registerIncludes(Project project) {
     project.with {
       afterEvaluate {
-        dependencies {
-          def resolver = new VertxModuleResolver()
+        def platform = PlatformLocator.factory.createPlatformManager()
+        def includes = vertx.config?.includes.size()
+        def latch = new CountDownLatch(includes ? includes : 0);
 
-          vertx.config?.includes?.each {
-            vertxincludes resolver.getIdentifier(it)
-          }
-
-          configurations.vertxincludes.each {
-            vertxlibs project.zipTree(it).matching { include : 'lib/*.jar' }
-          }
+        vertx.config?.includes?.each { mod ->
+          println "Installing $mod"
+          platform.installModule(mod, new AsyncResultHandler<Void>() {
+              public void handle(AsyncResult<Void> result) {
+                if(result.succeeded()){
+                  println "Installation of $mod: complete"
+                } else {
+                  println "Installation of $mod: ${result.cause().message}"
+                }
+                latch.countDown();
+              }
+            })
         }
+
+        latch.await();
       }
     }
   }

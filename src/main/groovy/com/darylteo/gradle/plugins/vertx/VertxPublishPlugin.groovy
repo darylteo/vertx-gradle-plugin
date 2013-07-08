@@ -27,7 +27,6 @@ import com.darylteo.gradle.plugins.MavenPlugin
 class VertxPublishPlugin implements Plugin<Project> {
   void apply(Project project) {
     project.with {
-      println "Publish Plugin Configuration: $project"
       apply plugin: MavenPlugin;
 
       // Zipping up the module
