@@ -27,6 +27,9 @@ class VertxProjectPlugin implements Plugin<Project> {
   public void apply(Project project) {
     project.convention.plugins.projectPlugin = new ProjectPluginConvention(project)
 
+    // classloader hack : dependency cannot be loaded after buildscript is evaluated.
+    PlatformLocator.factory.createPlatformManager()
+
     configureProject project
     registerIncludes project
     addModuleTasks project
@@ -154,11 +157,24 @@ class VertxProjectPlugin implements Plugin<Project> {
                 if(result.succeeded()){
                   println "Installation of $mod: complete"
                 } else {
-                  println "Installation of $mod: ${result.cause().message}"
+                  def message = result.cause().message;
+
+                  // TODO: create custom exception types for this
+                  if(!message.contains('Module is already installed')) {
+                    println "Installation of $mod: ${message}"
+                  } else {
+
+                  }
                 }
                 latch.countDown();
               }
+
+              private void addModule(){
+                dependencies { vertxlibs fileTree("mods/$mod/lib/*.jar") }
+              }
             })
+
+
         }
 
         latch.await();
