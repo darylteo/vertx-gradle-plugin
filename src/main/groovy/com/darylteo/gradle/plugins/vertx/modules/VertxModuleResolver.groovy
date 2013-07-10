@@ -1,4 +1,4 @@
-package com.darylteo.gradle.plugins.vertx.resolvers;
+package com.darylteo.gradle.plugins.vertx.modules;
 
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.vertx.java.core.AsyncResult
