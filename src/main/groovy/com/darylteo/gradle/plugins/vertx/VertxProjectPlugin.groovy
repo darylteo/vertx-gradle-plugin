@@ -149,7 +149,6 @@ class VertxProjectPlugin implements Plugin<Project> {
       def latch = new CountDownLatch(includes ? includes : 0);
 
       project.vertx.config?.includes?.each {
-        println "Installing it"
         platform.installModule(it, new AsyncResultHandler<Void>() {
             public void handle(AsyncResult<Void> result) {
               if(result.succeeded()){
@@ -172,9 +171,7 @@ class VertxProjectPlugin implements Plugin<Project> {
               println "Installation of $mod: complete"
               project.dependencies {
                 vertxincludes project.rootProject.files("mods/$mod")
-                vertxlibs project.rootProject.fileTree("mods/$mod") { 
-                  include 'lib/*.jar'
-                }
+                vertxlibs project.rootProject.fileTree("mods/$mod") {  include 'lib/*.jar' }
               }
             }
           })
