@@ -136,37 +136,6 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
       }
 
-      task('installIncludes') << {
-        // resolve the includes
-        def platform = PlatformLocator.factory.createPlatformManager()
-        def includes = project.vertx.config?.includes.size()
-        def latch = new CountDownLatch(includes ? includes : 0);
-
-        project.vertx.config?.includes?.each {
-          println "Installing Module $it..."
-          platform.installModule(it, new AsyncResultHandler<Void>() {
-              public void handle(AsyncResult<Void> result) {
-                if(result.succeeded()){
-                  println "Installation of $it: successful"
-                } else {
-                  def message = result.cause().message;
-
-                  // TODO: create custom exception types for this
-                  if(!message.contains('Module is already installed')) {
-                    println "Installation of $it: ${message}"
-                  } else {
-                    println "Installation of $it: successful"
-                  }
-                }
-
-                latch.countDown();
-              }
-            })
-        }
-
-        latch.await();
-      }
-
       test { dependsOn copyMod }
 
     }
@@ -175,15 +144,45 @@ class VertxProjectPlugin implements Plugin<Project> {
   private void registerIncludes(Project project) {
     project.with {
       afterEvaluate {
-        for (def notation : vertx.config?.includes) {
-          dependencies {
-            vertxincludes project.rootProject.files("mods/${notation}") { builtBy installIncludes  }
-            vertxlibs project.rootProject.fileTree("mods/${notation}") {
-              builtBy installIncludes
-              include 'lib/*.jar'
-            }
-          }
+        // resolve the includes
+        def platform = PlatformLocator.factory.createPlatformManager()
+        def latch = new CountDownLatch(vertx.config?.includes?.size() ?: 0);
+
+        vertx.config?.includes?.each { notation ->
+          println "Installing Module $notation..."
+
+          // Install the Module
+          platform.installModule(notation, new AsyncResultHandler<Void>() {
+              public void handle(AsyncResult<Void> result) {
+                if(result.succeeded()){
+                  println "Installation of $notation: successful"
+                  addDeps()
+                } else {
+                  def message = result.cause().message;
+
+                  // TODO: create custom exception types for this
+                  if(!message.contains('Module is already installed')) {
+                    println "Installation of $notation: ${message}"
+                  } else {
+                    println "Installation of $notation: already installed"
+                    addDeps()
+                  }
+                }
+
+                latch.countDown();
+              }
+
+              private void addDeps() {
+                println "Adding ${notation} to dependencies"
+                project.dependencies {
+                  vertxincludes project.rootProject.files("mods/${notation}")
+                  vertxlibs project.rootProject.fileTree("mods/${notation}") { include 'lib/*.jar' }
+                }
+              }
+            })
         }
+
+        latch.await();
       }
     }
   }
