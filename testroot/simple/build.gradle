@@ -1,0 +1,12 @@
+apply plugin: com.darylteo.gradle.plugins.vertx.VertxProjectPlugin
+
+vertx {
+  group = 'com.darylteo'
+  
+  version = '2.0.0-CR2'
+  
+  config {
+    includes = [ 'com.darylteo:vertx-promises:1.1.0-ALPHA1-SNAPSHOT']
+  }
+  
+}

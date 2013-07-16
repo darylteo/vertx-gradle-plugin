@@ -3,6 +3,7 @@ package com.darylteo.gradle.plugins.vertx
 import groovy.json.*
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 import org.gradle.api.*
 import org.gradle.api.tasks.Copy
@@ -29,7 +30,6 @@ class VertxProjectPlugin implements Plugin<Project> {
     PlatformLocator.factory.createPlatformManager()
 
     configureProject project
-    registerIncludes project
     addModuleTasks project
   }
 
@@ -102,9 +102,11 @@ class VertxProjectPlugin implements Plugin<Project> {
         def confdir = file("$buildDir/conf")
         def modjson = file("$confdir/mod.json")
         outputs.file modjson
+        outputs.upToDateWhen { false }
 
         doLast {
           confdir.mkdirs()
+          modjson.delete()
           modjson.createNewFile()
 
           modjson << JsonOutput.toJson(vertx.config)
@@ -136,54 +138,13 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
       }
 
+      task('pullInDeps', dependsOn: copyMod) << {
+        println "Pulling in dependencies for module $moduleName. Please wait"
+        new ProjectModuleInstaller(project).install()
+      }
+
       test { dependsOn copyMod }
 
-    }
-  }
-
-  private void registerIncludes(Project project) {
-    project.with {
-      afterEvaluate {
-        // resolve the includes
-        def platform = PlatformLocator.factory.createPlatformManager()
-        def latch = new CountDownLatch(vertx.config?.includes?.size() ?: 0);
-
-        vertx.config?.includes?.each { notation ->
-          println "Installing Module $notation..."
-
-          // Install the Module
-          platform.installModule(notation, new AsyncResultHandler<Void>() {
-              public void handle(AsyncResult<Void> result) {
-                if(result.succeeded()){
-                  println "Installation of $notation: successful"
-                  addDeps()
-                } else {
-                  def message = result.cause().message;
-
-                  // TODO: create custom exception types for this
-                  if(!message.contains('Module is already installed')) {
-                    println "Installation of $notation: ${message}"
-                  } else {
-                    println "Installation of $notation: already installed"
-                    addDeps()
-                  }
-                }
-
-                latch.countDown();
-              }
-
-              private void addDeps() {
-                println "Adding ${notation} to dependencies"
-                project.dependencies {
-                  vertxincludes project.rootProject.files("mods/${notation}")
-                  vertxlibs project.rootProject.fileTree("mods/${notation}") { include 'lib/*.jar' }
-                }
-              }
-            })
-        }
-
-        latch.await();
-      }
     }
   }
 
@@ -211,4 +172,61 @@ class VertxProjectPlugin implements Plugin<Project> {
     }
   }
 
+  private class ProjectModuleInstaller {
+    private Project project
+    private def pm = PlatformLocator.factory.createPlatformManager();
+
+    ProjectModuleInstaller(Project project){
+      this.project = project
+    }
+
+    def void install() {
+      installModules(this.project.vertx?.config?.includes)
+    }
+
+    private def void installModules(def modules){
+      if(modules instanceof String) {
+        modules = modules.split("\\s*,\\s*")
+      } else {
+        modules = modules ?: []
+      }
+
+      modules.each { module ->
+        println "Installing $module"
+        try {
+          installModule(module)
+          println "$module pulled in successfully"
+
+          this.project.rootProject.file("mods/$module/mod.json").withReader { reader->
+            def json = new JsonSlurper().parse(reader)
+
+            installModules(json.includes)
+          }
+        }catch(Exception e) {
+          println "$module did not install successfully"
+          e.printStackTrace()
+        }
+      }
+    }
+
+
+    private void installModule(String module) {
+      def latch = new CountDownLatch(1)
+      def result;
+
+      this.pm.installModule(module, new AsyncResultHandler<Void>() {
+          public void handle(AsyncResult<Void> asyncResult) {
+            result = asyncResult;
+            latch.countDown();
+          }
+        })
+
+      latch.await(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      if (!result.succeeded()) {
+        if(!result.cause().message.contains("already installed")) {
+          throw result.cause()
+        }
+      }
+    }
+  }
 }
