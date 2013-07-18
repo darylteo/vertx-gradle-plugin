@@ -57,7 +57,7 @@ class VertxProjectPlugin implements Plugin<Project> {
 
         vertxcore     // holds all core vertx jars
         vertxincludes // holds all included modules
-        vertxlibs     // holds all libs from included modules
+        vertxlibs     // holds all libs
 
         provided.extendsFrom vertxcore
         provided.extendsFrom vertxincludes
@@ -73,6 +73,13 @@ class VertxProjectPlugin implements Plugin<Project> {
           vertxcore "io.vertx:vertx-platform:${vertx.version}"
 
           vertxcore "io.vertx:testtools:${vertx.version}"
+          
+          project.includes.each { module ->
+            vertxincludes rootProject.files("mods/$module")
+            vertxincludes rootProject.fileTree("mods/$module") {
+              include 'lib/*.jar'
+            }
+          }
         }
 
         // Configuring Classpath
@@ -132,17 +139,16 @@ class VertxProjectPlugin implements Plugin<Project> {
 
           // and then into module library directory
           into ('lib') {
-            from configurations.compile
-            exclude { it.file in configurations.provided.files }
+            from configurations.vertxlibs
           }
         }
       }
 
-      task('pullInDeps', dependsOn: copyMod) << {
+      task('pullInDeps') << {
         println "Pulling in dependencies for module $moduleName. Please wait"
         new ProjectModuleInstaller(project).install()
       }
-
+      
       test { dependsOn copyMod }
 
     }
@@ -161,6 +167,18 @@ class VertxProjectPlugin implements Plugin<Project> {
       return "${project.group}~${project.name}~${project.version}"
     }
 
+    def getIncludes() {
+      def includes = project.vertx.config?.includes
+      
+      if(includes instanceof String) {
+        includes = includes.split("\\s*,\\s*")
+      } else {
+        includes = includes ?: []
+      }
+      
+      return includes;
+    }
+    
     def vertx(Closure closure) {
       closure.setDelegate(properties)
       closure.resolveStrategy = Closure.DELEGATE_FIRST
@@ -181,7 +199,7 @@ class VertxProjectPlugin implements Plugin<Project> {
     }
 
     def void install() {
-      installModules(this.project.vertx?.config?.includes)
+      installModules(this.project.includes)
     }
 
     private def void installModules(def modules){
