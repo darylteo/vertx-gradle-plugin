@@ -78,6 +78,7 @@ class VertxProjectPlugin implements Plugin<Project> {
             vertxincludes rootProject.files("mods/$module")
             vertxincludes rootProject.fileTree("mods/$module") {
               include 'lib/*.jar'
+              builtBy pullIncludes
             }
           }
         }
@@ -144,13 +145,13 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
       }
 
-      task('pullInDeps') << {
+      task('pullIncludes') << {
         println "Pulling in dependencies for module $moduleName. Please wait"
         new ProjectModuleInstaller(project).install()
       }
       
-      test { dependsOn copyMod }
-
+      
+      test.dependsOn copyMod
     }
   }
 
@@ -169,6 +170,10 @@ class VertxProjectPlugin implements Plugin<Project> {
 
     def getIncludes() {
       def includes = project.vertx.config?.includes
+      
+      if(includes instanceof GString) {
+        includes = includes.toString()
+      }
       
       if(includes instanceof String) {
         includes = includes.split("\\s*,\\s*")
