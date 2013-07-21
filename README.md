@@ -55,3 +55,7 @@ As a limitation of Gradle Tooling, included dependencies are not automatically i
 
 > gradle pullIncludes
 ````
+
+## Maven 
+
+The Publish Plugin utilises the [MavenPlugin](https://github.com/darylteo/gradle-plugins) which is configured separately. The only thing it does is removes all unneeded artifacts (runnable modules do not need jars), and adding the -mod.zip artifact.
