@@ -1,15 +1,19 @@
+def release = project.hasProperty('release') ? project.release : false
+
 buildscript {
   repositories {
-    mavenLocal()
     mavenCentral()
+    maven {
+      url 'https://oss.sonatype.org/content/repositories/releases'
+    }
+    maven {
+      url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+    mavenLocal()
   }
-  dependencies { 
-    classpath "com.darylteo:maven-plugin:${mavenPluginVersion}"
-  }
-}
 
-group = 'com.darylteo'
-version = '1.1.0-ALPHA1'
+  dependencies { classpath "com.darylteo:maven-plugin:1.1.0" }
+}
 
 apply plugin: 'groovy'
 apply plugin: com.darylteo.gradle.plugins.MavenPlugin
@@ -33,10 +37,10 @@ dependencies {
 }
 
 maven {
-  release = project.hasProperty('release') ? project.release : false
-
   username = sonatypeUsername
   password = sonatypePassword
+
+  release = release
 
   repository = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
   snapshotRepository = 'https://oss.sonatype.org/content/repositories/snapshots/'

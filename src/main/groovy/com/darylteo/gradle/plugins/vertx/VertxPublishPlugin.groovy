@@ -40,33 +40,9 @@ class VertxPublishPlugin implements Plugin<Project> {
         from copyMod
       }
 
+      // runnable modules should not have any jars
       if(project.vertx?.config?.main) {
         configurations.archives.artifacts.clear()
-      } else {
-        task('sourcesJar', type: Jar, dependsOn: classes) {
-          classifier = 'sources'
-          sourceSets.all {  from allSource }
-        }
-
-        artifacts { archives sourcesJar }
-
-        if(tasks.findByName('javadoc')) {
-          task('javadocJar', type: Jar, dependsOn: javadoc) {
-            classifier = 'javadoc'
-            from javadoc.destinationDir
-          }
-
-          artifacts { archives javadocJar }
-        }
-
-        if(tasks.findByName('groovydoc')) {
-          task('groovydocJar', type: Jar, dependsOn: groovydoc) {
-            classifier = 'groovydoc'
-            from groovydoc.destinationDir
-          }
-
-          artifacts { archives groovydocJar }
-        }
       }
 
       artifacts { archives modZip }
