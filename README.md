@@ -22,7 +22,6 @@ buildscript {
 }
 
 // apply the following plugins
-
 apply plugin: VertxProjectPlugin // a normal vert.x project
 apply plugin: VertxPublishPlugin // preps this module for maven deployment. Optional
 
