@@ -47,7 +47,6 @@ To build:
 ```bash
 
 > gradle build
-
 ````
 
 ## Notes on IDE integration
@@ -57,5 +56,4 @@ As a limitation of Gradle Tooling, included dependencies are not automatically i
 ```bash
 
 > gradle pullIncludes
-
 ````
