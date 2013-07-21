@@ -28,7 +28,6 @@ apply plugin: VertxPublishPlugin // preps this module for maven deployment. Opti
 // configure your project
 vertx {
   version = '2.0.0-final' // the version of vert.x to use
-  language = 'java' // or 'groovy', or 'scala' (not supported by vert.x yet)
   
   config {
     // these go into mod.json
