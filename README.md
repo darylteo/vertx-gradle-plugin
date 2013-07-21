@@ -39,3 +39,23 @@ vertx {
 }
 
 ````
+
+## Usage
+
+To build: 
+  
+```bash
+
+> gradle build
+
+````
+
+## Notes on IDE integration
+
+As a limitation of Gradle Tooling, included dependencies are not automatically installed when importing into an IDE. To get around this, you must execute the following task to install the includes manually before importing into your IDE.
+
+```bash
+
+> gradle pullIncludes
+
+````
