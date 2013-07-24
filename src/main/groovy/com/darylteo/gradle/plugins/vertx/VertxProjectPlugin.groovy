@@ -35,14 +35,7 @@ class VertxProjectPlugin implements Plugin<Project> {
 
   private void configureProject(Project project) {
     project.with {
-      println "Configuring $it"
-
-      // configure language plugins
-      if(vertx.language in ['java', 'groovy', 'scala']){
-        apply plugin: vertx.language
-      } else {
-        apply plugin: 'java'
-      }
+      apply plugin: 'java'
 
       sourceCompatibility = '1.7'
       targetCompatibility = '1.7'
@@ -58,6 +51,7 @@ class VertxProjectPlugin implements Plugin<Project> {
         vertxcore     // holds all core vertx jars
         vertxincludes // holds all included modules
         vertxlibs     // holds all libs
+        vertxzips     // holds all vertx mod zips for core languages
 
         provided.extendsFrom vertxcore
         provided.extendsFrom vertxincludes
@@ -68,17 +62,32 @@ class VertxProjectPlugin implements Plugin<Project> {
 
       /* Module Configuration */
       afterEvaluate {
-        dependencies {
-          vertxcore "io.vertx:vertx-core:${vertx.version}"
-          vertxcore "io.vertx:vertx-platform:${vertx.version}"
+        // configure other language environments
+        if(vertx.language != 'java'){
+          project.apply plugin: vertx.language
+          dependencies {
+            def langModule = "io.vertx:lang-${vertx.language}:${vertx.version}"
+            vertxcore langModule
+            vertxzips "$langModule:mod@zip"
+          }
 
-          vertxcore "io.vertx:testtools:${vertx.version}"
-          
-          project.includes.each { module ->
+          configurations.vertxzips.each { zip ->
+            dependencies {
+              vertxlibs zipTree(zip).matching { include 'lib/*.jar' }
+            }
+          }
+        }
+        
+        dependencies {
+          vertxcore("io.vertx:vertx-core:${vertx.version}")
+          vertxcore("io.vertx:vertx-platform:${vertx.version}")
+          vertxcore("io.vertx:testtools:${vertx.version}")
+
+          includes.each { module ->
             vertxincludes rootProject.files("mods/$module")
             vertxincludes rootProject.fileTree("mods/$module") {
-              include 'lib/*.jar'
               builtBy pullIncludes
+              include 'lib/*.jar'
             }
           }
         }
@@ -139,9 +148,7 @@ class VertxProjectPlugin implements Plugin<Project> {
           from generateModJson
 
           // and then into module library directory
-          into ('lib') {
-            from configurations.vertxlibs
-          }
+          into ('lib') { from configurations.vertxlibs }
         }
       }
 
@@ -149,9 +156,9 @@ class VertxProjectPlugin implements Plugin<Project> {
         println "Pulling in dependencies for module $moduleName. Please wait"
         new ProjectModuleInstaller(project).install()
       }
-      
-      
+
       test.dependsOn copyMod
+      compileJava.dependsOn pullIncludes
     }
   }
 
@@ -170,20 +177,20 @@ class VertxProjectPlugin implements Plugin<Project> {
 
     def getIncludes() {
       def includes = project.vertx.config?.includes
-      
+
       if(includes instanceof GString) {
         includes = includes.toString()
       }
-      
+
       if(includes instanceof String) {
         includes = includes.split("\\s*,\\s*")
       } else {
         includes = includes ?: []
       }
-      
+
       return includes;
     }
-    
+
     def vertx(Closure closure) {
       closure.setDelegate(properties)
       closure.resolveStrategy = Closure.DELEGATE_FIRST
