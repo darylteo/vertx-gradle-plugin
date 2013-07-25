@@ -10,9 +10,11 @@ import org.gradle.api.tasks.Sync
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.vertx.java.core.AsyncResult
 import org.vertx.java.core.AsyncResultHandler
+import org.vertx.java.core.Handler
 import org.vertx.java.platform.PlatformLocator
 
 import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
+import com.google.common.collect.Synchronized;
 
 /**
  * Plugin responsible for configuring a vertx enabled project
@@ -136,10 +138,10 @@ class VertxProjectPlugin implements Plugin<Project> {
       ], type: Sync) {
         group = 'vert.x'
         description = 'Assemble the module into the local mods directory'
-        
+
         ext.modsDir = "${rootProject.buildDir}/mods"
         ext.destDir = rootProject.file("${modsDir}/${project.moduleName}")
-        
+
         afterEvaluate {
           into destDir
 
@@ -152,6 +154,37 @@ class VertxProjectPlugin implements Plugin<Project> {
 
           // and then into module library directory
           into ('lib') { from configurations.vertxlibs }
+        }
+      }
+
+      task('runMod', dependsOn: copyMod) {
+        doLast{
+//          System.properties['vertx.mods'] = copyMod.modsDir
+          
+          def pm = PlatformLocator.factory.createPlatformManager();
+          def mutex = new Object()
+        
+          def classpath = [ new URL("file:${copyMod.destDir}/") ] as URL[]
+          
+          classpath.each { url -> 
+          println url
+          }
+          pm.deployModuleFromClasspath(moduleName, null, 1, classpath, { result ->
+            if(result.succeeded()){
+              println 'Module Deployed. Press Ctrl + C to stop.'
+            } else {
+              println 'Failed to deploy module'
+              result.cause().printStackTrace()
+
+              synchronized(mutex){
+                mutex.notifyAll();
+              }
+            }
+          } as Handler<AsyncResult<String>>);
+
+          synchronized(mutex) {
+            mutex.wait();
+          }
         }
       }
 
@@ -168,7 +201,6 @@ class VertxProjectPlugin implements Plugin<Project> {
 
         workingDir rootProject.projectDir
       }
-
 
       compileJava.dependsOn pullIncludes
     }
