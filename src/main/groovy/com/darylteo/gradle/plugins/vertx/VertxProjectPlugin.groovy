@@ -6,7 +6,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 import org.gradle.api.*
-import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Sync
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.vertx.java.core.AsyncResult
 import org.vertx.java.core.AsyncResultHandler
@@ -73,11 +73,11 @@ class VertxProjectPlugin implements Plugin<Project> {
 
           configurations.vertxzips.each { zip ->
             dependencies {
-              vertxlibs zipTree(zip).matching { include 'lib/*.jar' }
+              vertxincludes zipTree(zip).matching { include 'lib/*.jar' }
             }
           }
         }
-        
+
         dependencies {
           vertxcore("io.vertx:vertx-core:${vertx.version}")
           vertxcore("io.vertx:vertx-platform:${vertx.version}")
@@ -133,12 +133,15 @@ class VertxProjectPlugin implements Plugin<Project> {
       task('copyMod', dependsOn: [
         classes,
         generateModJson
-      ], type: Copy) {
+      ], type: Sync) {
         group = 'vert.x'
         description = 'Assemble the module into the local mods directory'
-
+        
+        ext.modsDir = "${rootProject.buildDir}/mods"
+        ext.destDir = rootProject.file("${modsDir}/${project.moduleName}")
+        
         afterEvaluate {
-          into rootProject.file("mods/${project.moduleName}")
+          into destDir
 
           sourceSets.all {
             if (it.name != 'test'){
@@ -157,7 +160,16 @@ class VertxProjectPlugin implements Plugin<Project> {
         new ProjectModuleInstaller(project).install()
       }
 
-      test.dependsOn copyMod
+      // Required for test tasks
+      test {
+        dependsOn copyMod
+        systemProperty 'vertx.modulename', moduleName
+        systemProperty 'vertx.mods', copyMod.modsDir
+
+        workingDir rootProject.projectDir
+      }
+
+
       compileJava.dependsOn pullIncludes
     }
   }
