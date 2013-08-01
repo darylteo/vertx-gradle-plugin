@@ -11,10 +11,10 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.vertx.java.core.AsyncResult
 import org.vertx.java.core.AsyncResultHandler
 import org.vertx.java.core.Handler
+import org.vertx.java.core.json.JsonObject
 import org.vertx.java.platform.PlatformLocator
 
 import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
-import com.google.common.collect.Synchronized;
 
 /**
  * Plugin responsible for configuring a vertx enabled project
@@ -159,17 +159,12 @@ class VertxProjectPlugin implements Plugin<Project> {
 
       task('runMod', dependsOn: copyMod) {
         doLast{
-//          System.properties['vertx.mods'] = copyMod.modsDir
-          
+          System.setProperty('vertx.mods', copyMod.modsDir.toString())
+
           def pm = PlatformLocator.factory.createPlatformManager();
           def mutex = new Object()
-        
-          def classpath = [ new URL("file:${copyMod.destDir}/") ] as URL[]
-          
-          classpath.each { url -> 
-          println url
-          }
-          pm.deployModuleFromClasspath(moduleName, null, 1, classpath, { result ->
+
+          pm.deployModule(moduleName, null, 1, { result ->
             if(result.succeeded()){
               println 'Module Deployed. Press Ctrl + C to stop.'
             } else {
@@ -179,6 +174,22 @@ class VertxProjectPlugin implements Plugin<Project> {
               synchronized(mutex){
                 mutex.notifyAll();
               }
+            }
+          } as Handler<AsyncResult<String>>);
+
+        
+          def shellConf = new JsonObject(
+            'crash.auth' : 'simple',
+            'crash.auth.simple.username' : 'admin',
+            'crash.auth.simple.password' : 'admin',
+            'crash.ssh.port' : '2000',
+          )
+          pm.deployModule("org.crashub~mod-shell~2.0.0-SNAPSHOT", shellConf, 1, { result ->
+            if(result.succeeded()){
+              println 'mod-shell is now available'
+            } else {
+              println 'Could not deploy mod-shell'
+              result.cause().printStackTrace()
             }
           } as Handler<AsyncResult<String>>);
 
