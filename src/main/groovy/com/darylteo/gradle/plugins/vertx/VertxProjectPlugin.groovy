@@ -85,7 +85,7 @@ class VertxProjectPlugin implements Plugin<Project> {
           vertxcore("io.vertx:vertx-platform:${vertx.version}")
           vertxcore("io.vertx:testtools:${vertx.version}")
 
-          includes.each { module ->
+          project.includes.each { module ->
             vertxincludes rootProject.files("mods/$module")
             vertxincludes rootProject.fileTree("mods/$module") {
               builtBy pullIncludes
@@ -177,13 +177,13 @@ class VertxProjectPlugin implements Plugin<Project> {
             }
           } as Handler<AsyncResult<String>>);
 
-        
+
           def shellConf = new JsonObject(
             'crash.auth' : 'simple',
             'crash.auth.simple.username' : 'admin',
             'crash.auth.simple.password' : 'admin',
             'crash.ssh.port' : '2000',
-          )
+            )
           pm.deployModule("org.crashub~mod-shell~2.0.0-SNAPSHOT", shellConf, 1, { result ->
             if(result.succeeded()){
               println 'mod-shell is now available'
@@ -231,7 +231,7 @@ class VertxProjectPlugin implements Plugin<Project> {
     }
 
     def getIncludes() {
-      def includes = project.vertx.config?.includes
+      def includes = project.vertx.config?.includes ?: null
 
       if(includes instanceof GString) {
         includes = includes.toString()
