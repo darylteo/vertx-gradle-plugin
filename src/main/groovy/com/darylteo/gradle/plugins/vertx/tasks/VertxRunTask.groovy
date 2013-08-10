@@ -28,21 +28,22 @@ class VertxRunTask extends DefaultTask {
       return file.toURL()
     }).toArray(new URL[0])
 
+    // set vertx.mods here, before loading class!
+    System.setProperty('vertx.mods', 'build/mods')
     ClassLoader cl = new URLClassLoader(urls, this.class.classLoader)
-
-    // getting the platform factory
-    def factoryClazz = cl.loadClass("org.vertx.java.platform.PlatformManagerFactory")
-    def jsonClazz = cl.loadClass("org.vertx.java.core.json.JsonObject")
-    def handlerClazz = cl.loadClass("org.vertx.java.core.Handler")
 
     // required for the platform manager to locate vertx classes
     Thread.currentThread().setContextClassLoader(cl);
+    
+    // build the vertx platform
+    def factoryClazz = cl.loadClass("org.vertx.java.platform.PlatformManagerFactory")
+    def jsonClazz = cl.loadClass("org.vertx.java.core.json.JsonObject")
+    def handlerClazz = cl.loadClass("org.vertx.java.core.Handler")
 
     def factory = ServiceLoader.load(factoryClazz, cl).iterator().next()
     def platform = factory.createPlatformManager()
     def mutex = new Object()
 
-    System.setProperty('vertx.mods', 'build/mods')
     println "Starting deployment: ${deployment.name}"
 
     deployment.each { item ->
