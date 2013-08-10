@@ -191,7 +191,7 @@ class VertxProjectPlugin implements Plugin<Project> {
 
     ProjectPluginConvention(Project project){
       this.project = project
-      this.properties = new VertxPropertiesHandler()
+      this.properties = new VertxPropertiesHandler(project)
     }
 
     String getModuleName() {
@@ -227,7 +227,6 @@ class VertxProjectPlugin implements Plugin<Project> {
 
   private class ProjectModuleInstaller {
     private Project project
-    //    private def pm = PlatformLocator.factory.createPlatformManager();
 
     ProjectModuleInstaller(Project project){
       this.project = project

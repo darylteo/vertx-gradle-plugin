@@ -4,6 +4,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
+import com.darylteo.gradle.plugins.vertx.deployments.impl.DeploymentRunner
+import com.darylteo.gradle.plugins.vertx.deployments.impl.DeploymentRunnerFactory
 
 
 class VertxRunTask extends DefaultTask {
@@ -16,62 +18,7 @@ class VertxRunTask extends DefaultTask {
       return
     }
 
-    project.configurations { vertx_deploy_core }
-
-    project.dependencies {
-      vertx_deploy_core "io.vertx:vertx-platform:${this.version}"
-      vertx_deploy_core "io.vertx:vertx-core:${this.version}"
-    }
-
-    def urls = project.configurations.vertx_deploy_core.collect({ file ->
-      println file
-      return file.toURL()
-    }).toArray(new URL[0])
-
-    // set vertx.mods here, before loading class!
-    System.setProperty('vertx.mods', 'build/mods')
-    ClassLoader cl = new URLClassLoader(urls, this.class.classLoader)
-
-    // required for the platform manager to locate vertx classes
-    Thread.currentThread().setContextClassLoader(cl);
-    
-    // build the vertx platform
-    def factoryClazz = cl.loadClass("org.vertx.java.platform.PlatformManagerFactory")
-    def jsonClazz = cl.loadClass("org.vertx.java.core.json.JsonObject")
-    def handlerClazz = cl.loadClass("org.vertx.java.core.Handler")
-
-    def factory = ServiceLoader.load(factoryClazz, cl).iterator().next()
-    def platform = factory.createPlatformManager()
-    def mutex = new Object()
-
-    println "Starting deployment: ${deployment.name}"
-
-    deployment.each { item ->
-      def moduleName = item.notation
-
-      if(moduleName.startsWith(':')){
-        def module = project.rootProject.project(moduleName)
-        moduleName = module.moduleName
-      }
-
-      def config = jsonClazz.getConstructor(String.class).newInstance(item.config.toString())
-
-      platform.deployModule(moduleName, config, item.instances, { result ->
-        if(result.succeeded()){
-          println 'Module Deployed. Press Ctrl + C to stop.'
-        } else {
-          println 'Failed to deploy module'
-          result.cause().printStackTrace()
-
-          synchronized(mutex){
-            mutex.notifyAll();
-          }
-        }
-      }.asType(handlerClazz) );
-    }
-
-    synchronized(mutex) {
-      mutex.wait();
-    }
+    DeploymentRunner runner = (new DeploymentRunnerFactory(this.version)).runner
+    runner.run(this.deployment)
   }
 }

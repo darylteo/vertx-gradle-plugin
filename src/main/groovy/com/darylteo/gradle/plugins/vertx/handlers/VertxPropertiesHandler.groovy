@@ -1,7 +1,7 @@
 package com.darylteo.gradle.plugins.vertx.handlers
 
 import groovy.json.JsonBuilder
-
+import org.gradle.api.Project
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeploymentsContainer
 
 public class VertxPropertiesHandler {
@@ -9,8 +9,10 @@ public class VertxPropertiesHandler {
   String version = '+'
   String language = 'java'
 
-  /* Hidden */
+  final Project project
+  private final VertxDeploymentsContainer _deployments
   private JsonBuilder _config = new JsonBuilder()
+
   public void config(Closure closure) {
     this._config.call(closure)
   }
@@ -19,7 +21,6 @@ public class VertxPropertiesHandler {
     return this._config.content
   }
 
-  private final VertxDeploymentsContainer _deployments = new VertxDeploymentsContainer()
   public void deployments(Closure closure) {
     closure.setDelegate(_deployments);
     closure.setResolveStrategy(Closure.DELEGATE_FIRST);
@@ -28,5 +29,10 @@ public class VertxPropertiesHandler {
 
   public VertxDeploymentsContainer getDeployments(){
     return this._deployments
+  }
+
+  public VertxPropertiesHandler(Project project) {
+    this.project = project
+    this._deployments  = new VertxDeploymentsContainer(project)
   }
 }
