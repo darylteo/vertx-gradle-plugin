@@ -2,25 +2,18 @@ package com.darylteo.gradle.plugins.vertx
 
 import groovy.json.*
 
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-
 import org.gradle.api.*
 import org.gradle.api.tasks.Sync
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.vertx.java.core.AsyncResult
-import org.vertx.java.core.AsyncResultHandler
-import org.vertx.java.core.Handler
-import org.vertx.java.core.json.JsonObject
-import org.vertx.java.platform.PlatformLocator
 
+import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
+import com.darylteo.gradle.plugins.vertx.deployments.VertxDeploymentItem
 import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
+import com.darylteo.gradle.plugins.vertx.tasks.VertxRunTask
 
 /**
  * Plugin responsible for configuring a vertx enabled project
  *
- * Required Properties
- *  * vertxVersion - version of Vertx to use
  * @author Daryl Teo
  */
 class VertxProjectPlugin implements Plugin<Project> {
@@ -29,7 +22,7 @@ class VertxProjectPlugin implements Plugin<Project> {
     project.convention.plugins.projectPlugin = new ProjectPluginConvention(project)
 
     // classloader hack : dependency cannot be loaded after buildscript is evaluated.
-    PlatformLocator.factory.createPlatformManager()
+    //    PlatformLocator.factory.createPlatformManager()
 
     configureProject project
     addModuleTasks project
@@ -157,48 +150,6 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
       }
 
-      task('runMod', dependsOn: copyMod) {
-        doLast{
-          System.setProperty('vertx.mods', copyMod.modsDir.toString())
-
-          def pm = PlatformLocator.factory.createPlatformManager();
-          def mutex = new Object()
-
-          pm.deployModule(moduleName, null, 1, { result ->
-            if(result.succeeded()){
-              println 'Module Deployed. Press Ctrl + C to stop.'
-            } else {
-              println 'Failed to deploy module'
-              result.cause().printStackTrace()
-
-              synchronized(mutex){
-                mutex.notifyAll();
-              }
-            }
-          } as Handler<AsyncResult<String>>);
-
-
-          def shellConf = new JsonObject(
-            'crash.auth' : 'simple',
-            'crash.auth.simple.username' : 'admin',
-            'crash.auth.simple.password' : 'admin',
-            'crash.ssh.port' : '2000',
-            )
-          pm.deployModule("org.crashub~mod-shell~2.0.0-SNAPSHOT", shellConf, 1, { result ->
-            if(result.succeeded()){
-              println 'mod-shell is now available'
-            } else {
-              println 'Could not deploy mod-shell'
-              result.cause().printStackTrace()
-            }
-          } as Handler<AsyncResult<String>>);
-
-          synchronized(mutex) {
-            mutex.wait();
-          }
-        }
-      }
-
       task('pullIncludes') << {
         println "Pulling in dependencies for module $moduleName. Please wait"
         new ProjectModuleInstaller(project).install()
@@ -214,6 +165,23 @@ class VertxProjectPlugin implements Plugin<Project> {
       }
 
       compileJava.dependsOn pullIncludes
+
+      // Adding deployment tasks
+      afterEvaluate {
+        project.vertx?.deployments?.each { VertxDeployment dep ->
+          task("run-${dep.name}", type: VertxRunTask) {
+            deployment = dep
+            dependsOn {
+              dep.findAll({ VertxDeploymentItem module ->
+                module.notation.startsWith(':')
+              }).collect({ VertxDeploymentItem module ->
+                project.project(module.notation).copyMod
+              })
+            }
+          }
+        }
+      }
+
     }
   }
 
@@ -259,7 +227,7 @@ class VertxProjectPlugin implements Plugin<Project> {
 
   private class ProjectModuleInstaller {
     private Project project
-    private def pm = PlatformLocator.factory.createPlatformManager();
+    //    private def pm = PlatformLocator.factory.createPlatformManager();
 
     ProjectModuleInstaller(Project project){
       this.project = project
@@ -294,24 +262,23 @@ class VertxProjectPlugin implements Plugin<Project> {
       }
     }
 
-
     private void installModule(String module) {
-      def latch = new CountDownLatch(1)
-      def result;
-
-      this.pm.installModule(module, new AsyncResultHandler<Void>() {
-          public void handle(AsyncResult<Void> asyncResult) {
-            result = asyncResult;
-            latch.countDown();
-          }
-        })
-
-      latch.await(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-      if (!result.succeeded()) {
-        if(!result.cause().message.contains("already installed")) {
-          throw result.cause()
-        }
-      }
+      //      def latch = new CountDownLatch(1)
+      //      def result;
+      //
+      //      this.pm.installModule(module, new AsyncResultHandler<Void>() {
+      //          public void handle(AsyncResult<Void> asyncResult) {
+      //            result = asyncResult;
+      //            latch.countDown();
+      //          }
+      //        })
+      //
+      //      latch.await(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      //      if (!result.succeeded()) {
+      //        if(!result.cause().message.contains("already installed")) {
+      //          throw result.cause()
+      //        }
+      //      }
     }
   }
 }

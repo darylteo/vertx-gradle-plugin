@@ -8,9 +8,12 @@ public class VertxDeploymentItem {
   public String notation = ''
   public int instances = 1
 
+  public VertxDeploymentItem(String notation) {
+    this(notation, 1)
+  }
   public VertxDeploymentItem(String notation, int instances) {
-    this.instances = instances;
-    this.notation = notation;
+    this.instances = instances
+    this.notation = notation
   }
 
   def config(Closure closure) {

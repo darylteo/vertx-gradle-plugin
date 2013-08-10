@@ -19,10 +19,14 @@ public class VertxPropertiesHandler {
     return this._config.content
   }
 
-  private final VertxDeploymentsContainer deployments = new VertxDeploymentsContainer()
+  private final VertxDeploymentsContainer _deployments = new VertxDeploymentsContainer()
   public void deployments(Closure closure) {
-    closure.setDelegate(deployments);
+    closure.setDelegate(_deployments);
     closure.setResolveStrategy(Closure.DELEGATE_FIRST);
-    closure.call(deployments);
+    closure.call(_deployments);
+  }
+
+  public VertxDeploymentsContainer getDeployments(){
+    return this._deployments
   }
 }
