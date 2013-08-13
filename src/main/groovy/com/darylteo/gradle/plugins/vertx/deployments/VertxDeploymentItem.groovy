@@ -14,7 +14,7 @@ public abstract class VertxDeploymentItem {
     this._config.call(closure)
   }
 
-  public Map getConfig() {
+  public def getConfig() {
     return this._config
   }
 

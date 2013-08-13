@@ -14,7 +14,7 @@ abstract class AbstractDeploymentRunner implements DeploymentRunner {
 
   public void run(VertxDeployment deployment) {
     beforeRun(deployment)
-    
+
     println "Deploying ${deployment.project.name} deployment '${deployment.name}'."
     doRun(deployment)
     afterRun(deployment)
@@ -36,13 +36,16 @@ abstract class AbstractDeploymentRunner implements DeploymentRunner {
   public void afterRun(VertxDeployment deployment) {
   }
 
-  public void doRun(VertxDeployment deployment) {
-    
+  
+  public void complete() {
+    println 'Deployment Complete. Press Ctrl/Command + C to stop.'  
   }
-
+  
   public void abort() {
     synchronized(this.mutex) {
       this.mutex.notifyAll();
     }
   }
+
+  protected abstract void doRun(VertxDeployment deployment)
 }

@@ -18,7 +18,9 @@ class VertxRunTask extends DefaultTask {
       return
     }
 
-    DeploymentRunner runner = (new DeploymentRunnerFactory(this.version)).runner
+    def platformVersion = this.deployment.version ?: this.version
+
+    DeploymentRunner runner = (new DeploymentRunnerFactory(platformVersion)).runner
     runner.run(this.deployment)
   }
 }

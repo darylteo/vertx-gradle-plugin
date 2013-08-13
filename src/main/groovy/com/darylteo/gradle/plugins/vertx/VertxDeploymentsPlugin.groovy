@@ -18,8 +18,9 @@ public class VertxDeploymentsPlugin implements Plugin<Project> {
       afterEvaluate {
         project.deployments?.each { VertxDeployment dep ->
           task("run-${dep.name}", type: VertxRunTask) {
+            group = 'Deployment'
+
             deployment = dep
-            group = 'Deployment '
             dependsOn {
               dep
                 .findAll { VertxDeploymentItem module ->

@@ -41,23 +41,40 @@ class DefaultDeploymentRunner extends AbstractDeploymentRunner {
 
     def factory = ServiceLoader.load(factoryClazz, cl).iterator().next()
     this.platform = factory.createPlatformManager()
+
+    println "Deploying using vert.x-${this.version}"
   }
 
-  public void deploy(VertxDeploymentItem item) {
-    def moduleName = item.notation
-    def config = jsonClazz.getConstructor(String.class).newInstance(item.config.toString())
+  protected void doRun(VertxDeployment deployment) {
+    def incomplete = ([] as Set)
 
-    println "Deploying Module: $moduleName"
-    this.platform.deployModule(moduleName, config, item.instances, { result ->
-      if(result.succeeded()){
-        println "Module Deployed: $moduleName"
-      }else{
-        println 'Failed to deploy module'
-        result.cause().printStackTrace()
+    deployment.each { dep ->
+      incomplete.add(dep)
+    }
+    
+    deployment.each { dep ->
+      def moduleName = dep.notation
+      def config = jsonClazz.getConstructor(String.class).newInstance(dep.config.toString())
 
-        abort()
-      }
-    }.asType(handlerClazz) );
+      println "Deploying Module: $moduleName"
+      this.platform.deployModule(moduleName, config, dep.instances, { result ->
+        if(result.succeeded()){
+          println "Module Deployed: $moduleName"
+
+          synchronized(dep) {
+            incomplete.remove(dep)
+            if(incomplete.empty) {
+              complete()
+            }
+          }
+        }else{
+          println 'Failed to deploy module'
+          result.cause().printStackTrace()
+
+          abort()
+        }
+      }.asType(handlerClazz) );
+    }
   }
 
 }
