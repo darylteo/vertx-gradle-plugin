@@ -13,17 +13,16 @@ class VertxDeployment implements Iterable<VertxDeploymentItem> {
     this.project = project
   }
 
-  def deploy(Project project, int instances, Closure closure) {
-    String moduleName = this.project?.moduleName ?: null
+  void deploy(Project project, int instances, Closure closure) {
+    def item = new VertxProjectDeploymentItem(project, instances)
+    closure.delegate = item
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+    closure.call(item)
 
-    if(!moduleName) {
-      throw new Exception('Cannot deploy $project as it is not vert.x enabled')
-    }
-
-    return this.deploy(moduleName, instances, closure)
+    modules += item
   }
 
-  def deploy(String notation, int instances, Closure closure) {
+  void deploy(String notation, int instances, Closure closure) {
     def item = new VertxDeploymentItem(notation, instances)
     closure.delegate = item
     closure.resolveStrategy = Closure.DELEGATE_FIRST

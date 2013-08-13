@@ -19,7 +19,7 @@ import com.darylteo.gradle.plugins.vertx.tasks.VertxRunTask
 class VertxProjectPlugin implements Plugin<Project> {
   @Override
   public void apply(Project project) {
-    project.convention.plugins.projectPlugin = new ProjectPluginConvention(project)
+    project.convention.plugins.vertxProjectPlugin = new ProjectPluginConvention(project)
 
     // classloader hack : dependency cannot be loaded after buildscript is evaluated.
     //    PlatformLocator.factory.createPlatformManager()

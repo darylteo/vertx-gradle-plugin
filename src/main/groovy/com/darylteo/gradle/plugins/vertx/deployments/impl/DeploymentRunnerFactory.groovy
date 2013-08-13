@@ -2,7 +2,7 @@ package com.darylteo.gradle.plugins.vertx.deployments.impl;
 
 public class DeploymentRunnerFactory {
 
-  public String version
+  public final String version
 
   public DeploymentRunnerFactory(String version) {
     this.version = version

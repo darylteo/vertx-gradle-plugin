@@ -4,16 +4,10 @@ import groovy.json.JsonBuilder
 
 public class VertxDeploymentItem {
   private JsonBuilder _config = new JsonBuilder()
-
-  public String notation = ''
   public int instances = 1
 
-  public VertxDeploymentItem(String notation) {
-    this(notation, 1)
-  }
-  public VertxDeploymentItem(String notation, int instances) {
+  public VertxDeploymentItem(int instances = 1) {
     this.instances = instances
-    this.notation = notation
   }
 
   def config(Closure closure) {

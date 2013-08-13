@@ -14,6 +14,19 @@ abstract class AbstractDeploymentRunner implements DeploymentRunner {
 
   public void run(VertxDeployment deployment) {
     beforeRun(deployment)
+
+    var unsupported = deployment.findAll { dep ->
+      return !dep.hasProperty('vertx')
+    }
+    
+    if(unsupported.count > 0){
+      unsupported.each { dep ->
+        println "$dep does not seem to be a vertx project."
+      }
+      return
+    }
+    
+    println "Deploying ${deployment.project.name} deployment '${deployment.name}'."
     doRun(deployment)
     afterRun(deployment)
 
@@ -22,15 +35,21 @@ abstract class AbstractDeploymentRunner implements DeploymentRunner {
     }
   }
 
+  public void dryRun(VertxDeployment deployment) {
+    beforeRun(deployment)
+    doRun(deployment)
+    afterRun(deployment)
+  }
+
   public void beforeRun(VertxDeployment deployment) {
-    println "Deploying ${deployment.project.name} deployment '${deployment.name}'."
   }
 
   public void afterRun(VertxDeployment deployment) {
-    println "Deployment Complete. Press Ctrl/Command + C to exit."
   }
 
-  public abstract void doRun(VertxDeployment deployment)
+  public void doRun(VertxDeployment deployment) {
+    
+  }
 
   public void abort() {
     synchronized(this.mutex) {
