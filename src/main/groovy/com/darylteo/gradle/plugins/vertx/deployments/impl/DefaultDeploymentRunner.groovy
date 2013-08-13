@@ -45,11 +45,6 @@ class DefaultDeploymentRunner extends AbstractDeploymentRunner {
 
   public void deploy(VertxDeploymentItem item) {
     def moduleName = item.notation
-    if(moduleName.startsWith(':')){
-      def module = project.rootProject.project(moduleName)
-      moduleName = module.moduleName
-    }
-
     def config = jsonClazz.getConstructor(String.class).newInstance(item.config.toString())
 
     println "Deploying Module: $moduleName"

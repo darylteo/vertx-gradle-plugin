@@ -1,4 +1,4 @@
-package com.darylteo.gradle.plugins.vertx.handlers
+package com.darylteo.gradle.plugins.vertx.properties
 
 import groovy.json.JsonBuilder
 import org.gradle.api.Project
@@ -19,16 +19,6 @@ public class VertxPropertiesHandler {
 
   public def getConfig(){
     return this._config.content
-  }
-
-  public void deployments(Closure closure) {
-    closure.setDelegate(_deployments);
-    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
-    closure.call(_deployments);
-  }
-
-  public VertxDeploymentsContainer getDeployments(){
-    return this._deployments
   }
 
   public VertxPropertiesHandler(Project project) {

@@ -14,17 +14,6 @@ abstract class AbstractDeploymentRunner implements DeploymentRunner {
 
   public void run(VertxDeployment deployment) {
     beforeRun(deployment)
-
-    var unsupported = deployment.findAll { dep ->
-      return !dep.hasProperty('vertx')
-    }
-    
-    if(unsupported.count > 0){
-      unsupported.each { dep ->
-        println "$dep does not seem to be a vertx project."
-      }
-      return
-    }
     
     println "Deploying ${deployment.project.name} deployment '${deployment.name}'."
     doRun(deployment)

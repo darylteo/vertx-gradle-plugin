@@ -3,12 +3,13 @@ package com.darylteo.gradle.plugins.vertx.deployments;
 import org.gradle.api.Project
 
 public class VertxProjectDeploymentItem extends VertxDeploymentItem {
-  public VertxProjectDeploymentItem(Project project) {
-    this(project, 1)
+  private Project project
+  public VertxProjectDeploymentItem(Project project, int instances = 1) {
+    super(instances)
+    this.project = project
   }
 
-  public VertxProjectDeploymentItem(Project project, int instances) {
-    // project must have moduleName from vertx plugin
-    super(project.moduleName, instances)
+  public String getNotation() {
+    return this.project.moduleName
   }
 }

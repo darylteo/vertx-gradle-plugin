@@ -2,7 +2,7 @@ package com.darylteo.gradle.plugins.vertx.deployments;
 
 import groovy.json.JsonBuilder
 
-public class VertxDeploymentItem {
+public abstract class VertxDeploymentItem {
   private JsonBuilder _config = new JsonBuilder()
   public int instances = 1
 
@@ -10,11 +10,13 @@ public class VertxDeploymentItem {
     this.instances = instances
   }
 
-  def config(Closure closure) {
+  public void config(Closure closure) {
     this._config.call(closure)
   }
 
-  def getConfig() {
+  public Map getConfig() {
     return this._config
   }
+
+  public abstract String getNotation()
 }

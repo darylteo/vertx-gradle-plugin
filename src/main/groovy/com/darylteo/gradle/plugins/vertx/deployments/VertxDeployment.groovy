@@ -13,25 +13,23 @@ class VertxDeployment implements Iterable<VertxDeploymentItem> {
     this.project = project
   }
 
-  void deploy(Project project, int instances, Closure closure) {
-    def item = new VertxProjectDeploymentItem(project, instances)
-    closure.delegate = item
-    closure.resolveStrategy = Closure.DELEGATE_FIRST
-    closure.call(item)
-
-    modules += item
+  public void deploy(Project project, int instances, Closure closure) {
+    this._deploy(new VertxProjectDeploymentItem(project, instances), instances, closure)
   }
 
-  void deploy(String notation, int instances, Closure closure) {
-    def item = new VertxDeploymentItem(notation, instances)
-    closure.delegate = item
-    closure.resolveStrategy = Closure.DELEGATE_FIRST
-    closure.call(item)
-
-    modules += item
+  public void deploy(String notation, int instances, Closure closure) {
+    this._deploy(new VertxModuleDeploymentItem(notation, instances), instances, closure)
   }
 
   public Iterator<VertxDeploymentItem> iterator() {
     return this.modules.iterator()
+  }
+
+  private void _deploy(VertxDeploymentItem item, int instances, Closure closure) {
+    closure.delegate = item
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+    closure.call(item)
+
+    modules += item
   }
 }

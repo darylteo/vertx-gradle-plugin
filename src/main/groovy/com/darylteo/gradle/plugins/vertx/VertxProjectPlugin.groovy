@@ -8,7 +8,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeploymentItem
-import com.darylteo.gradle.plugins.vertx.handlers.VertxPropertiesHandler
+import com.darylteo.gradle.plugins.vertx.properties.VertxPropertiesHandler
 import com.darylteo.gradle.plugins.vertx.tasks.VertxRunTask
 
 /**
@@ -20,9 +20,6 @@ class VertxProjectPlugin implements Plugin<Project> {
   @Override
   public void apply(Project project) {
     project.convention.plugins.vertxProjectPlugin = new ProjectPluginConvention(project)
-
-    // classloader hack : dependency cannot be loaded after buildscript is evaluated.
-    //    PlatformLocator.factory.createPlatformManager()
 
     configureProject project
     addModuleTasks project
@@ -111,6 +108,8 @@ class VertxProjectPlugin implements Plugin<Project> {
   private void addModuleTasks(Project project){
     project.with {
       task('generateModJson') {
+        group = 'vert.x'
+
         def confdir = file("$buildDir/conf")
         def modjson = file("$confdir/mod.json")
         outputs.file modjson
@@ -151,6 +150,7 @@ class VertxProjectPlugin implements Plugin<Project> {
       }
 
       task('pullIncludes') << {
+        group = 'vert.x'
         println "Pulling in dependencies for module $moduleName. Please wait"
         new ProjectModuleInstaller(project).install()
       }
@@ -165,22 +165,6 @@ class VertxProjectPlugin implements Plugin<Project> {
       }
 
       compileJava.dependsOn pullIncludes
-
-      // Adding deployment tasks
-      afterEvaluate {
-        project.vertx?.deployments?.each { VertxDeployment dep ->
-          task("run-${dep.name}", type: VertxRunTask) {
-            deployment = dep
-            dependsOn {
-              dep.findAll({ VertxDeploymentItem module ->
-                module.notation.startsWith(':')
-              }).collect({ VertxDeploymentItem module ->
-                project.project(module.notation).copyMod
-              })
-            }
-          }
-        }
-      }
 
     }
   }
@@ -259,25 +243,6 @@ class VertxProjectPlugin implements Plugin<Project> {
           e.printStackTrace()
         }
       }
-    }
-
-    private void installModule(String module) {
-      //      def latch = new CountDownLatch(1)
-      //      def result;
-      //
-      //      this.pm.installModule(module, new AsyncResultHandler<Void>() {
-      //          public void handle(AsyncResult<Void> asyncResult) {
-      //            result = asyncResult;
-      //            latch.countDown();
-      //          }
-      //        })
-      //
-      //      latch.await(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-      //      if (!result.succeeded()) {
-      //        if(!result.cause().message.contains("already installed")) {
-      //          throw result.cause()
-      //        }
-      //      }
     }
   }
 }
