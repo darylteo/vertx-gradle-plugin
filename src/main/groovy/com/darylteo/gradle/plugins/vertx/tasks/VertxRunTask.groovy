@@ -10,7 +10,7 @@ import com.darylteo.gradle.plugins.vertx.deployments.impl.DeploymentRunnerFactor
 
 class VertxRunTask extends DefaultTask {
   public VertxDeployment deployment = null
-  public String version = '2.0.0-final'
+  public String version = null
 
   @TaskAction
   def run(){
@@ -18,7 +18,7 @@ class VertxRunTask extends DefaultTask {
       return
     }
 
-    def platformVersion = this.deployment.version ?: this.version
+    def platformVersion = this.deployment.version ?: this.version ?: 'unspecified'
 
     DeploymentRunner runner = (new DeploymentRunnerFactory(platformVersion)).runner
     runner.run(this.deployment)
