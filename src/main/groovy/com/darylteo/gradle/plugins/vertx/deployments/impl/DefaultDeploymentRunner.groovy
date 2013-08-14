@@ -1,7 +1,8 @@
+
+
 package com.darylteo.gradle.plugins.vertx.deployments.impl;
 
-import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
-import com.darylteo.gradle.plugins.vertx.deployments.VertxDeploymentItem
+import org.gradle.api.Project
 
 class DefaultDeploymentRunner extends AbstractDeploymentRunner {
   private def jsonClazz
@@ -9,13 +10,11 @@ class DefaultDeploymentRunner extends AbstractDeploymentRunner {
 
   private def platform
 
-  public DefaultDeploymentRunner(String version) {
-    super(version)
+  public DefaultDeploymentRunner(Project project, String version) {
+    super(project, version)
   }
 
-  public void beforeRun(VertxDeployment deployment) {
-    def project = deployment.project
-
+  protected void beforeRun() {
     project.configurations { deploymentrunner_core }
 
     project.dependencies {
@@ -41,40 +40,18 @@ class DefaultDeploymentRunner extends AbstractDeploymentRunner {
 
     def factory = ServiceLoader.load(factoryClazz, cl).iterator().next()
     this.platform = factory.createPlatformManager()
-
-    println "Deploying using vert.x-${this.version}"
   }
 
-  protected void doRun(VertxDeployment deployment) {
-    def incomplete = ([] as Set)
+  protected void deploy(String module, int instances, String config, Closure callback) {
+    def json = jsonClazz.getConstructor(String.class).newInstance(config)
 
-    deployment.each { dep ->
-      incomplete.add(dep)
-    }
-    
-    deployment.each { dep ->
-      def moduleName = dep.notation
-      def config = jsonClazz.getConstructor(String.class).newInstance(dep.config.toString())
-
-      println "Deploying Module: $moduleName"
-      this.platform.deployModule(moduleName, config, dep.instances, { result ->
-        if(result.succeeded()){
-          println "Module Deployed: $moduleName"
-
-          synchronized(dep) {
-            incomplete.remove(dep)
-            if(incomplete.empty) {
-              complete()
-            }
-          }
-        }else{
-          println 'Failed to deploy module'
-          result.cause().printStackTrace()
-
-          abort()
-        }
-      }.asType(handlerClazz) );
-    }
+    println "Deploying Module: $module"
+    this.platform.deployModule(module, json, instances, { result ->
+      if(result.succeeded()){
+        callback.call(success: true, exception: null)
+      }else{
+        callback.call(success: false, exception: result.cause())
+      }
+    }.asType(handlerClazz) );
   }
-
 }

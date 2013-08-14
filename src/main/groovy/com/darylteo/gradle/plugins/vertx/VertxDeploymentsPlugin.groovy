@@ -6,8 +6,8 @@ import org.gradle.api.Project
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeploymentItem
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeploymentsContainer
-import com.darylteo.gradle.plugins.vertx.deployments.VertxModuleDeploymentItem
-import com.darylteo.gradle.plugins.vertx.tasks.VertxRunTask
+import com.darylteo.gradle.plugins.vertx.deployments.VertxProjectDeploymentItem
+import com.darylteo.gradle.plugins.vertx.tasks.VertxRun
 
 public class VertxDeploymentsPlugin implements Plugin<Project> {
   public void apply(Project project) {
@@ -17,19 +17,20 @@ public class VertxDeploymentsPlugin implements Plugin<Project> {
       // Adding deployment tasks
       afterEvaluate {
         project.deployments?.each { VertxDeployment dep ->
-          task("run-${dep.name}", type: VertxRunTask) {
+          task("run-${dep.name}", type: VertxRun) {
             group = 'Deployment'
 
             deployment = dep
-            dependsOn {
-              dep
-                .findAll { VertxDeploymentItem module ->
-                  return module instanceof VertxModuleDeploymentItem
-                }
-                .collect { VertxDeploymentItem module ->
-                  return project.project(module.notation).copyMod
-                }
-            }
+            //            // adding copymod dependencies on other projects
+            //            dep
+            //              .findAll { VertxDeploymentItem module ->
+            //                return module instanceof VertxProjectDeploymentItem
+            //              }
+            //              .each { VertxProjectDeploymentItem module ->
+            //
+            //              }
+            
+            dependsOn 'copyMod'
           }
         }
       }

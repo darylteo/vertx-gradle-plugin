@@ -6,10 +6,9 @@ import org.gradle.api.*
 import org.gradle.api.tasks.Sync
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
-import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
-import com.darylteo.gradle.plugins.vertx.deployments.VertxDeploymentItem
 import com.darylteo.gradle.plugins.vertx.properties.VertxPropertiesHandler
-import com.darylteo.gradle.plugins.vertx.tasks.VertxRunTask
+import com.darylteo.gradle.plugins.vertx.tasks.GenerateModJson
+import com.darylteo.gradle.plugins.vertx.tasks.PullIncludes
 
 /**
  * Plugin responsible for configuring a vertx enabled project
@@ -107,29 +106,13 @@ class VertxProjectPlugin implements Plugin<Project> {
 
   private void addModuleTasks(Project project){
     project.with {
-      task('generateModJson') {
-        group = 'vert.x'
-
-        def confdir = file("$buildDir/conf")
-        def modjson = file("$confdir/mod.json")
-        outputs.file modjson
-        outputs.upToDateWhen { false }
-
-        doLast {
-          confdir.mkdirs()
-          modjson.delete()
-          modjson.createNewFile()
-
-          modjson << JsonOutput.toJson(vertx.config)
-        }
-      }
+      task('generateModJson', type:GenerateModJson) { group = 'vert.x' }
 
       task('copyMod', dependsOn: [
-        classes,
         generateModJson
       ], type: Sync) {
         group = 'vert.x'
-        description = 'Assemble the module into the local mods directory'
+        description = 'Assemble the module into the mods directory (default ${rootProject.buildDir}/mods)'
 
         ext.modsDir = "${rootProject.buildDir}/mods"
         ext.destDir = rootProject.file("${modsDir}/${project.moduleName}")
@@ -149,10 +132,9 @@ class VertxProjectPlugin implements Plugin<Project> {
         }
       }
 
-      task('pullIncludes') << {
+      task('pullIncludes', type: PullIncludes) {
         group = 'vert.x'
-        println "Pulling in dependencies for module $moduleName. Please wait"
-        new ProjectModuleInstaller(project).install()
+        description "Pulling in dependencies for $project"
       }
 
       // Required for test tasks
@@ -209,40 +191,4 @@ class VertxProjectPlugin implements Plugin<Project> {
     }
   }
 
-  private class ProjectModuleInstaller {
-    private Project project
-
-    ProjectModuleInstaller(Project project){
-      this.project = project
-    }
-
-    def void install() {
-      installModules(this.project.includes)
-    }
-
-    private def void installModules(def modules){
-      if(modules instanceof String) {
-        modules = modules.split("\\s*,\\s*")
-      } else {
-        modules = modules ?: []
-      }
-
-      modules.each { module ->
-        println "Installing $module"
-        try {
-          installModule(module)
-          println "$module pulled in successfully"
-
-          this.project.rootProject.file("mods/$module/mod.json").withReader { reader->
-            def json = new JsonSlurper().parse(reader)
-
-            installModules(json.includes)
-          }
-        }catch(Exception e) {
-          println "$module did not install successfully"
-          e.printStackTrace()
-        }
-      }
-    }
-  }
 }
