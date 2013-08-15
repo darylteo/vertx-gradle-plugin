@@ -1,54 +1,27 @@
 package com.darylteo.gradle.plugins.vertx.tasks;
 
-import groovy.json.JsonSlurper
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-import com.darylteo.gradle.plugins.vertx.deployments.DeploymentRunner;
-import com.darylteo.gradle.plugins.vertx.deployments.DeploymentRunnerFactory;
+import com.darylteo.gradle.plugins.vertx.deployments.Platform
+import com.darylteo.gradle.plugins.vertx.deployments.PlatformFactory
 
 public class PullIncludes extends DefaultTask {
   @TaskAction
   public void run(){
-    //    installModules(project.vertx?.config?.include)
-
-    DeploymentRunner runner = (new DeploymentRunnerFactory(project)).runner
-    runner.run(project.moduleName)
+    Platform platform = (new PlatformFactory(project)).runner
+    platform.install(project.vertx.config?.includes)
   }
 
-  void installModules(String[] modules) {
-    def slurper = new JsonSlurper()
-
-    modules.each { module ->
-      println "Installing $module"
-
-      try {
-        installModule(module)
-        println "$module pulled in successfully"
-
-        //        this.project.rootProject.file("mods/$module/mod.json").withReader { reader->
-        //          def json = slurper.parse(reader)
-        //
-        //          // json.includes can either be a string or an array of strings
-        //          installModules(json.includes)
-        //        }
-      }catch(Exception e) {
-        println "$module did not install successfully"
-        e.printStackTrace()
-      }
-    }
-  }
-
-  void installModules(String modules) {
+  String[] parse(String modules) {
     if(!modules) {
-      return
+      return []
     }
 
-    installModules(modules.split("\\s*,\\s*"))
+    return modules.split("\\s*,\\s*")
   }
 
-  void installModule(def module) {
-    println "INSTALLING MODULE $module"
+  String[] parse(String[] modules) {
+    return modules
   }
 }

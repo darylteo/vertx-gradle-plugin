@@ -1,7 +1,7 @@
 package com.darylteo.gradle.plugins.vertx.deployments;
 
 
-public interface DeploymentRunner {
+public interface Platform {
   void run(VertxDeployment deployment);
-  void run(String module);
+  void install(def module);
 }

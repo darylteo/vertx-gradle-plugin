@@ -1,19 +1,21 @@
 package com.darylteo.gradle.plugins.vertx.deployments.impl
 
 
+import groovy.json.JsonSlurper
+
 import org.gradle.api.Project
 
-import com.darylteo.gradle.plugins.vertx.deployments.DeploymentRunner;
+import com.darylteo.gradle.plugins.vertx.deployments.Platform
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
 
-abstract class AbstractDeploymentRunner implements DeploymentRunner {
+abstract class AbstractPlatform implements Platform {
 
   private final Object mutex = new Object()
 
   protected final String version
   protected final Project project
 
-  public AbstractDeploymentRunner(Project project, String version) {
+  public AbstractPlatform(Project project, String version) {
     this.version = version
     this.project = project
   }
@@ -46,26 +48,56 @@ abstract class AbstractDeploymentRunner implements DeploymentRunner {
     this.lock()
   }
 
-  public void run(String module) {
+  public void install(def modules) {
     beforeRun()
 
-    this.deploy(module, 1, '{}') { result ->
-      if(result.success) {
-        println "${module} deployed"
-      } else {
-        println "${module} failed to deploy"
-        result.exception.printStackTrace()
-      }
-
-      this.unlock()
+    def queue = []
+    if(modules instanceof String) {
+      queue.addAll modules.split('\\s*,\\s*')
+    } else if(modules != null) {
+      queue.addAll modules
     }
 
-    this.lock()
+    println queue.empty
+    while(!queue.empty) {
+      def module = queue.remove(0)
+
+      this.installModule(module) { result ->
+        if(result.success) {
+          println "${module} installed: ${result.dir}"
+
+          // TODO: slurp JSON and install other modules
+          def slurp = new JsonSlurper()
+          new File("${result.dir}/mod.json").withReader { reader ->
+            def json = slurp.parse(reader)
+
+            if(json.includes instanceof String) {
+              queue.addAll(json.includes.split('\\s*,\\s*'))
+            } else if(json.includes != null) {
+              queue.addAll(json.includes)
+            }
+          }
+        } else {
+          println "${module} failed to deploy"
+          result.exception.printStackTrace()
+        }
+
+        synchronized(queue) {
+          queue.notify()
+        }
+      }
+
+      synchronized(queue) {
+        queue.wait()
+      }
+    }
   }
 
   protected void beforeRun() {
   }
+
   protected abstract void deploy(String module, int instances, String config, Closure callback)
+  protected abstract void installModule(String module, Closure callback)
 
   void lock() {
     synchronized(this.mutex){

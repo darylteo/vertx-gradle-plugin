@@ -3,8 +3,8 @@ package com.darylteo.gradle.plugins.vertx.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-import com.darylteo.gradle.plugins.vertx.deployments.DeploymentRunner;
-import com.darylteo.gradle.plugins.vertx.deployments.DeploymentRunnerFactory;
+import com.darylteo.gradle.plugins.vertx.deployments.Platform;
+import com.darylteo.gradle.plugins.vertx.deployments.PlatformFactory;
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
 
 
@@ -20,7 +20,7 @@ class VertxRun extends DefaultTask {
 
     def platformVersion = this.deployment.version ?: this.version ?: 'unspecified'
 
-    DeploymentRunner runner = (new DeploymentRunnerFactory(project, platformVersion)).runner
+    Platform runner = (new PlatformFactory(project, platformVersion)).runner
     runner.run(this.deployment)
   }
 }
