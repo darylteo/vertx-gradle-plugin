@@ -32,7 +32,7 @@ class VertxPublishPlugin implements Plugin<Project> {
       // Zipping up the module
       task('modZip', type: Zip, dependsOn: copyMod) {
         group = 'vert.x publishing'
-        description: 'Assemble the module into a zip file'
+        description = 'Assemble the module into a zip file'
 
         destinationDir = file("$buildDir/libs")
         classifier = 'mod'
@@ -46,7 +46,14 @@ class VertxPublishPlugin implements Plugin<Project> {
       }
 
       artifacts { archives modZip }
-
+      
+      // regroup maven plugin tasks
+      install {
+        group = 'vert.x publishing'
+      }
+      uploadArchives {
+        group = 'vert.x publishing'
+      }
     }
   }
 }

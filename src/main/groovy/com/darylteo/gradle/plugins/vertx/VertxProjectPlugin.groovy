@@ -112,7 +112,7 @@ class VertxProjectPlugin implements Plugin<Project> {
         generateModJson
       ], type: Sync) {
         group = 'vert.x'
-        description = 'Assemble the module into the mods directory (default ${rootProject.buildDir}/mods)'
+        description = 'Installs the module into the mods directory (default ${rootProject.buildDir}/mods)'
 
         ext.modsDir = "${rootProject.buildDir}/mods"
         ext.destDir = rootProject.file("${modsDir}/${project.moduleName}")
