@@ -5,6 +5,7 @@ import org.gradle.api.Project
 class VertxDeployment implements Iterable<VertxDeploymentItem> {
   public final String name
   public final Project project
+  public String description = ''
   public String version = null
 
   private List<VertxDeploymentItem> modules = []

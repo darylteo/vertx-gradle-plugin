@@ -19,7 +19,8 @@ public class VertxDeploymentsPlugin implements Plugin<Project> {
         project.deployments?.each { VertxDeployment dep ->
           task("run-${dep.name}", type: VertxRun) {
             group = 'Vert.x deployment'
-
+            description = dep.description
+            
             deployment = dep
             
             // adding copymod dependencies on other projects
