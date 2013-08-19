@@ -59,7 +59,6 @@ abstract class AbstractPlatform implements Platform {
       queue.addAll modules
     }
 
-    println queue.empty
     while(!queue.empty) {
       def module = queue.remove(0)
 

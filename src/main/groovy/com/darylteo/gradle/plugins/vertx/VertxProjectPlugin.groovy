@@ -53,30 +53,21 @@ class VertxProjectPlugin implements Plugin<Project> {
 
       /* Module Configuration */
       afterEvaluate {
-        // configure other language environments
-        if(vertx.language != 'java'){
-          project.apply plugin: vertx.language
-          dependencies {
-            def langModule = "io.vertx:lang-${vertx.language}:${vertx.version}"
-            vertxcore langModule
-            vertxzips "$langModule:mod@zip"
-          }
+        dependencies {
+          vertxcore("io.vertx:vertx-core:${vertx.version}")
+          vertxcore("io.vertx:vertx-platform:${vertx.version}")
+          vertxcore("io.vertx:testtools:${vertx.version}")
 
           configurations.vertxzips.each { zip ->
             dependencies {
               vertxincludes zipTree(zip).matching { include 'lib/*.jar' }
             }
           }
-        }
 
-        dependencies {
-          vertxcore("io.vertx:vertx-core:${vertx.version}")
-          vertxcore("io.vertx:vertx-platform:${vertx.version}")
-          vertxcore("io.vertx:testtools:${vertx.version}")
-
-          project.includes.each { module ->
-            vertxincludes rootProject.files("mods/$module")
-            vertxincludes rootProject.fileTree("mods/$module") {
+          includes.each { module ->
+            File destDir = new File(vertx.modsDir, module)
+            vertxincludes rootProject.files(destDir)
+            vertxincludes rootProject.fileTree(destDir) {
               builtBy pullIncludes
               include 'lib/*.jar'
             }
@@ -114,8 +105,8 @@ class VertxProjectPlugin implements Plugin<Project> {
         group = 'vert.x'
         description = 'Installs the module into the mods directory (default ${rootProject.buildDir}/mods)'
 
-        ext.modsDir = "${rootProject.buildDir}/mods"
-        ext.destDir = rootProject.file("${modsDir}/${project.moduleName}")
+        ext.modsDir = project.vertx.modsDir
+        ext.destDir = new File(modsDir, project.moduleName)
 
         afterEvaluate {
           into destDir
