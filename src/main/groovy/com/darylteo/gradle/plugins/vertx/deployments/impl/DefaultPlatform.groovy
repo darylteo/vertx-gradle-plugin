@@ -1,6 +1,7 @@
 package com.darylteo.gradle.plugins.vertx.deployments.impl;
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 class DefaultPlatform extends AbstractPlatform {
   private def jsonClazz
@@ -15,9 +16,11 @@ class DefaultPlatform extends AbstractPlatform {
   protected void beforeRun() {
     project.configurations { deploymentrunner_core }
 
-    project.dependencies {
-      deploymentrunner_core "io.vertx:vertx-platform:${version}"
-      deploymentrunner_core "io.vertx:vertx-core:${version}"
+    if(project.configurations.deploymentrunner_core.state == Configuration.State.UNRESOLVED) {
+      project.dependencies {
+        deploymentrunner_core "io.vertx:vertx-platform:${version}"
+        deploymentrunner_core "io.vertx:vertx-core:${version}"
+      }
     }
 
     // set vertx.mods here, before loading class!

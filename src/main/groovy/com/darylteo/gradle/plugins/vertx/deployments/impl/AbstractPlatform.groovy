@@ -9,9 +9,6 @@ import com.darylteo.gradle.plugins.vertx.deployments.Platform
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
 
 abstract class AbstractPlatform implements Platform {
-
-  private final Object mutex = new Object()
-
   protected final String version
   protected final Project project
 
@@ -21,7 +18,7 @@ abstract class AbstractPlatform implements Platform {
   }
 
   public void run(VertxDeployment deployment) {
-    println "Deploying ${deployment.project.name} deployment '${deployment.name}' using vert.x-${version}."
+    println "Deploying '${deployment.name}' on '${deployment.project.name}' using vert.x-${version}."
     beforeRun()
 
     def incomplete = [] as Set
@@ -40,12 +37,16 @@ abstract class AbstractPlatform implements Platform {
           println "${dep.notation} failed to deploy"
           result.exception.printStackTrace()
 
-          this.unlock()
+          synchronized(incomplete){
+            incomplete.notify()
+          }
         }
       }
     }
 
-    this.lock()
+    synchronized(incomplete){
+      incomplete.wait()
+    }
   }
 
   public void install(def modules) {
@@ -98,16 +99,4 @@ abstract class AbstractPlatform implements Platform {
 
   protected abstract void deploy(String module, int instances, String config, Closure callback)
   protected abstract void installModule(String module, Closure callback)
-
-  void lock() {
-    synchronized(this.mutex){
-      this.mutex.wait()
-    }
-  }
-
-  void unlock() {
-    synchronized(this.mutex){
-      this.mutex.notifyAll()
-    }
-  }
 }

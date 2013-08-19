@@ -3,10 +3,9 @@ package com.darylteo.gradle.plugins.vertx.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-import com.darylteo.gradle.plugins.vertx.deployments.Platform;
-import com.darylteo.gradle.plugins.vertx.deployments.PlatformFactory;
+import com.darylteo.gradle.plugins.vertx.deployments.Platform
+import com.darylteo.gradle.plugins.vertx.deployments.PlatformFactory
 import com.darylteo.gradle.plugins.vertx.deployments.VertxDeployment
-
 
 class VertxRun extends DefaultTask {
   public VertxDeployment deployment = null

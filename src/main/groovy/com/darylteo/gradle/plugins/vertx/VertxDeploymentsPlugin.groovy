@@ -21,16 +21,24 @@ public class VertxDeploymentsPlugin implements Plugin<Project> {
             group = 'Deployment'
 
             deployment = dep
-            //            // adding copymod dependencies on other projects
-            //            dep
-            //              .findAll { VertxDeploymentItem module ->
-            //                return module instanceof VertxProjectDeploymentItem
-            //              }
-            //              .each { VertxProjectDeploymentItem module ->
-            //
-            //              }
             
-            dependsOn 'copyMod'
+            // adding copymod dependencies on other projects
+            // since we are running inside a afterEvaluate,
+            // there is a chance that a deployed project may have 
+            // already been evaluated. This is why the presence of 
+            // copyMod task is checked first, indicated an evaluated
+            // project. 
+            dep
+              .findAll { VertxDeploymentItem module -> module instanceof VertxProjectDeploymentItem }
+              .collect { VertxProjectDeploymentItem module -> module.project }
+              .each { Project subproject ->
+                if(subproject.copyMod) {
+                  dependsOn subproject.copyMod
+                } else {
+                  subproject.afterEvaluate { dependsOn subproject.copyMod }
+                }
+              }
+
           }
         }
       }
