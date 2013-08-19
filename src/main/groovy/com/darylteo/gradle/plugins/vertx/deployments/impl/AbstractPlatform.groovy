@@ -28,10 +28,13 @@ abstract class AbstractPlatform implements Platform {
       this.deploy(dep.notation, dep.instances, dep.config.toString()) { result ->
         if(result.success) {
           println "${dep.instances} of ${dep.notation} deployed"
-          incomplete.remove(dep)
 
-          if(incomplete.empty) {
-            println 'Deployment Complete. Press Ctrl/Command + C to stop.'
+          synchronized(incomplete) {
+            incomplete.remove(dep)
+
+            if(incomplete.empty) {
+              println 'Deployment Complete. Press Ctrl/Command + C to stop.'
+            }
           }
         } else {
           println "${dep.notation} failed to deploy"
