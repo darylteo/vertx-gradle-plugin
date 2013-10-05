@@ -11,11 +11,12 @@ import com.darylteo.vertx.gradle.tasks.GenerateModJson
 
 public class VertxPlugin implements Plugin<Project> {
   public void apply(Project project) {
-    applyExtensions(project)
-    configure(project)
+    applyExtensions project
+    configureProject project
+    addTasks project
   }
 
-  private void configure(Project project) {
+  private void configureProject(Project project) {
     project.with {
       apply plugin: 'java'
 
@@ -29,13 +30,40 @@ public class VertxPlugin implements Plugin<Project> {
         compile.extendsFrom provided
       }
 
-      task('generateModJson', type: GenerateModJson) {}
-      task('modZip', type: Zip) {
-        classifier = 'mod'
+      afterEvaluate {
+        dependencies {
+          def platform = vertx.platform
+
+          if(!platform.language || !platform.version) {
+            println "WARN: No vert.x language set for $project"
+          } else if(platform.language == 'java') {
+            vertxcore("io.vertx:vertx-core:${platform.version}") {
+              exclude group:'log4j', module:'log4j'
+            }
+          } else {
+            apply plugin: platform.language
+            vertxcore("io.vertx:lang-${platform.language}:${platform.version}"){
+              exclude group:'log4j', module:'log4j'
+            }
+          }
+        }
       }
+    }
+  }
+
+  private void applyExtensions(Project project) {
+    project.extensions.create 'vertx', ProjectConfiguration
+
+    project.vertx.extensions.create 'platform', PlatformConfiguration
+    project.vertx.extensions.create 'module', ModuleConfiguration
+  }
+
+  private void addTasks(Project project) {
+    project.with {
+      task('generateModJson', type: GenerateModJson) {}
+      task('modZip', type: Zip) { classifier = 'mod' }
 
       afterEvaluate {
-
         project.ext.archivesBaseName = "${vertx.module.group}:${vertx.module.name}:${vertx.module.version}"
 
         modZip {
@@ -49,12 +77,5 @@ public class VertxPlugin implements Plugin<Project> {
         }
       }
     }
-  }
-
-  private void applyExtensions(Project project) {
-    project.extensions.create 'vertx', ProjectConfiguration
-
-    project.vertx.extensions.create 'platform', PlatformConfiguration
-    project.vertx.extensions.create 'module', ModuleConfiguration
   }
 }
