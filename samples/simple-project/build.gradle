@@ -3,9 +3,7 @@ buildscript {
   dependencies {  classpath vertxPlugin }
 }
 
-repositories {
-  mavenCentral()
-}
+repositories { mavenCentral() }
 
 apply plugin: 'vertx'
 

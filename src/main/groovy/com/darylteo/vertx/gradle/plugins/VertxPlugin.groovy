@@ -64,12 +64,12 @@ public class VertxPlugin implements Plugin<Project> {
       task('modZip', type: Zip) { classifier = 'mod' }
 
       afterEvaluate {
-        project.ext.archivesBaseName = "${vertx.module.group}:${vertx.module.name}:${vertx.module.version}"
-
+        ext.archivesBaseName = "${vertx.module.group}:${vertx.module.name}:${vertx.module.version}"
+        
         modZip {
-          if(project.hasProperty('sourceSets')) {
-            project.sourceSets.all { from it.output }
-          }
+          sourceSets.all { from it.output }
+          
+          from generateModJson
 
           into('lib') {
             from project.configurations.compile - project.configurations.provided
