@@ -14,12 +14,4 @@ out
 *.iml
 *.ipr
 *.iws
-test-output
-Scratch.java
-ScratchTest.java
-test-results
-test-tmp
 *.class
-
-mods
-userHome

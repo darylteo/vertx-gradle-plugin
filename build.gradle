@@ -1,0 +1,41 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+configurations {
+  provided
+
+  compile.extendsFrom provided
+}
+
+dependencies {
+  compile localGroovy()
+  provided gradleApi()
+}
+
+install {
+  repositories {
+    mavenInstaller {
+      pom {
+        project {
+          inceptionYear '2013'
+          licenses {
+            license {
+              name 'The Apache Software License, Version 2.0'
+              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+              distribution 'repo'
+            }
+          }
+        }
+      }
+    }
+  }
+}
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      //
+      //
+    }
+  }
+}

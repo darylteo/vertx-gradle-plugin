@@ -1,0 +1,6 @@
+new File('.').eachDir { dir ->
+  dir = dir.toString() - '.'
+  dir = dir.replace(File.separatorChar, ':' as char)
+
+  include dir
+}
