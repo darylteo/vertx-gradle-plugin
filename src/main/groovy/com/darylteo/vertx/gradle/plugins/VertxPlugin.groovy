@@ -7,29 +7,33 @@ import org.gradle.api.tasks.bundling.Zip
 import com.darylteo.vertx.gradle.configuration.ModuleConfiguration
 import com.darylteo.vertx.gradle.configuration.PlatformConfiguration
 import com.darylteo.vertx.gradle.configuration.ProjectConfiguration
+import com.darylteo.vertx.gradle.deployments.Deployment
 import com.darylteo.vertx.gradle.tasks.GenerateModJson
+import com.darylteo.vertx.gradle.tasks.RunVertx
 
 public class VertxPlugin implements Plugin<Project> {
   public void apply(Project project) {
     applyExtensions project
-    configureProject project
+    addDependencies project
     addTasks project
   }
 
-  private void configureProject(Project project) {
-    project.with {
-      apply plugin: 'java'
+  private void addDependencies(Project project) {
+    project.apply plugin: 'java'
 
-      configurations {
-        provided
+    project.configurations {
+      vertxcore
+      vertx
 
-        vertxcore
-
-        provided.extendsFrom vertxcore
-
-        compile.extendsFrom provided
+      provided {
+        extendsFrom vertxcore
+        extendsFrom vertx
       }
 
+      compile { extendsFrom provided }
+    }
+
+    project.with {
       afterEvaluate {
         dependencies {
           def platform = vertx.platform
@@ -56,6 +60,8 @@ public class VertxPlugin implements Plugin<Project> {
 
     project.vertx.extensions.create 'platform', PlatformConfiguration
     project.vertx.extensions.create 'module', ModuleConfiguration
+
+    project.vertx.extensions.deployments = project.container Deployment
   }
 
   private void addTasks(Project project) {
@@ -64,15 +70,21 @@ public class VertxPlugin implements Plugin<Project> {
       task('modZip', type: Zip) { classifier = 'mod' }
 
       afterEvaluate {
+        // archives
         ext.archivesBaseName = "${vertx.module.group}:${vertx.module.name}:${vertx.module.version}"
-        
         modZip {
           sourceSets.all { from it.output }
-          
+
           from generateModJson
 
           into('lib') {
             from project.configurations.compile - project.configurations.provided
+          }
+        }
+
+        // run tasks
+        vertx.deployments.each { deployment ->
+          task("run-${deployment.name}", type: RunVertx) {
           }
         }
       }
