@@ -83,8 +83,10 @@ public class VertxPlugin implements Plugin<Project> {
         }
 
         // run tasks
-        vertx.deployments.each { deployment ->
-          task("run-${deployment.name}", type: RunVertx) {
+        vertx.deployments { debug { debug true } }
+        vertx.deployments.each { dep ->
+          task("run${dep.name.capitalize()}", type: RunVertx, group: 'Run') { 
+            deployment dep 
           }
         }
       }
