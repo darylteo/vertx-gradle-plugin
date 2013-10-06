@@ -41,7 +41,7 @@ public class VertxPlugin implements Plugin<Project> {
           if(!platform.language || !platform.version) {
             println "WARN: No vert.x language set for $project"
           } else if(platform.language == 'java') {
-            vertxcore("io.vertx:vertx-core:${platform.version}") {
+            vertxcore("io.vertx:vertx-platform:${platform.version}") {
               exclude group:'log4j', module:'log4j'
             }
           } else {
@@ -66,7 +66,7 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addTasks(Project project) {
     project.with {
-      // archive tasks 
+      // archive tasks
       task('generateModJson', type: GenerateModJson) {}
       task('modZip', type: Zip) { classifier = 'mod' }
 
@@ -86,9 +86,7 @@ public class VertxPlugin implements Plugin<Project> {
 
       // run tasks
       vertx.deployments {
-        mod { 
-          deploy project 
-        }
+        mod {  deploy project  }
       }
 
       afterEvaluate {
