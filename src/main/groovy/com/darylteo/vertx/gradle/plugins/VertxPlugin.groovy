@@ -66,6 +66,7 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addTasks(Project project) {
     project.with {
+      // archive tasks 
       task('generateModJson', type: GenerateModJson) {}
       task('modZip', type: Zip) { classifier = 'mod' }
 
@@ -81,12 +82,25 @@ public class VertxPlugin implements Plugin<Project> {
             from project.configurations.compile - project.configurations.provided
           }
         }
+      }
 
-        // run tasks
-        vertx.deployments { debug { debug true } }
+      // run tasks
+      vertx.deployments {
+        mod { 
+          deploy project 
+        }
+      }
+
+      afterEvaluate {
         vertx.deployments.each { dep ->
-          task("run${dep.name.capitalize()}", type: RunVertx, group: 'Run') { 
-            deployment dep 
+          task("run${dep.name.capitalize()}", type: RunVertx, group: 'Run') { /* */ deployment dep     }
+
+          task("debug${dep.name.capitalize()}", type: RunVertx, group: 'Run') {
+            //
+            //
+            deployment dep
+            //
+            //
           }
         }
       }

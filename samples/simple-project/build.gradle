@@ -15,9 +15,15 @@ vertx {
   }
 
   deployments {
+    mod {
+      config{ foo 'bar' }
 
+      deploy('org.crashub~vertx.shell~2.0.2') { 
+        hello 'world' 
+      }
+    }
   }
-  
+
   info {
     developers {
       developer {
@@ -35,4 +41,23 @@ vertx {
       }
     }
   }
+}
+
+// Tests
+afterEvaluate {
+  // test deployments and tasks
+  assert vertx.deployments.findByName('mod') != null
+  assert tasks.findByName('runMod') != null
+  assert tasks.findByName('debugMod') != null
+
+  // test deployment configurations
+  assert vertx.deployments.mod.config.foo != null
+  assert vertx.deployments.mod.config.foo == 'bar'
+
+  assert vertx.deployments.mod.modules.size() == 2
+  assert vertx.deployments.mod.modules[1].config.foo == null
+  assert vertx.deployments.mod.modules[1].config.hello == 'world'
+  
+  assert vertx.deployments.mod.modules[1].effectiveConfig.foo == 'bar'
+  assert vertx.deployments.mod.modules[1].effectiveConfig.hello == 'world'
 }

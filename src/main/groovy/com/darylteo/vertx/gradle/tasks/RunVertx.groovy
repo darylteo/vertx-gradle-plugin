@@ -19,6 +19,8 @@ class RunVertx extends DefaultTask {
 
   @TaskAction
   def run() {
-    println this.deployment
+    def items = this.deployment.modules
+
+    println this.deployment.config
   }
 }
