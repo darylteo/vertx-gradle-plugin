@@ -3,11 +3,15 @@ package com.darylteo.vertx.gradle.deployments
 import groovy.json.JsonBuilder
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.ExtensionContainer
 
 class Deployment {
   final String name
 
   final Map config
+  final PlatformConfiguration platform
+
   boolean debug = false
 
   final List<DeploymentItem> modules = []
@@ -15,6 +19,7 @@ class Deployment {
   public Deployment(String name){
     this.name = name
     this.config = [:] as Map
+    this.platform = new PlatformConfiguration()
   }
 
   def config(Closure data) {
@@ -46,5 +51,11 @@ class Deployment {
   def deploy(String notation, int instances, Closure closure = null) {
     def item = new DeploymentItem(this, notation, closure)
     modules << item
+  }
+
+  def platform(Closure closure) {
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+    closure.delegate = this.platform
+    closure(this.platform)
   }
 }

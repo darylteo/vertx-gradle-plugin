@@ -1,26 +1,41 @@
 package com.darylteo.vertx.gradle.tasks
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.JavaExec
 
 import com.darylteo.vertx.gradle.deployments.Deployment
 
-class RunVertx extends DefaultTask {
-  def version
+class RunVertx extends JavaExec {
   Deployment deployment
-
-  def version(String version) {
-    this.version = version
-  }
 
   def deployment(Deployment deployment) {
     this.deployment = deployment
   }
 
-  @TaskAction
-  def run() {
+  @Override
+  public void exec() {
     def items = this.deployment.modules
 
-    println this.deployment.config
+    def config = getVertxPlatformDependencies(project, this.deployment.platform.version)
+
+    classpath += config
+    main  = 'org.vertx.java.platform.impl.cli.Starter'
+    args 'version'
+
+    super.exec()
+  }
+
+  private Configuration getVertxPlatformDependencies(Project project, String version) {
+    project.with {
+      def configName = '__platform'
+      def config = configurations.create configName
+
+      dependencies.add(configName, "io.vertx:vertx-platform:$version") {
+        exclude group: 'log4j', module: 'log4j'
+      }
+
+      return config
+    }
   }
 }

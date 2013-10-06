@@ -16,7 +16,12 @@ vertx {
 
   deployments {
     mod {
-      config{ foo 'bar' }
+      platform {
+        version '2.0.1-final'
+      }
+      config{ 
+        foo 'bar' 
+      }
 
       deploy('org.crashub~vertx.shell~2.0.2') { 
         hello 'world' 

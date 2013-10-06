@@ -86,10 +86,12 @@ public class VertxPlugin implements Plugin<Project> {
 
       // run tasks
       vertx.deployments {
-        mod {  deploy project  }
+        mod { deploy project }
       }
 
       afterEvaluate {
+        vertx.deployments.mod.platform.version = vertx.platform.version
+
         vertx.deployments.each { dep ->
           task("run${dep.name.capitalize()}", type: RunVertx, group: 'Run') { /* */ deployment dep     }
 
