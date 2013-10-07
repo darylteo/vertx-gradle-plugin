@@ -14,20 +14,28 @@ class RunVertx extends JavaExec {
   def deployment(Deployment deployment) {
     this.deployment = deployment
   }
-  
+
   @Override
   public void exec() {
     def version = this.deployment.platform.version ?: this.project.vertx.platform.version
     def config = getVertxPlatformDependencies(project, version)
     def modules = this.deployment.deploy.module
     def item = modules instanceof Project ? modules.vertx.module.vertxName : (modules as String)
-    
+
+    // set classpath to run
     classpath += config
     main  = 'org.vertx.java.platform.impl.cli.Starter'
     args 'runMod', item
 
+    // set stdio
     this.standardInput = System.in
     this.standardOutput = System.out
+
+    // environment variables
+    project.rootProject.with {
+      workingDir projectDir
+      systemProperties 'vertx.mods': "$buildDir/mods"
+    }
 
     if(this.deployment.debug) {
       jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044'
