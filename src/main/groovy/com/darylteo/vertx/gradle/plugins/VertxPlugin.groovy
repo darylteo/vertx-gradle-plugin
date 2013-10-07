@@ -13,14 +13,17 @@ import com.darylteo.vertx.gradle.tasks.RunVertx
 
 public class VertxPlugin implements Plugin<Project> {
   public void apply(Project project) {
+    applyPlugins project
     applyExtensions project
     addDependencies project
     addTasks project
   }
 
-  private void addDependencies(Project project) {
-    project.apply plugin: 'java'
+  private void applyPlugins (Project project) {
+    project.with { apply plugin: 'java' }
+  }
 
+  private void addDependencies(Project project) {
     project.configurations {
       vertxcore
       vertx
@@ -61,10 +64,15 @@ public class VertxPlugin implements Plugin<Project> {
     project.vertx.extensions.create 'platform', PlatformConfiguration
     project.vertx.extensions.create 'module', ModuleConfiguration
 
-    project.vertx.extensions.deployments = project.container Deployment
+    project.vertx.extensions.deployments = project.container Deployment.class
   }
 
   private void addTasks(Project project) {
+    addArchiveTasks project
+    addRunTasks project
+  }
+
+  private void addArchiveTasks(Project project) {
     project.with {
       // archive tasks
       task('generateModJson', type: GenerateModJson) {}
@@ -83,25 +91,30 @@ public class VertxPlugin implements Plugin<Project> {
           }
         }
       }
+    }
+  }
 
-      // run tasks
-      vertx.deployments {
-        mod { deploy project }
+  private void addRunTasks(Project project) {
+    project.with {
+      vertx.deployments.whenObjectAdded { Deployment dep ->
+        // add tasks for deployment
+        def name = dep.name.capitalize()
+        task("run$name", type: RunVertx) {
+          deployment = dep
+        }
+        task("debug$name", type: RunVertx) {
+          deployment = dep
+        }
       }
 
-      afterEvaluate {
-        vertx.deployments.mod.platform.version = vertx.platform.version
-
-        vertx.deployments.each { dep ->
-          task("run${dep.name.capitalize()}", type: RunVertx, group: 'Run') { /* */ deployment dep     }
-
-          task("debug${dep.name.capitalize()}", type: RunVertx, group: 'Run') {
-            //
-            //
-            deployment dep
-            //
-            //
-          }
+      vertx.deployments.whenObjectRemoved { Deployment dep ->
+        def name = dep.name.capitalize()
+        tasks.removeAll tasks."run$name",tasks."debug$name"
+      }
+      
+      vertx.deployments {
+        mod {
+          println "Dep Configured"
         }
       }
     }

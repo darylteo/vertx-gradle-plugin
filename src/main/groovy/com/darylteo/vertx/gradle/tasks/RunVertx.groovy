@@ -16,8 +16,8 @@ class RunVertx extends JavaExec {
   @Override
   public void exec() {
     def items = this.deployment.modules
-
-    def config = getVertxPlatformDependencies(project, this.deployment.platform.version)
+    def version = this.deployment.platform.version ?: this.project.vertx.platform.version
+    def config = getVertxPlatformDependencies(project, version)
 
     classpath += config
     main  = 'org.vertx.java.platform.impl.cli.Starter'
