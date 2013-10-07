@@ -2,6 +2,7 @@ package com.darylteo.vertx.gradle.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 
@@ -78,30 +79,26 @@ public class VertxPlugin implements Plugin<Project> {
       // archive tasks
       task('generateModJson', type: GenerateModJson) {}
       task('copyMod', type: Sync) {
-        into "$buildDir/mod"
-        from sourceSets*.output
-        from generateModJson
-
-        into('lib') {
-          from configurations.compile - configurations.provided
-        }
       }
       task('copyModToRoot', type: Sync) {
         into { "${rootProject.buildDir}/mods/${project.vertx.module.vertxName}" }
         from copyMod
       }
-      task('modZip', type: Zip) { classifier = 'mod' }
+      task('modZip', type: Zip) {
+        classifier = 'mod'
+        from copyMod
+      }
 
       afterEvaluate {
-        // archives
         ext.archivesBaseName = "${vertx.module.group}:${vertx.module.name}:${vertx.module.version}"
-        modZip {
-          sourceSets.all { from it.output }
+        copyMod {
+          into "$buildDir/mod"
+          from sourceSets.matching({ it.name != SourceSet.TEST_SOURCE_SET_NAME })*.output
 
           from generateModJson
 
           into('lib') {
-            from project.configurations.compile - project.configurations.provided
+            from configurations.compile - configurations.provided
           }
         }
       }
@@ -113,10 +110,21 @@ public class VertxPlugin implements Plugin<Project> {
       vertx.deployments.whenObjectAdded { Deployment dep ->
         // add tasks for deployment
         def name = dep.name.capitalize()
-        task("run$name", type: RunVertx) { deployment = dep }
-        task("debug$name", type: RunVertx) {
+
+        def runTask = task("run$name", type: RunVertx) { 
+          deployment = dep 
+        }
+        def debugTask = task("debug$name", type: RunVertx) {
           deployment = dep
           debug = true
+        }
+
+        afterEvaluate {
+          def module = dep.deploy.module
+          if(module instanceof Project) {
+            runTask.dependsOn(module.copyModToRoot)
+            debugTask.dependsOn(module.copyModToRoot)
+          }
         }
       }
 
