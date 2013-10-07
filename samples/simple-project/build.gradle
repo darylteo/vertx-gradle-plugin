@@ -12,6 +12,8 @@ vertx {
     group 'com.darylteo'
     name 'simple-project'
     version '0.1.0-SNAPSHOT'
+    
+    main 'Main'
   }
 
   deployments {

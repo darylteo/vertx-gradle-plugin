@@ -1,9 +1,9 @@
 package com.darylteo.vertx.gradle.tasks
 
-import groovy.json.JsonOutput;
+import groovy.json.JsonOutput
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskAction
 
 class GenerateModJson extends DefaultTask {
   def destinationDir = { "${project.buildDir}/conf" }
@@ -21,7 +21,11 @@ class GenerateModJson extends DefaultTask {
       def modjson = file("${this.destinationDir}/mod.json")
       modjson.mkdirs()
       modjson.delete()
-      modjson << JsonOutput.toJson { main 'main' }
+
+      def module = project.vertx.module
+
+      def data = [main : module.main]
+      modjson << JsonOutput.toJson(data)
     }
   }
 

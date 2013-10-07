@@ -18,6 +18,12 @@ class ModuleConfiguration {
     this.version = version
   }
   
+  // mod.json flags
+  def main
+  void main(def main) {
+    this.main = main
+  }
+  
   def getVertxName() {
     return "$group~$name~$version" 
   }
