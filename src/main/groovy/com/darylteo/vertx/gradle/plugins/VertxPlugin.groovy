@@ -2,6 +2,7 @@ package com.darylteo.vertx.gradle.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 
 import com.darylteo.vertx.gradle.configuration.ModuleConfiguration
@@ -76,6 +77,19 @@ public class VertxPlugin implements Plugin<Project> {
     project.with {
       // archive tasks
       task('generateModJson', type: GenerateModJson) {}
+      task('copyMod', type: Sync) {
+        into "$buildDir/mod"
+        from sourceSets*.output
+        from generateModJson
+
+        into('lib') {
+          from configurations.compile - configurations.provided
+        }
+      }
+      task('installMod', type: Sync) {
+        into rootProject.file("${rootProject.buildDir}/mods")
+        from copyMod
+      }
       task('modZip', type: Zip) { classifier = 'mod' }
 
       afterEvaluate {
@@ -99,11 +113,10 @@ public class VertxPlugin implements Plugin<Project> {
       vertx.deployments.whenObjectAdded { Deployment dep ->
         // add tasks for deployment
         def name = dep.name.capitalize()
-        task("run$name", type: RunVertx) {
-          deployment = dep
-        }
+        task("run$name", type: RunVertx) { deployment = dep }
         task("debug$name", type: RunVertx) {
           deployment = dep
+          debug = true
         }
       }
 
@@ -111,12 +124,8 @@ public class VertxPlugin implements Plugin<Project> {
         def name = dep.name.capitalize()
         tasks.removeAll tasks."run$name",tasks."debug$name"
       }
-      
-      vertx.deployments {
-        mod {
-          println "Dep Configured"
-        }
-      }
+
+      vertx.deployments { mod { deploy project } }
     }
   }
 }

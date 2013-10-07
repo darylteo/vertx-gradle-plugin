@@ -14,6 +14,12 @@ vertx {
     version '0.1.0-SNAPSHOT'
   }
 
+  deployments {
+    crashub {
+      deploy 'org.crashub~vertx.shell~2.0.2'
+    }
+  }
+  
   info {
     developers {
       developer {

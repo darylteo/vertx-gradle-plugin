@@ -17,4 +17,12 @@ class ModuleConfiguration {
   void version(def version) {
     this.version = version
   }
+  
+  def getVertxName() {
+    return "$group~$name~$version" 
+  }
+  
+  def getMavenName() {
+    return "$group:$name:$version"
+  }
 }

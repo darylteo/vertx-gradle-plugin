@@ -3,8 +3,6 @@ package com.darylteo.vertx.gradle.deployments
 import groovy.json.JsonBuilder
 
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionContainer
 
 class Deployment {
   final String name
@@ -14,7 +12,7 @@ class Deployment {
 
   boolean debug = false
 
-  final List<DeploymentItem> modules = []
+  DeploymentItem deploy
 
   public Deployment(String name){
     this.name = name
@@ -44,13 +42,11 @@ class Deployment {
   }
 
   def deploy(Project project, int instances, Closure closure = null) {
-    def item = new DeploymentItem(this, project, closure)
-    modules << item
+    this.deploy = new DeploymentItem(this, project, closure)
   }
 
   def deploy(String notation, int instances, Closure closure = null) {
-    def item = new DeploymentItem(this, notation, closure)
-    modules << item
+    this.deploy = new DeploymentItem(this, notation, closure)
   }
 
   def platform(Closure closure) {
