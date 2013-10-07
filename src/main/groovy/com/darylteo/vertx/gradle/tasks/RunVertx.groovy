@@ -23,6 +23,10 @@ class RunVertx extends JavaExec {
     main  = 'org.vertx.java.platform.impl.cli.Starter'
     args 'version'
 
+    if(this.deployment.debug) {
+      jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044'
+    }
+
     super.exec()
   }
 
