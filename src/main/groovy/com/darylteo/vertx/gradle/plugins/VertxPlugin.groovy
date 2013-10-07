@@ -86,8 +86,8 @@ public class VertxPlugin implements Plugin<Project> {
           from configurations.compile - configurations.provided
         }
       }
-      task('installMod', type: Sync) {
-        into rootProject.file("${rootProject.buildDir}/mods")
+      task('copyModToRoot', type: Sync) {
+        into { "${rootProject.buildDir}/mods/${project.vertx.module.vertxName}" }
         from copyMod
       }
       task('modZip', type: Zip) { classifier = 'mod' }
