@@ -38,7 +38,7 @@ class RunVertx extends JavaExec {
     }
 
     if(this.deployment.debug) {
-      jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044'
+      jvmArgs "-agentlib:jdwp=transport=dt_socket,address=localhost,server=y,suspend=y"
     }
 
     super.exec()
