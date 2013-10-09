@@ -1,7 +1,5 @@
 package com.darylteo.vertx.gradle.tasks
 
-import groovy.lang.Closure
-
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
@@ -38,6 +36,7 @@ class RunVertx extends JavaExec {
     }
 
     if(this.deployment.debug) {
+      this.ignoreExitValue = true
       jvmArgs "-agentlib:jdwp=transport=dt_socket,address=localhost,server=y,suspend=y"
     }
 
