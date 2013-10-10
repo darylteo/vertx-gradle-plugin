@@ -64,7 +64,7 @@ public class VertxPlugin implements Plugin<Project> {
     project.extensions.create 'vertx', ProjectConfiguration
 
     project.vertx.extensions.create 'platform', PlatformConfiguration
-    project.vertx.extensions.create 'module', ModuleConfiguration
+    project.vertx.extensions.create 'config', ModuleConfiguration
 
     project.vertx.extensions.deployments = project.container Deployment.class
   }
@@ -90,7 +90,11 @@ public class VertxPlugin implements Plugin<Project> {
       }
 
       afterEvaluate {
-        ext.archivesBaseName = "${vertx.module.group}:${vertx.module.name}:${vertx.module.version}"
+        def group = vertx.info.groupId || project.group
+        def name = vertx.info.artifactId || project.name
+        def version = vertx.info.version || project.version
+
+        ext.archivesBaseName = name
         copyMod {
           into "$buildDir/mod"
           from sourceSets.matching({ it.name != SourceSet.TEST_SOURCE_SET_NAME })*.output
@@ -111,9 +115,7 @@ public class VertxPlugin implements Plugin<Project> {
         // add tasks for deployment
         def name = dep.name.capitalize()
 
-        def runTask = task("run$name", type: RunVertx) { 
-          deployment = dep 
-        }
+        def runTask = task("run$name", type: RunVertx) {  deployment = dep  }
         def debugTask = task("debug$name", type: RunVertx) {
           deployment = dep
           debug = true

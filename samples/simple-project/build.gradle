@@ -1,6 +1,7 @@
 repositories { mavenCentral() }
 
 apply plugin: 'vertx'
+def blah = "Hello"
 
 vertx {
   platform {
@@ -8,21 +9,17 @@ vertx {
     tools '2.0.1-final'
   }
 
-  module {
-    group 'com.darylteo'
-    name 'simple-project'
-    version '0.1.0-SNAPSHOT'
-    
-    main 'Main'
-  }
+  config { main 'Main' }
 
   deployments {
-    crashub {
-      deploy 'org.crashub~vertx.shell~2.0.2'
-    }
+    crashub { deploy 'org.crashub~vertx.shell~2.0.2' }
   }
-  
+
   info {
+    groupId 'com.darylteo'
+    artifactId 'simple-project'
+    version '0.1.0-SNAPSHOT'
+
     developers {
       developer {
         id 'darylteo'

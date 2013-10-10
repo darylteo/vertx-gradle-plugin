@@ -24,12 +24,22 @@ class GenerateModJson extends DefaultTask {
 
       def module = project.vertx.module
 
-      def data = [main : module.main]
+      def data = [:]
+      transferModuleInformation(data, module)
+
+
       modjson << JsonOutput.toJson(data)
     }
   }
 
   public File getDestinationDir() {
     return project.file(destinationDir)
+  }
+
+  private void transferModuleInformation(def data, def module) {
+    // port the required information
+    ['main'].each { field ->
+      data."$field" = module."$field"
+    }
   }
 }
