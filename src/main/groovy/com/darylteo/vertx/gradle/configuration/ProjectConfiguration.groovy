@@ -1,10 +1,13 @@
 package com.darylteo.vertx.gradle.configuration
 
-import groovy.xml.XmlUtil
+import groovy.json.JsonBuilder
+
 
 class ProjectConfiguration {
-  // all top level children must be unique
+
+  // Module Information
   final Node info = new Node(null, "info")
+  final Map config = [:]
 
   public void info(Closure closure) {
     // hack for appending closure to child nodes
@@ -13,20 +16,15 @@ class ProjectConfiguration {
 
     closure.resolveStrategy = Closure.DELEGATE_FIRST
 
+    // all top level children must be unique
     empty + closure // append in front
     root.remove(empty)
-
-    println info
 
     // merge top level nodes into _info
     root.children().each { Node section ->
       def name = section.name()
-      println name
       def list = info.get(name)
 
-      println "Children of $name"
-      println "Value: ${section.value()}"
-      println list.isEmpty()
       if(list[0]){
         section.children().each { def element ->
           if(element instanceof Node) {
@@ -39,7 +37,29 @@ class ProjectConfiguration {
         info.append section
       }
     }
+  }
 
-    println XmlUtil.serialize(info)
+  public void config(Closure closure) {
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+
+    JsonBuilder builder = new JsonBuilder()
+
+    this.config << builder.call(closure)
+  }
+
+  public String getVertxName() {
+    def group = info.groupId[0].value()
+    def name = info.artifactId[0].value()
+    def version = info.version[0].value()
+
+    return "$group~$name~$version"
+  }
+
+  public String getMavenName() {
+    def group = info.groupId[0].value()
+    def name = info.artifactId[0].value()
+    def version = info.version[0].value()
+
+    return "$group:$name:$version"
   }
 }

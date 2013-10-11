@@ -6,7 +6,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 
-import com.darylteo.vertx.gradle.configuration.ModuleConfiguration
 import com.darylteo.vertx.gradle.configuration.PlatformConfiguration
 import com.darylteo.vertx.gradle.configuration.ProjectConfiguration
 import com.darylteo.vertx.gradle.deployments.Deployment
@@ -64,8 +63,6 @@ public class VertxPlugin implements Plugin<Project> {
     project.extensions.create 'vertx', ProjectConfiguration
 
     project.vertx.extensions.create 'platform', PlatformConfiguration
-    project.vertx.extensions.create 'config', ModuleConfiguration
-
     project.vertx.extensions.deployments = project.container Deployment.class
   }
 
@@ -81,7 +78,7 @@ public class VertxPlugin implements Plugin<Project> {
       task('copyMod', type: Sync) {
       }
       task('copyModToRoot', type: Sync) {
-        into { "${rootProject.buildDir}/mods/${project.vertx.module.vertxName}" }
+        into { "${rootProject.buildDir}/mods/${project.vertx.vertxName}" }
         from copyMod
       }
       task('modZip', type: Zip) {

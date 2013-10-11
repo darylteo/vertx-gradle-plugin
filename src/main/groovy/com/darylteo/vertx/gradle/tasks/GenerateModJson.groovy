@@ -10,6 +10,9 @@ class GenerateModJson extends DefaultTask {
 
   public GenerateModJson() {
     project.afterEvaluate {
+      inputs.property 'config', project.vertx.config
+      inputs.property 'info', project.vertx.info
+
       def dir = project.file(this.destinationDir)
       outputs.file "$dir/mod.json"
     }
@@ -22,11 +25,13 @@ class GenerateModJson extends DefaultTask {
       modjson.mkdirs()
       modjson.delete()
 
-      def module = project.vertx.module
-
+      // base configuration
       def data = [:]
-      transferModuleInformation(data, module)
+      data << vertx.config
 
+      // other info      
+      data.developers = vertx.info.developers[0].developer.collect { it.name[0].value() }
+      data.licenses = vertx.info.licenses[0].license.collect { it.name[0].value() }
 
       modjson << JsonOutput.toJson(data)
     }
@@ -34,12 +39,5 @@ class GenerateModJson extends DefaultTask {
 
   public File getDestinationDir() {
     return project.file(destinationDir)
-  }
-
-  private void transferModuleInformation(def data, def module) {
-    // port the required information
-    ['main'].each { field ->
-      data."$field" = module."$field"
-    }
   }
 }

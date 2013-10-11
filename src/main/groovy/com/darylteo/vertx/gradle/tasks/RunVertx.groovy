@@ -18,7 +18,7 @@ class RunVertx extends JavaExec {
     def version = this.deployment.platform.version ?: this.project.vertx.platform.version
     def config = getVertxPlatformDependencies(project, version)
     def modules = this.deployment.deploy.module
-    def item = modules instanceof Project ? modules.vertx.module.vertxName : (modules as String)
+    def item = modules instanceof Project ? modules.vertx.vertxName : (modules as String)
 
     // set classpath to run
     classpath += config
