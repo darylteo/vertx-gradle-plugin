@@ -35,6 +35,10 @@ vertx {
         distribution 'repo'
       }
     }
+    
+    properties {
+      keywords 'Hello,World,How,Are,You?'
+    }
   }
 }
 
