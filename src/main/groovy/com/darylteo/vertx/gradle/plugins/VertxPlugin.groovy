@@ -27,42 +27,23 @@ public class VertxPlugin implements Plugin<Project> {
   private void addDependencies(Project project) {
     project.configurations {
       vertxcore
+      vertxtest 
       vertx
 
       provided {
         extendsFrom vertxcore
+        extendsFrom vertxtest
         extendsFrom vertx
       }
 
       compile { extendsFrom provided }
-    }
-
-    project.with {
-      afterEvaluate {
-        dependencies {
-          def platform = vertx.platform
-
-          if(!platform.language || !platform.version) {
-            println "WARN: No vert.x language set for $project"
-          } else if(platform.language == 'java') {
-            vertxcore("io.vertx:vertx-platform:${platform.version}") {
-              exclude group:'log4j', module:'log4j'
-            }
-          } else {
-            apply plugin: platform.language
-            vertxcore("io.vertx:lang-${platform.language}:${platform.version}"){
-              exclude group:'log4j', module:'log4j'
-            }
-          }
-        }
-      }
     }
   }
 
   private void applyExtensions(Project project) {
     project.extensions.create 'vertx', ProjectConfiguration
 
-    project.vertx.extensions.create 'platform', PlatformConfiguration
+    project.vertx.extensions.create 'platform', PlatformConfiguration, project
     project.vertx.extensions.deployments = project.container Deployment.class
   }
 

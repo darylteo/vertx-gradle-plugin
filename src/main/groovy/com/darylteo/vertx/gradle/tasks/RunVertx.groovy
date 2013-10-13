@@ -1,11 +1,11 @@
 package com.darylteo.vertx.gradle.tasks
 
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.JavaExec
 
 import com.darylteo.vertx.gradle.deployments.Deployment
+import com.darylteo.vertx.gradle.exceptions.DeploymentVersionNotSetException
 
 class RunVertx extends JavaExec {
   Deployment deployment
@@ -15,7 +15,13 @@ class RunVertx extends JavaExec {
 
   @Override
   public void exec() {
-    def version = this.deployment.platform.version ?: this.project.vertx.platform.version
+    def version = this.deployment.platform.version
+
+    if(!version) {
+      logger.error 'Vertx Platform Version not defined for this deployment'
+      throw new DeploymentVersionNotSetException()
+    }
+
     def config = getVertxPlatformDependencies(project, version)
     def modules = this.deployment.deploy.module
     def item = modules instanceof Project ? modules.vertx.vertxName : (modules as String)
