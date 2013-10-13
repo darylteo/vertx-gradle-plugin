@@ -113,7 +113,11 @@ public class VertxPlugin implements Plugin<Project> {
         tasks.removeAll tasks."run$name",tasks."debug$name"
       }
 
-      vertx.deployments { mod { deploy project } }
+      vertx.deployments { 
+        mod { 
+          deploy project 
+        } 
+      }
     }
   }
 }

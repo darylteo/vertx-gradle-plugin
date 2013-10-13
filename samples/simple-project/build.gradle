@@ -11,7 +11,11 @@ vertx {
   config { main 'Main' }
 
   deployments {
-    crashub { deploy 'org.crashub~vertx.shell~2.0.2' }
+    mod {
+      platform {
+        version '2.0.1-final'
+      }
+    }
   }
 
   info {
@@ -47,4 +51,6 @@ afterEvaluate {
   assert vertx.deployments.findByName('mod') != null
   assert tasks.findByName('runMod') != null
   assert tasks.findByName('debugMod') != null
+  
+  assert vertx.deployments.mod.platform.version == '2.0.1-final'
 }
