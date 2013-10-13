@@ -23,13 +23,15 @@ class RunVertx extends JavaExec {
     }
 
     def config = getVertxPlatformDependencies(project, version)
-    def modules = this.deployment.deploy.module
-    def item = modules instanceof Project ? modules.vertx.vertxName : (modules as String)
+    def module = this.deployment.deploy.module
+    def platform = this.deployment.platform
+    def moduleName = module instanceof Project ? module.vertx.vertxName : (module as String)
 
     // set classpath to run
     classpath += config
     main  = 'org.vertx.java.platform.impl.cli.Starter'
-    args 'runMod', item
+    args 'runMod', moduleName
+    args(platform.args)
 
     // set stdio
     this.standardInput = System.in
@@ -46,6 +48,8 @@ class RunVertx extends JavaExec {
       jvmArgs "-agentlib:jdwp=transport=dt_socket,address=localhost,server=y,suspend=y"
     }
 
+    println "Running $this"
+    
     super.exec()
   }
 

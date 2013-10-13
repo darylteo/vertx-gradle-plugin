@@ -14,6 +14,8 @@ vertx {
     mod {
       platform {
         version '2.0.1-final'
+        cluster '127.0.0.1',8080
+        instances 10
       }
     }
   }
@@ -38,10 +40,8 @@ vertx {
         distribution 'repo'
       }
     }
-    
-    properties {
-      keywords 'Hello,World,How,Are,You?'
-    }
+
+    properties { keywords 'Hello,World,How,Are,You?' }
   }
 }
 
@@ -51,6 +51,6 @@ afterEvaluate {
   assert vertx.deployments.findByName('mod') != null
   assert tasks.findByName('runMod') != null
   assert tasks.findByName('debugMod') != null
-  
+
   assert vertx.deployments.mod.platform.version == '2.0.1-final'
 }
