@@ -9,6 +9,10 @@ class PlatformConfiguration {
     this.project = project
   }
 
+  def version(String version) {
+    this.lang('java', version)
+  }
+
   def tools(String version) {
     project.dependencies.vertxtest("io.vertx:testtools:${version}")
   }
@@ -20,7 +24,12 @@ class PlatformConfiguration {
       }
     } else {
       if (language in ['groovy', 'scala']){
-        project.apply plugin: platform.language
+        project.apply plugin: language
+      }
+
+      // FIXME: Temporary hack until lang-groovy correctly pulls appropriate groovy jars
+      if(language == 'groovy') {
+        project.dependencies.vertxcore('org.codehaus.groovy:groovy-all:2.1.5')
       }
 
       project.dependencies.vertxcore("io.vertx:lang-${language}:${version}"){

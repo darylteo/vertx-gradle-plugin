@@ -1,1 +1,2 @@
 include ':simple-project'
+include ':groovy-project'

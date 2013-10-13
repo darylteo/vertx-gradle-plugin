@@ -1,32 +1,33 @@
-repositories { mavenCentral() }
+repositories {
+  mavenCentral()
+  maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+}
 
 apply plugin: 'vertx'
 
 vertx {
   platform {
-    java '2.0.1-final'
-    tools '2.0.1-final'
+    version '2.0.1-final'
+    groovy '2.0.0-final'
   }
 
-  config { main 'Main' }
+  config { main 'groovy:Main' }
 
   deployments {
-    mod {
-      platform {
+    mod { 
+      platform { 
         version '2.0.1-final'
-        cluster '127.0.0.1',8080
-        instances 10
-      }
+      } 
     }
   }
 
   info {
     groupId 'com.darylteo'
-    artifactId 'simple-project'
+    artifactId project.name
     version '0.1.0-SNAPSHOT'
 
-    description 'Java sample project for the vert.x gradle plugin'
-    
+    description 'Groovy sample project for the vert.x gradle plugin'
+
     developers {
       developer {
         id 'darylteo'
@@ -53,6 +54,4 @@ afterEvaluate {
   assert vertx.deployments.findByName('mod') != null
   assert tasks.findByName('runMod') != null
   assert tasks.findByName('debugMod') != null
-
-  assert vertx.deployments.mod.platform.version == '2.0.1-final'
 }
