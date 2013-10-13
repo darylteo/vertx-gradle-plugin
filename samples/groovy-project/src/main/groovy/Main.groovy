@@ -5,13 +5,9 @@ class Main extends Verticle {
     int port = 12345
     println "Starting Server on port $port"
 
-    def server = vertx.createHttpServer()
-
-    server.requestHandler { request ->
+    vertx.createHttpServer().requestHandler { request ->
       // set a breakpoint here
       request.response.end("Hello World!")
-    }
-
-    server.listen(port)
+    }.listen(port)
   }
 }
