@@ -35,8 +35,11 @@ class GenerateModJson extends DefaultTask {
     this.insert(data, 'licenses', project.vertx.info.licenses[0]?.license.collect { it.name[0].value() })
 
     // need to use get() for properties, to bypass getProperties() method
-    def keywords = project.vertx.info.getAt(QName.valueOf('properties'))[0]?.keywords[0]?.value().split('\\s*,\\s*')
-    this.insert(data, 'keywords', keywords)
+    def props = project.vertx.info.getAt(QName.valueOf('properties'))[0]
+    if(props) {
+      def keywords = props.keywords[0]?.value().split('\\s*,\\s*')
+      this.insert(data, 'keywords', keywords)
+    }
 
     def developers = project.vertx.info.developers[0]?.developer
     if(developers) {

@@ -28,6 +28,7 @@ class RunVertx extends JavaExec {
     def moduleName = module instanceof Project ? module.vertx.vertxName : (module as String)
 
     // set classpath to run
+    classpath += project.rootProject.files('conf')
     classpath += config
     main  = 'org.vertx.java.platform.impl.cli.Starter'
     args 'runMod', moduleName
