@@ -44,10 +44,10 @@ class GenerateModJson extends DefaultTask {
     def developers = project.vertx.info.developers[0]?.developer
     if(developers) {
       if(developers.size() > 0) {
-        insert data, 'author', project.vertx.info.developers[0]?.developer[0]?.name[0]?.value()
+        insert data, 'author', developers[0]?.name[0]?.value()
       }
       if(developers.size() > 1) {
-        def others = (project.vertx.info.developers[0]?.developer.collect { it.name[0].value() })
+        def others = (developers.collect { it.name[0].value() })
         others.remove(0)
         insert data, 'developers', others
       }
