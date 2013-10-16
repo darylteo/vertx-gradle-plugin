@@ -4,12 +4,18 @@ import org.gradle.api.Project
 
 class PlatformConfiguration {
   def Project project
-
+  def String version
+  
   PlatformConfiguration(Project project) {
     this.project = project
   }
 
   def version(String version) {
+    this.setVersion(version)
+  }
+  
+  def setVersion(String version) {
+    this.version = version
     this.lang('java', version)
   }
 

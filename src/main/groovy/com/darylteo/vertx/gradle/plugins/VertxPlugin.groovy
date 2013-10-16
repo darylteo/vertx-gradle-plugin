@@ -105,6 +105,10 @@ public class VertxPlugin implements Plugin<Project> {
             runTask.dependsOn(module.copyModToRoot)
             debugTask.dependsOn(module.copyModToRoot)
           }
+          
+          if(!dep.platform.version) {
+            dep.platform.version = vertx.platform.version
+          }
         }
       }
 
@@ -114,7 +118,7 @@ public class VertxPlugin implements Plugin<Project> {
       }
 
       vertx.deployments { 
-        mod { 
+        mod {
           deploy project 
         } 
       }
