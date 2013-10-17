@@ -56,15 +56,16 @@ public class VertxPlugin implements Plugin<Project> {
     project.with {
       // archive tasks
       task('generateModJson', type: GenerateModJson) {}
-      task('copyMod', type: Sync) {
+      task('assembleVertx', type: Sync) {
       }
-      task('copyModToRoot', type: Sync) {
+      task('copyMod', type: Sync) {
         into { "${rootProject.buildDir}/mods/${project.vertx.vertxName}" }
-        from copyMod
+        from assembleVertx
       }
       task('modZip', type: Zip) {
+        group = 'Vertx'
         classifier = 'mod'
-        from copyMod
+        from assembleVertx
       }
 
       afterEvaluate {
@@ -73,7 +74,7 @@ public class VertxPlugin implements Plugin<Project> {
         def version = vertx.info.version || project.version
 
         ext.archivesBaseName = name
-        copyMod {
+        assembleVertx {
           into "$buildDir/mod"
           from sourceSets.matching({ it.name != SourceSet.TEST_SOURCE_SET_NAME })*.output
 
@@ -102,8 +103,8 @@ public class VertxPlugin implements Plugin<Project> {
         afterEvaluate {
           def module = dep.deploy.module
           if(module instanceof Project) {
-            runTask.dependsOn(module.copyModToRoot)
-            debugTask.dependsOn(module.copyModToRoot)
+            runTask.dependsOn(module.copyMod)
+            debugTask.dependsOn(module.copyMod)
           }
           
           if(!dep.platform.version) {

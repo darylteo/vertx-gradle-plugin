@@ -13,6 +13,10 @@ class RunVertx extends JavaExec {
     this.deployment = deployment
   }
 
+  public RunVertx() {
+    this.group = 'Vertx Run'
+  }
+  
   @Override
   public void exec() {
     def version = this.deployment.platform.version
