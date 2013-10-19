@@ -19,6 +19,10 @@ class GenerateModJson extends DefaultTask {
     }
   }
 
+  public File getDestinationDir() {
+    return project.file(destinationDir)
+  }
+  
   @TaskAction
   def run() {
     def destDir = project.file(destinationDir)
@@ -63,17 +67,21 @@ class GenerateModJson extends DefaultTask {
       config.includes = config.includes.join(',')
     }
 
-    data << config
+    project.vertx.config.each { prop ->
+      this.insert(data, prop.key, prop.value)
+    } 
+
 
     modjson << JsonOutput.toJson(data)
   }
 
-  public File getDestinationDir() {
-    return project.file(destinationDir)
-  }
-
-  private void insert(def map, String key, def value) {
+  void insert(def map, String key, def value) {
     if(value) {
+      if(key) {
+        key = key.replaceAll(~/\p{Lu}\p{Ll}*/){ String word ->
+          return "-${word.toLowerCase()}"
+        }
+      }
       map."$key" = value
     }
   }
