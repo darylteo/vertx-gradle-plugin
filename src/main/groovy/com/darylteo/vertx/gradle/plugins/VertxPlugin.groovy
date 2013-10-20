@@ -6,6 +6,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 
+import com.darylteo.vertx.gradle.configuration.ModuleConfiguration
 import com.darylteo.vertx.gradle.configuration.PlatformConfiguration
 import com.darylteo.vertx.gradle.configuration.ProjectConfiguration
 import com.darylteo.vertx.gradle.deployments.Deployment
@@ -27,7 +28,7 @@ public class VertxPlugin implements Plugin<Project> {
   private void addDependencies(Project project) {
     project.configurations {
       vertxcore
-      vertxtest 
+      vertxtest
       vertx
 
       provided {
@@ -44,6 +45,7 @@ public class VertxPlugin implements Plugin<Project> {
     project.extensions.create 'vertx', ProjectConfiguration
 
     project.vertx.extensions.create 'platform', PlatformConfiguration, project
+    project.vertx.extensions.create 'config', ModuleConfiguration, project
     project.vertx.extensions.deployments = project.container Deployment.class
   }
 
@@ -106,7 +108,7 @@ public class VertxPlugin implements Plugin<Project> {
             runTask.dependsOn(module.copyMod)
             debugTask.dependsOn(module.copyMod)
           }
-          
+
           if(!dep.platform.version) {
             dep.platform.version = vertx.platform.version
           }
@@ -118,10 +120,8 @@ public class VertxPlugin implements Plugin<Project> {
         tasks.removeAll tasks."run$name",tasks."debug$name"
       }
 
-      vertx.deployments { 
-        mod {
-          deploy project 
-        } 
+      vertx.deployments {
+        mod { deploy project  }
       }
     }
   }

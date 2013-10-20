@@ -5,7 +5,7 @@ import org.gradle.api.Project
 class PlatformConfiguration {
   def Project project
   def String version
-  
+
   PlatformConfiguration(Project project) {
     this.project = project
   }
@@ -13,7 +13,7 @@ class PlatformConfiguration {
   def version(String version) {
     this.setVersion(version)
   }
-  
+
   def setVersion(String version) {
     this.version = version
     this.lang('java', version)
@@ -33,6 +33,9 @@ class PlatformConfiguration {
         project.apply plugin: language
       }
 
+      // verticles needing lang-modules need them in mod.json
+      project.vertx.config.include "io.vertx~lang-${language}~${version}"
+      
       // FIXME: Temporary hack until lang-groovy correctly pulls appropriate groovy jars
       if(language == 'groovy') {
         project.dependencies.vertxcore('org.codehaus.groovy:groovy-all:2.1.5')

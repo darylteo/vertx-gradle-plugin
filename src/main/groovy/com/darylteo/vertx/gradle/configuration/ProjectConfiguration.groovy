@@ -4,10 +4,8 @@ import groovy.json.JsonBuilder
 
 
 class ProjectConfiguration {
-
   // Module Information
   final Node info = new Node(null, "info")
-  final Map config = [:]
 
   public void info(Closure closure) {
     // hack for appending closure to child nodes
@@ -37,14 +35,6 @@ class ProjectConfiguration {
         info.append section
       }
     }
-  }
-
-  public void config(Closure closure) {
-    closure.resolveStrategy = Closure.DELEGATE_FIRST
-
-    JsonBuilder builder = new JsonBuilder()
-
-    this.config << builder.call(closure)
   }
 
   public String getVertxName() {

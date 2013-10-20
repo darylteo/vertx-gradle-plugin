@@ -6,12 +6,13 @@ import groovy.xml.QName
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
+
 class GenerateModJson extends DefaultTask {
   def destinationDir = { "${project.buildDir}/conf" }
 
   public GenerateModJson() {
     project.afterEvaluate {
-      inputs.property 'config', project.vertx.config
+      inputs.property 'config', project.vertx.config.map
       inputs.property 'info', project.vertx.info
 
       def dir = project.file(this.destinationDir)
@@ -22,7 +23,7 @@ class GenerateModJson extends DefaultTask {
   public File getDestinationDir() {
     return project.file(destinationDir)
   }
-  
+
   @TaskAction
   def run() {
     def destDir = project.file(destinationDir)
@@ -61,27 +62,18 @@ class GenerateModJson extends DefaultTask {
 
     // override with module config
     // main, worker, multi-threaded, includes, preserve-cwd, auto-redeploy, resident, system, deploys
-    def config = project.vertx.config
-    // hack until vertx does supports arrays for includes
-    if(!config.includes instanceof String) {
-      config.includes = config.includes.join(',')
+    data << project.vertx.config.map
+
+    // hack until vertx supports array for includes property
+    if(!(data.includes instanceof String)) {
+      data.includes = data.includes.join(',')
     }
-
-    project.vertx.config.each { prop ->
-      this.insert(data, prop.key, prop.value)
-    } 
-
 
     modjson << JsonOutput.toJson(data)
   }
 
   void insert(def map, String key, def value) {
     if(value) {
-      if(key) {
-        key = key.replaceAll(~/\p{Lu}\p{Ll}*/){ String word ->
-          return "-${word.toLowerCase()}"
-        }
-      }
       map."$key" = value
     }
   }
