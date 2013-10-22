@@ -16,7 +16,7 @@ class RunVertx extends JavaExec {
   public RunVertx() {
     this.group = 'Vertx Run'
   }
-  
+
   @Override
   public void exec() {
     def version = this.deployment.platform.version
@@ -35,7 +35,7 @@ class RunVertx extends JavaExec {
     classpath += project.rootProject.files('conf')
     classpath += config
     main  = 'org.vertx.java.platform.impl.cli.Starter'
-    args 'runMod', moduleName
+    args 'runMod', moduleName, '-conf', project.file("${project.buildDir}/configs/${deployment.name}.conf")
     args(platform.args)
 
     // set stdio
@@ -54,7 +54,7 @@ class RunVertx extends JavaExec {
     }
 
     println "Running $this"
-    
+
     super.exec()
   }
 
