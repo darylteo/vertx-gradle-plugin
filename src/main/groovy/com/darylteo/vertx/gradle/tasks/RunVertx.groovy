@@ -2,6 +2,7 @@ package com.darylteo.vertx.gradle.tasks
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.JavaExec
 
 import com.darylteo.vertx.gradle.deployments.Deployment
@@ -9,8 +10,14 @@ import com.darylteo.vertx.gradle.exceptions.DeploymentVersionNotSetException
 
 class RunVertx extends JavaExec {
   Deployment deployment
+  def configFile
+
   def deployment(Deployment deployment) {
     this.deployment = deployment
+  }
+
+  def configFile(def configFile) {
+    this.configFile = configFile
   }
 
   public RunVertx() {
@@ -35,7 +42,8 @@ class RunVertx extends JavaExec {
     classpath += project.rootProject.files('conf')
     classpath += config
     main  = 'org.vertx.java.platform.impl.cli.Starter'
-    args 'runMod', moduleName, '-conf', project.file("${project.buildDir}/configs/${deployment.name}.conf")
+    
+    args 'runMod', moduleName, '-conf', project.file(configFile).toString()
     args(platform.args)
 
     // set stdio

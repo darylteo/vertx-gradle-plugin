@@ -101,10 +101,12 @@ public class VertxPlugin implements Plugin<Project> {
         def runTask = task("run$name", type: RunVertx) {
           deployment = dep
           dependsOn configTask
+          configFile { configTask.outputFile }
         }
         def debugTask = task("debug$name", type: RunVertx) {
           deployment = dep
           dependsOn configTask
+          configFile { configTask.outputFile }
           debug = true
         }
 
