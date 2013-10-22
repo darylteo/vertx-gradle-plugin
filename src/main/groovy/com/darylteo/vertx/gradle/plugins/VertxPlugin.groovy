@@ -10,6 +10,7 @@ import com.darylteo.vertx.gradle.configuration.ModuleConfiguration
 import com.darylteo.vertx.gradle.configuration.PlatformConfiguration
 import com.darylteo.vertx.gradle.configuration.ProjectConfiguration
 import com.darylteo.vertx.gradle.deployments.Deployment
+import com.darylteo.vertx.gradle.tasks.GenerateDeploymentConfig
 import com.darylteo.vertx.gradle.tasks.GenerateModJson
 import com.darylteo.vertx.gradle.tasks.RunVertx
 
@@ -96,9 +97,14 @@ public class VertxPlugin implements Plugin<Project> {
         // add tasks for deployment
         def name = dep.name.capitalize()
 
-        def runTask = task("run$name", type: RunVertx) {  deployment = dep  }
+        def configTask = task("generate${name}Config", type: GenerateDeploymentConfig) { deployment = dep }
+        def runTask = task("run$name", type: RunVertx) {
+          deployment = dep
+          dependsOn configTask
+        }
         def debugTask = task("debug$name", type: RunVertx) {
           deployment = dep
+          dependsOn configTask
           debug = true
         }
 
@@ -120,9 +126,7 @@ public class VertxPlugin implements Plugin<Project> {
         tasks.removeAll tasks."run$name",tasks."debug$name"
       }
 
-      vertx.deployments {
-        mod { deploy project  }
-      }
+      vertx.deployments { mod { deploy project  } }
     }
   }
 }
