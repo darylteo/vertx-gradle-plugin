@@ -65,7 +65,7 @@ class GenerateModJson extends DefaultTask {
     data << project.vertx.config.map
 
     // hack until vertx supports array for includes property
-    if(!(data.includes instanceof String)) {
+    if(data.includes && !(data.includes instanceof String)) {
       data.includes = data.includes.join(',')
     }
 
