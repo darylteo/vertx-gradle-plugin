@@ -1,6 +1,6 @@
-apply plugin: 'groovy'
-apply plugin: 'maven'
-apply plugin: 'signing'
+repositories {
+  mavenCentral()
+}
 
 configurations {
   provided
@@ -8,8 +8,14 @@ configurations {
   compile.extendsFrom provided
 }
 
+apply plugin: 'groovy'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
 dependencies {
   compile localGroovy()
+  compile 'com.darylteo:directory-watcher:1.2.0'
+  
   provided gradleApi()
 }
 
@@ -31,6 +37,7 @@ install {
     }
   }
 }
+
 uploadArchives {
   repositories {
     mavenDeployer {

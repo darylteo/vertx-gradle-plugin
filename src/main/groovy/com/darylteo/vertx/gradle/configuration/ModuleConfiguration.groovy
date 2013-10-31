@@ -40,7 +40,7 @@ class ModuleConfiguration {
     map.system = value
   }
 
-  public def include(String ... includes) {
+  public def includes(String ... includes) {
     if(!map.includes) {
       map.includes = []
     }

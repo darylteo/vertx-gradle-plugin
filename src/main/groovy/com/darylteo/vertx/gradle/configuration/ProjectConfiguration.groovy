@@ -1,7 +1,12 @@
 package com.darylteo.vertx.gradle.configuration
 
-import groovy.json.JsonBuilder
+import java.nio.file.Path
 
+import org.gradle.api.Project
+
+import com.darylteo.nio.DirectoryChangedSubscriber
+import com.darylteo.nio.DirectoryWatcher
+import com.darylteo.nio.ThreadPoolDirectoryWatchService
 
 class ProjectConfiguration {
   // Module Information

@@ -2,9 +2,9 @@ package com.darylteo.vertx.gradle.tasks
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.JavaExec
 
+import com.darylteo.nio.ThreadPoolDirectoryWatchService
 import com.darylteo.vertx.gradle.deployments.Deployment
 import com.darylteo.vertx.gradle.exceptions.DeploymentVersionNotSetException
 
@@ -42,7 +42,7 @@ class RunVertx extends JavaExec {
     classpath += project.rootProject.files('conf')
     classpath += config
     main  = 'org.vertx.java.platform.impl.cli.Starter'
-    
+
     args 'runMod', moduleName, '-conf', project.file(configFile).toString()
     args(platform.args)
 
