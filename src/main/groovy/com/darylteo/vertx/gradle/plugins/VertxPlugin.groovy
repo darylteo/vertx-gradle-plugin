@@ -27,18 +27,28 @@ public class VertxPlugin implements Plugin<Project> {
   }
 
   private void addDependencies(Project project) {
-    project.configurations {
-      vertxcore
-      vertxtest
-      vertx
+    project.with {
+      repositories { mavenCentral() }
 
-      provided {
-        extendsFrom vertxcore
-        extendsFrom vertxtest
-        extendsFrom vertx
+      configurations {
+        vertxcore
+        vertxtest
+        vertxincludes
+
+        provided {
+          extendsFrom vertxcore
+          extendsFrom vertxtest
+          extendsFrom vertxincludes
+        }
+
+        compile { extendsFrom provided }
       }
 
-      compile { extendsFrom provided }
+      afterEvaluate {
+        dependencies {
+          vertx.config?.map?.includes?.collect { String dep -> dep.replace('~', ':') }.each { dep -> vertxincludes dep  }
+        }
+      }
     }
   }
 

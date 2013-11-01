@@ -43,17 +43,17 @@ class ProjectConfiguration {
   }
 
   public String getVertxName() {
-    def group = info.groupId[0].value()
-    def name = info.artifactId[0].value()
-    def version = info.version[0].value()
+    def group = info.groupId[0]?.value() ?: 'unspecified'
+    def name = info.artifactId[0]?.value() ?: 'unspecified'
+    def version = info.version[0]?.value() ?: 'unspecified'
 
     return "$group~$name~$version"
   }
 
   public String getMavenName() {
-    def group = info.groupId[0].value()
-    def name = info.artifactId[0].value()
-    def version = info.version[0].value()
+    def group = info.groupId[0]?.value() ?: 'unspecified'
+    def name = info.artifactId[0]?.value() ?: 'unspecified'
+    def version = info.version[0]?.value() ?: 'unspecified'
 
     return "$group:$name:$version"
   }
