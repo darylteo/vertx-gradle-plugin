@@ -1,6 +1,4 @@
-repositories {
-  mavenCentral()
-}
+repositories { mavenCentral() }
 
 configurations {
   provided
@@ -9,22 +7,35 @@ configurations {
 }
 
 apply plugin: 'groovy'
-apply plugin: 'maven'
-apply plugin: 'signing'
+apply from: rootProject.file('gradle/sonatype.gradle')
 
 dependencies {
   compile localGroovy()
   compile 'com.darylteo:directory-watcher:1.2.0'
-  
+
   provided gradleApi()
 }
 
-install {
+uploadArchives {
   repositories {
-    mavenInstaller {
+    mavenDeployer {
       pom {
         project {
+          name 'Vert.x Gradle Plugin'
+          description 'A Gradle Plugin for building, assembling and running Vert.x projects.'
           inceptionYear '2013'
+          url 'http://github.com/darylteo/vertx-gradle-plugin'
+
+          developers {
+            developer {
+              id 'darylteo'
+              name 'Daryl Teo'
+              email 'i.am@darylteo.com'
+            }
+          }
+
+          scm { url 'http://github.com/darylteo/vertx-gradle-plugin' }
+
           licenses {
             license {
               name 'The Apache Software License, Version 2.0'
@@ -34,15 +45,6 @@ install {
           }
         }
       }
-    }
-  }
-}
-
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      //
-      //
     }
   }
 }

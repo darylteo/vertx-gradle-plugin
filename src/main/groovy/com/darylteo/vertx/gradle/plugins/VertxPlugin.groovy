@@ -53,7 +53,7 @@ public class VertxPlugin implements Plugin<Project> {
   }
 
   private void applyExtensions(Project project) {
-    project.extensions.create 'vertx', ProjectConfiguration
+    project.extensions.create 'vertx', ProjectConfiguration, project
 
     project.vertx.extensions.create 'platform', PlatformConfiguration, project
     project.vertx.extensions.create 'config', ModuleConfiguration, project

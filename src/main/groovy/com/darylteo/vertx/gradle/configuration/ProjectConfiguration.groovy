@@ -9,6 +9,11 @@ import com.darylteo.nio.DirectoryWatcher
 import com.darylteo.nio.ThreadPoolDirectoryWatchService
 
 class ProjectConfiguration {
+  final Project project
+  public ProjectConfiguration(Project project) {
+    this.project = project
+  }
+
   // Module Information
   final Node info = new Node(null, "info")
 
@@ -43,18 +48,18 @@ class ProjectConfiguration {
   }
 
   public String getVertxName() {
-    def group = info.groupId[0]?.value() ?: 'unspecified'
-    def name = info.artifactId[0]?.value() ?: 'unspecified'
-    def version = info.version[0]?.value() ?: 'unspecified'
+    def group = project.group
+    def name = project.name
+    def version = project.version
 
     return "$group~$name~$version"
   }
 
   public String getMavenName() {
-    def group = info.groupId[0]?.value() ?: 'unspecified'
-    def name = info.artifactId[0]?.value() ?: 'unspecified'
-    def version = info.version[0]?.value() ?: 'unspecified'
-
+    def group = project.group
+    def name = project.name
+    def version = project.version
+    
     return "$group:$name:$version"
   }
 }
