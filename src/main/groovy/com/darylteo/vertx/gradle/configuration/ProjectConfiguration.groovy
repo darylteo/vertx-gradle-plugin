@@ -15,7 +15,11 @@ class ProjectConfiguration {
   }
 
   // Module Information
-  final Node info = new Node(null, "info")
+  final Node _info = new Node(null, "info")
+
+  public NodeList getInfo() {
+    return _info.children()
+  }
 
   public void info(Closure closure) {
     // hack for appending closure to child nodes
@@ -31,7 +35,7 @@ class ProjectConfiguration {
     // merge top level nodes into _info
     root.children().each { Node section ->
       def name = section.name()
-      def list = info.get(name)
+      def list = _info.get(name)
 
       if(list[0]){
         section.children().each { def element ->
@@ -42,7 +46,7 @@ class ProjectConfiguration {
           }
         }
       } else {
-        info.append section
+        _info.append section
       }
     }
   }
@@ -59,7 +63,7 @@ class ProjectConfiguration {
     def group = project.group
     def name = project.name
     def version = project.version
-    
+
     return "$group:$name:$version"
   }
 }

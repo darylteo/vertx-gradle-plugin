@@ -33,20 +33,22 @@ class GenerateModJson extends DefaultTask {
 
     // http://vertx.io/mods_manual.html
     def data = [:]
+    def info = new Node(null, 'info')
+    info.children().addAll project.vertx.info
 
     // module info
     // description, licenses, author, keywords, developers, homepage
-    this.insert(data, 'description', project.vertx.info.description[0]?.value())
-    this.insert(data, 'licenses', project.vertx.info.licenses[0]?.license.collect { it.name[0].value() })
+    this.insert(data, 'description', info.description[0]?.value())
+    this.insert(data, 'licenses', info.licenses[0]?.license.collect { it.name[0].value() })
 
     // need to use get() for properties, to bypass getProperties() method
-    def props = project.vertx.info.getAt(QName.valueOf('properties'))[0]
+    def props = info.getAt(QName.valueOf('properties'))[0]
     if(props) {
       def keywords = props.keywords[0]?.value().split('\\s*,\\s*')
       this.insert(data, 'keywords', keywords)
     }
 
-    def developers = project.vertx.info.developers[0]?.developer
+    def developers = info.developers[0]?.developer
     if(developers) {
       if(developers.size() > 0) {
         insert data, 'author', developers[0]?.name[0]?.value()
@@ -58,7 +60,7 @@ class GenerateModJson extends DefaultTask {
       }
     }
 
-    insert data, 'homepage', project.vertx.info.url[0]?.value()
+    insert data, 'homepage', info.url[0]?.value()
 
     // override with module config
     // main, worker, multi-threaded, includes, preserve-cwd, auto-redeploy, resident, system, deploys
