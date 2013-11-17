@@ -126,7 +126,7 @@ public class VertxPlugin implements Plugin<Project> {
         def runTask = task("run$name", type: RunVertx) { debug = false }
         def debugTask = task("debug$name", type: RunVertx) { debug = true }
 
-        [runTask,debugTask]*.configure {
+        [runTask, debugTask]*.configure {
           deployment dep
           configFile { configTask.outputFile }
           dependsOn configTask, watcherTask
