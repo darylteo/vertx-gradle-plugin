@@ -11,7 +11,7 @@ class ModuleConfiguration {
     this.project = project
     this.map = [:]
   }
-  
+
   public def main(String value) {
     map.main = value
   }

@@ -4,7 +4,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.JavaExec
 
-import com.darylteo.nio.ThreadPoolDirectoryWatchService
 import com.darylteo.vertx.gradle.deployments.Deployment
 import com.darylteo.vertx.gradle.exceptions.DeploymentVersionNotSetException
 

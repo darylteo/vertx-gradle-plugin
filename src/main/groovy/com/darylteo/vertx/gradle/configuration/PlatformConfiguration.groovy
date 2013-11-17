@@ -35,7 +35,7 @@ class PlatformConfiguration {
 
       // verticles needing lang-modules need them in mod.json
       project.vertx.config.includes "io.vertx~lang-${language}~${version}"
-      
+
       // FIXME: Temporary hack until lang-groovy correctly pulls appropriate groovy jars
       if(language == 'groovy') {
         project.dependencies.vertxcore('org.codehaus.groovy:groovy-all:2.1.5')

@@ -6,6 +6,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 
+import com.darylteo.gradle.watcher.tasks.WatcherTask
 import com.darylteo.vertx.gradle.configuration.ModuleConfiguration
 import com.darylteo.vertx.gradle.configuration.PlatformConfiguration
 import com.darylteo.vertx.gradle.configuration.ProjectConfiguration
@@ -23,7 +24,10 @@ public class VertxPlugin implements Plugin<Project> {
   }
 
   private void applyPlugins (Project project) {
-    project.with { apply plugin: 'java' }
+    project.with {
+      apply plugin: 'java'
+      apply plugin: 'watcher'
+    }
   }
 
   private void addDependencies(Project project) {
@@ -46,7 +50,9 @@ public class VertxPlugin implements Plugin<Project> {
 
       afterEvaluate {
         dependencies {
-          vertx.config?.map?.includes?.collect { String dep -> dep.replace('~', ':') }.each { dep -> vertxincludes dep  }
+          vertx.config?.map?.includes?.collect { String dep ->
+            dep.replace('~', ':')
+          }.each { dep -> vertxincludes dep }
         }
       }
     }
@@ -103,21 +109,27 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addRunTasks(Project project) {
     project.with {
+      // create the watcher task
+      def watcherTask = task('__watch', type: WatcherTask) {
+        block = false
+        includes = ['src/**']
+        tasks = ['copyMod']
+      }
+
+      // configure the run/debug tasks
       vertx.deployments.whenObjectAdded { Deployment dep ->
         // add tasks for deployment
         def name = dep.name.capitalize()
 
         def configTask = task("generate${name}Config", type: GenerateDeploymentConfig) { deployment = dep }
-        def runTask = task("run$name", type: RunVertx) {
-          deployment = dep
-          dependsOn configTask
+
+        def runTask = task("run$name", type: RunVertx) { debug = false }
+        def debugTask = task("debug$name", type: RunVertx) { debug = true }
+
+        [runTask,debugTask]*.configure {
+          deployment dep
           configFile { configTask.outputFile }
-        }
-        def debugTask = task("debug$name", type: RunVertx) {
-          deployment = dep
-          dependsOn configTask
-          configFile { configTask.outputFile }
-          debug = true
+          dependsOn configTask, watcherTask
         }
 
         afterEvaluate {
