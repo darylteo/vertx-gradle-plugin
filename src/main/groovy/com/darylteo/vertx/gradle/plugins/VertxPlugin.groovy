@@ -94,14 +94,18 @@ public class VertxPlugin implements Plugin<Project> {
 
         ext.archivesBaseName = name
         assembleVertx {
+          def sourceSets = sourceSets.matching({ it.name != SourceSet.TEST_SOURCE_SET_NAME })
+          
           into "$buildDir/mod"
-          from sourceSets.matching({ it.name != SourceSet.TEST_SOURCE_SET_NAME })*.output
-
+          from sourceSets*.output
           from generateModJson
 
           into('lib') {
             from configurations.compile - configurations.provided
           }
+          
+          dependsOn generateModJson
+          dependsOn sourceSets*.classesTaskName
         }
       }
     }
