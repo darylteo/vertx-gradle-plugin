@@ -38,7 +38,7 @@ class PlatformConfiguration {
 
       // FIXME: Temporary hack until lang-groovy correctly pulls appropriate groovy jars
       if(language == 'groovy') {
-        project.dependencies.vertxcore('org.codehaus.groovy:groovy-all:2.1.5')
+        project.dependencies.vertxcore('org.codehaus.groovy:groovy-all:2.2.1')
       }
 
       project.dependencies.vertxcore("io.vertx:lang-${language}:${version}"){
