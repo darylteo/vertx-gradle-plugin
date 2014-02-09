@@ -7,7 +7,7 @@ apply plugin: 'vertx'
 
 vertx {
   platform {
-    version '2.0.1-final'
+    version '2.1M5'
     groovy '2.0.0-final'
   }
 
