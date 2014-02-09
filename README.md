@@ -145,10 +145,13 @@ vertx {
 
 Setup deployment profiles for your project. 
 
-Incubating Features:
+__Incubating Features__
 
  - change deployment target 
  - multiple targets per deployment
+
+
+__Example__
 
 ```groovy
 vertx {
@@ -157,22 +160,19 @@ vertx {
 	deployments {
 		mod {
 			platform {
-				version '2.0.1-final'
 				cluster '127.0.0.1', 8080
 				instances 10
+			}
+		}
 
+		modWithConf {
+			debug true
+
+			platform {
 				conf {
 					hello: 'World',
 					foo: 'bar'
 				}
-			}
-		}
-
-		debugMod {
-			debug true
-
-			platform {
-
 			}
 		}
 	}
@@ -181,7 +181,10 @@ vertx {
 
 By default, a deployment called "mod" is automatically created and you may alter this. However, you may add as many new ones as you wish.
 
-#### Deployment Configuration
+__Running__
+
+Each deployment configuration you create comes with 2 Gradle tasks _run<deploymentName>_ and _debug<deploymentName>_. Calling the debug task allows you to use remote debugging.
+Refer to documentation from your preferred IDE regarding remote debugging configuration.
 
 
 #### Platform Configuration
@@ -190,10 +193,6 @@ By default, a deployment called "mod" is automatically created and you may alter
 vertx {
 	deployments {
 		mod {
-			// set debug to true to turn on remote debugging. Useful for remote debugging tools in IDEs.
-			// refer to documentation from your preferred IDE regarding remote debugging configuration.
-			debug true
-
 			platform {
 				// use this to deploy this module on a different version of vertx other than what it was built with. 
 				// useful for testing compatibility with other versions
