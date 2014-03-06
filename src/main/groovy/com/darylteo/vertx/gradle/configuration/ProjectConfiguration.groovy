@@ -46,7 +46,7 @@ class ProjectConfiguration {
   }
 
   public String getVertxName() {
-    def group = project.group
+    def group = project.group ?: 'group'
     def name = project.name
     def version = project.version
 
