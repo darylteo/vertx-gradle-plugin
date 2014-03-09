@@ -1,11 +1,5 @@
 package com.darylteo.vertx.gradle.plugins
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.Sync
-import org.gradle.api.tasks.bundling.Zip
-
 import com.darylteo.gradle.watcher.tasks.WatcherTask
 import com.darylteo.vertx.gradle.configuration.ModuleConfiguration
 import com.darylteo.vertx.gradle.configuration.PlatformConfiguration
@@ -14,6 +8,11 @@ import com.darylteo.vertx.gradle.deployments.Deployment
 import com.darylteo.vertx.gradle.tasks.GenerateDeploymentConfig
 import com.darylteo.vertx.gradle.tasks.GenerateModJson
 import com.darylteo.vertx.gradle.tasks.RunVertx
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.bundling.Zip
 
 public class VertxPlugin implements Plugin<Project> {
   public void apply(Project project) {
@@ -133,7 +132,7 @@ public class VertxPlugin implements Plugin<Project> {
         [runTask, debugTask]*.configure {
           deployment dep
           configFile { configTask.outputFile }
-          dependsOn configTask, watcherTask
+          dependsOn configTask
         }
 
         afterEvaluate {
@@ -145,6 +144,11 @@ public class VertxPlugin implements Plugin<Project> {
 
           if(!dep.platform.version) {
             dep.platform.version = vertx.platform.version
+          }
+
+          if(dep.config.autoRedeploy) {
+            runTask.dependsOn(watcherTask)
+            debugTask.dependsOn(watcherTask)
           }
         }
       }
