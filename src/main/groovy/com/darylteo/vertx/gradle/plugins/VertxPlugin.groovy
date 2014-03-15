@@ -35,11 +35,13 @@ public class VertxPlugin implements Plugin<Project> {
 
       configurations {
         vertxcore
+        vertxlang
         vertxtest
         vertxincludes
 
         provided {
           extendsFrom vertxcore
+          extendsFrom vertxlang
           extendsFrom vertxtest
           extendsFrom vertxincludes
         }
@@ -66,7 +68,7 @@ public class VertxPlugin implements Plugin<Project> {
               if (!module) {
                 println("Unsupported Language: @vertx.platform.lang.name")
               } else {
-                vertxcore(module)
+                vertxlang(module)
               }
             }
 
@@ -100,13 +102,14 @@ public class VertxPlugin implements Plugin<Project> {
       'default-langs.properties',
       'langs.properties'
     ].each { file ->
-      def stream = cl.getResourceAsStream(file)
-      if (stream) {
-        props.load(stream)
+      cl.getResourceAsStream(file)?.withReader { r ->
+        props.load(r)
       }
     }
 
-    return props.getProperty(lang)
+    // vertx modules are defined in a different format.
+    def module = props.getProperty(lang)?.split(":", -1)[0]?.replace('~', ':')
+    return module
   }
 
   private void applyExtensions(Project project) {
@@ -213,4 +216,5 @@ public class VertxPlugin implements Plugin<Project> {
       vertx.deployments { mod { deploy project } }
     }
   }
+
 }
