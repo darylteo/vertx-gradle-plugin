@@ -1,3 +1,0 @@
-include ':simple-project'
-include ':groovy-project'
-include ':scala-project'

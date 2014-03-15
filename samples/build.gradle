@@ -1,4 +1,0 @@
-buildscript {
-  repositories { mavenLocal() }
-  dependencies { classpath vertxPlugin }
-}
