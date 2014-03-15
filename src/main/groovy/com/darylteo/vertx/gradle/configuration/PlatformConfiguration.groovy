@@ -24,18 +24,7 @@ class PlatformConfiguration {
     this.toolsVersion = version
   }
 
-  def lang(String language, String version) {
-    this.lang = [
-      'name': language,
-      'version': version
-    ]
-  }
-
-  def methodMissing(String name, args) {
-    if (args.size() == 1) {
-      lang(name, args[0])
-    } else {
-      throw new MissingMethodException(name, this.class, args)
-    }
+  def lang(String language) {
+    this.lang = language
   }
 }

@@ -62,11 +62,10 @@ public class VertxPlugin implements Plugin<Project> {
             // core and lang modules
             vertxcore("${vertxGroup}:vertx-platform:${vertx.platform.version}")
 
-            println "Lang: ${vertx.platform.lang}"
             if (vertx.platform.lang != null) {
-              def module = getModuleForLang(project, vertx.platform.lang.name)
+              def module = getModuleForLang(project, vertx.platform.lang)
               if (!module) {
-                println("Unsupported Language: @vertx.platform.lang.name")
+                println("Unsupported Language: ${vertx.platform.lang}")
               } else {
                 vertxlang(module)
               }
@@ -108,7 +107,7 @@ public class VertxPlugin implements Plugin<Project> {
     }
 
     // vertx modules are defined in a different format.
-    def module = props.getProperty(lang)?.split(":", -1)[0]?.replace('~', ':')
+    def module = props.getProperty(lang)?.split(":", -1)?.getAt(0)?.replace('~', ':')
     return module
   }
 
