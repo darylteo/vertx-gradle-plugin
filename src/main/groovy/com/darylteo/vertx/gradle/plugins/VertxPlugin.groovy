@@ -22,7 +22,7 @@ public class VertxPlugin implements Plugin<Project> {
     addTasks project
   }
 
-  private void applyPlugins (Project project) {
+  private void applyPlugins(Project project) {
     project.with {
       apply plugin: 'java'
       apply plugin: 'watcher'
@@ -47,14 +47,66 @@ public class VertxPlugin implements Plugin<Project> {
         compile { extendsFrom provided }
       }
 
+
+
       afterEvaluate {
-        dependencies {
-          vertx.config?.map?.includes?.collect { String dep ->
-            dep.replace('~', ':')
-          }.each { dep -> vertxincludes dep }
+        // validations
+        if (vertx?.platform?.version == null) {
+          println('Vert.x Platform Version not set. e.g. "vertx.platform.version = \'2.1\'".')
+        } else {
+          def vertxGroup = 'io.vertx'
+
+          dependencies {
+            // core and lang modules
+            vertxcore("${vertxGroup}:vertx-platform:${vertx.platform.version}")
+
+            println "Lang: ${vertx.platform.lang}"
+            if (vertx.platform.lang != null) {
+              def module = getModuleForLang(project, vertx.platform.lang.name)
+              if (!module) {
+                println("Unsupported Language: @vertx.platform.lang.name")
+              } else {
+                vertxcore(module)
+              }
+            }
+
+            if (vertx.platform.toolsVersion) {
+              vertxtest("${vertxGroup}:testtools:${vertx.platform.toolsVersion}")
+            }
+
+            // includes
+            vertx.config?.map?.includes?.collect { String dep ->
+              dep.replace('~', ':')
+            }.each { dep -> vertxincludes dep }
+          }
         }
       }
     }
+  }
+
+  private String getModuleForLang(Project project, String lang) {
+    // load langs.properties and get the correct version if a version was not specified
+    def cp = (project.configurations.vertxcore.files + project.file('conf'))
+      .collect({ file ->
+      // File.toURL() is bugged. Use toURI().toURL(). See Javadoc
+      file.toURI().toURL()
+    }).toArray(new URL[0])
+
+    def cl = new URLClassLoader(cp)
+
+    def props = new Properties()
+
+    [
+      'default-langs.properties',
+      'langs.properties'
+    ].each { file ->
+      def stream = cl.getResourceAsStream(file)
+      if (stream) {
+        props.load(stream)
+      }
+    }
+
+    return props.getProperty(lang)
   }
 
   private void applyExtensions(Project project) {
@@ -94,7 +146,7 @@ public class VertxPlugin implements Plugin<Project> {
         ext.archivesBaseName = name
         assembleVertx {
           def sourceSets = sourceSets.matching({ it.name != SourceSet.TEST_SOURCE_SET_NAME })
-          
+
           into "$buildDir/mod"
           from sourceSets*.output
           from generateModJson
@@ -102,7 +154,7 @@ public class VertxPlugin implements Plugin<Project> {
           into('lib') {
             from configurations.compile - configurations.provided
           }
-          
+
           dependsOn generateModJson
           dependsOn sourceSets*.classesTaskName
         }
@@ -137,16 +189,16 @@ public class VertxPlugin implements Plugin<Project> {
 
         afterEvaluate {
           def module = dep.deploy.module
-          if(module instanceof Project) {
+          if (module instanceof Project) {
             runTask.dependsOn(module.copyMod)
             debugTask.dependsOn(module.copyMod)
           }
 
-          if(!dep.platform.version) {
+          if (!dep.platform.version) {
             dep.platform.version = vertx.platform.version
           }
 
-          if(dep.config.autoRedeploy) {
+          if (dep.config.autoRedeploy) {
             runTask.dependsOn(watcherTask)
             debugTask.dependsOn(watcherTask)
           }
@@ -155,10 +207,10 @@ public class VertxPlugin implements Plugin<Project> {
 
       vertx.deployments.whenObjectRemoved { Deployment dep ->
         def name = dep.name.capitalize()
-        tasks.removeAll tasks."run$name",tasks."debug$name"
+        tasks.removeAll tasks."run$name", tasks."debug$name"
       }
 
-      vertx.deployments { mod { deploy project  } }
+      vertx.deployments { mod { deploy project } }
     }
   }
 }
