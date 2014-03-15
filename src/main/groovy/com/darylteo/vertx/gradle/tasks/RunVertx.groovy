@@ -1,11 +1,10 @@
 package com.darylteo.vertx.gradle.tasks
 
+import com.darylteo.vertx.gradle.deployments.Deployment
+import com.darylteo.vertx.gradle.exceptions.DeploymentVersionNotSetException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.JavaExec
-
-import com.darylteo.vertx.gradle.deployments.Deployment
-import com.darylteo.vertx.gradle.exceptions.DeploymentVersionNotSetException
 
 class RunVertx extends JavaExec {
   Deployment deployment
@@ -27,20 +26,20 @@ class RunVertx extends JavaExec {
   public void exec() {
     def version = this.deployment.platform.version
 
-    if(!version) {
+    if (!version) {
       logger.error 'Vertx Platform Version not defined for this deployment'
       throw new DeploymentVersionNotSetException()
     }
 
     def config = getVertxPlatformDependencies(project, version)
+    def confDirs = project.rootProject.files('conf')
     def module = this.deployment.deploy.module
     def platform = this.deployment.platform
     def moduleName = module instanceof Project ? module.vertx.vertxName : (module as String)
 
     // set classpath to run
-    classpath += project.rootProject.files('conf')
-    classpath += config
-    main  = 'org.vertx.java.platform.impl.cli.Starter'
+    classpath += config + confDirs
+    main = 'org.vertx.java.platform.impl.cli.Starter'
 
     args 'runMod', moduleName, '-conf', project.file(configFile).toString()
     args(platform.args)
@@ -55,7 +54,7 @@ class RunVertx extends JavaExec {
       systemProperties 'vertx.mods': "$buildDir/mods"
     }
 
-    if(this.deployment.debug) {
+    if (this.deployment.debug) {
       this.ignoreExitValue = true
       jvmArgs "-agentlib:jdwp=transport=dt_socket,address=localhost,server=y,suspend=y"
     }
