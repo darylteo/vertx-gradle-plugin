@@ -49,8 +49,6 @@ public class VertxPlugin implements Plugin<Project> {
         compile { extendsFrom provided }
       }
 
-
-
       afterEvaluate {
         // validations
         if (vertx?.platform?.version == null) {
@@ -126,14 +124,18 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addArchiveTasks(Project project) {
     project.with {
+      def modDir = project.file("${rootProject.buildDir}/mods/${project.vertx.vertxName}")
+
       // archive tasks
       task('generateModJson', type: GenerateModJson) {}
       task('assembleVertx', type: Sync) {
       }
+
       task('copyMod', type: Sync) {
-        into { "${rootProject.buildDir}/mods/${project.vertx.vertxName}" }
+        into { modDir }
         from assembleVertx
       }
+
       task('modZip', type: Zip) {
         group = 'Vertx'
         classifier = 'mod'
@@ -178,10 +180,16 @@ public class VertxPlugin implements Plugin<Project> {
         // add tasks for deployment
         def name = dep.name.capitalize()
 
-        def configTask = task("generate${name}Config", type: GenerateDeploymentConfig) { deployment = dep }
+        def configTask = task("generate${name}Config", type: GenerateDeploymentConfig) {
+          deployment = dep
+        }
 
-        def runTask = task("run$name", type: RunVertx) { debug = false }
-        def debugTask = task("debug$name", type: RunVertx) { debug = true }
+        def runTask = task("run$name", type: RunVertx) {
+          debug = false
+        }
+        def debugTask = task("debug$name", type: RunVertx) {
+          debug = true
+        }
 
         [runTask, debugTask]*.configure {
           deployment dep
@@ -191,18 +199,35 @@ public class VertxPlugin implements Plugin<Project> {
 
         afterEvaluate {
           def module = dep.deploy.module
+
           if (module instanceof Project) {
-            runTask.dependsOn(module.copyMod)
-            debugTask.dependsOn(module.copyMod)
+            if (module.vertx.config.map.'auto-redeploy') {
+              runTask.dependsOn(watcherTask)
+              debugTask.dependsOn(watcherTask)
+            } else {
+              runTask.dependsOn(module.copyMod)
+              debugTask.dependsOn(module.copyMod)
+            }
           }
 
           if (!dep.platform.version) {
             dep.platform.version = vertx.platform.version
           }
+        }
 
-          if (dep.config.autoRedeploy) {
-            runTask.dependsOn(watcherTask)
-            debugTask.dependsOn(watcherTask)
+        // perform non-failing builds
+        gradle.taskGraph.whenReady { graph ->
+          if (graph.hasTask(runTask) || graph.hasTask(debugTask)) {
+            graph.afterTask { task, taskState ->
+              println(task)
+              if (taskState.failure) {
+                try {
+                  taskState.rethrowFailure()
+                } finally {
+                  println 'Absorbed build failure'
+                }
+              }
+            }
           }
         }
       }
