@@ -170,7 +170,10 @@ public class VertxPlugin implements Plugin<Project> {
     project.with {
       // create the watcher task
       def watcherTask = task('__watch', type: WatcherTask) {
+        // flags
         block = false
+        runImmediately = true
+
         includes = ['src/**']
         tasks = ['copyMod']
       }
