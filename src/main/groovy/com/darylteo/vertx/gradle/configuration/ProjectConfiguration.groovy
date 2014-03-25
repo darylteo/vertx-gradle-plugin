@@ -4,6 +4,7 @@ import org.gradle.api.Project
 
 class ProjectConfiguration {
   final Project project
+
   public ProjectConfiguration(Project project) {
     this.project = project
   }
@@ -18,7 +19,7 @@ class ProjectConfiguration {
   public void info(Closure closure) {
     // hack for appending closure to child nodes
     Node root = new Node(null, "temp")
-    Node empty = new Node(root,"empty")
+    Node empty = new Node(root, "empty")
 
     closure.resolveStrategy = Closure.DELEGATE_FIRST
 
@@ -31,9 +32,9 @@ class ProjectConfiguration {
       def name = section.name()
       def list = _info.get(name)
 
-      if(list[0]){
+      if (list[0]) {
         section.children().each { def element ->
-          if(element instanceof Node) {
+          if (element instanceof Node) {
             list[0].append element
           } else {
             list[0].setValue(element.toString())
@@ -59,5 +60,10 @@ class ProjectConfiguration {
     def version = project.version
 
     return "$group:$name:$version"
+  }
+
+  public def getModuleDir() {
+    def name = getVertxName()
+    return project.file("${project.rootProject.buildDir}/mods/$name")
   }
 }

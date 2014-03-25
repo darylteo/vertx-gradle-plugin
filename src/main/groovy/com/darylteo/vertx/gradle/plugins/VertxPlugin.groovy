@@ -124,11 +124,28 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addArchiveTasks(Project project) {
     project.with {
-      def modDir = project.file("${rootProject.buildDir}/mods/${project.vertx.vertxName}")
+      def modDir = project.vertx.moduleDir
 
       // archive tasks
       task('generateModJson', type: GenerateModJson) {}
       task('assembleVertx', type: Sync) {
+      }
+
+      task("dummyAutoRedeployableMod") {
+        doLast {
+          modDir.mkdirs()
+
+          project.file("$modDir/mod.json").withWriter { writer ->
+            writer << '{"main":"Main.java","auto-redeploy":true}'
+          }
+
+          project.file("$modDir/Main.java").withWriter { writer ->
+            writer << '''\
+import org.vertx.java.platform.Verticle;
+public class Main extends Verticle {}\
+            '''
+          }
+        }
       }
 
       task('copyMod', type: Sync) {
@@ -197,6 +214,7 @@ public class VertxPlugin implements Plugin<Project> {
         [runTask, debugTask]*.configure {
           deployment dep
           configFile { configTask.outputFile }
+
           dependsOn configTask
         }
 
@@ -205,8 +223,8 @@ public class VertxPlugin implements Plugin<Project> {
 
           if (module instanceof Project) {
             if (module.vertx.config.map.'auto-redeploy') {
-              runTask.dependsOn(watcherTask)
-              debugTask.dependsOn(watcherTask)
+              runTask.dependsOn module.dummyAutoRedeployableMod, watcherTask
+              debugTask.dependsOn module.dummyAutoRedeployableMod, watcherTask
             } else {
               runTask.dependsOn(module.copyMod)
               debugTask.dependsOn(module.copyMod)
