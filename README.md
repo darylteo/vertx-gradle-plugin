@@ -125,21 +125,21 @@ vertx {
 
 #### Language Module
 
-If you are using one of static-typed languages (other than Java) supported by Vert.x, just specify which version of the module you require. This is useful when compiling under IDEs as the required Jars will be added by Gradle.
-
-Note that the module must be a officially supported language, and must be available via Maven under the "io.vertx" organisation. 
+If you are using one of static-typed languages (other than Java) supported by Vert.x, just specify which language you require. This is useful when compiling under IDEs as the required Jars will be added by Gradle.
 
 ```groovy
 vertx {
 	platform {
 		// ... platform configuration
 
-		// {lang} {langVersionString} e.g. one of the following:
-		groovy '2.0.0-final'
-		scala '0.3.0-final'
+		// lang {{langName}}
+		lang 'scala'
+		lang 'groovy'
 	}
 }
 ````
+
+If you are not using a officially supported language, no worries! Simply add a langs.properties in the conf/ directory. For more information, see Vertx Configuration.
 
 ### Deployments
 
@@ -277,6 +277,17 @@ vertx {
 	"main": "Main"
 }
 ````
+
+### Vert.x Configuration
+
+Vert.x looks for various files for its configurations. These include:
+
+ - langs.properties
+ - logging.properties
+ - cluster.xml
+ - repos.txt
+
+This plugin automatically adds conf/ to the classpath if it exists, so you can place the files there. Putting langs.properties in this folder, in particular, allows you to run unofficial language modules in your application.
 
 ### Maven
 

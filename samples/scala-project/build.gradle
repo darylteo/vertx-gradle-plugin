@@ -1,33 +1,45 @@
-repositories {
-  mavenLocal()
-  mavenCentral()
-  maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+buildscript {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+  }
+
+  dependencies {
+    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.0-SNAPSHOT'
+  }
 }
 
+repositories {
+  mavenCentral()
+}
+
+apply plugin: 'scala'
 apply plugin: 'vertx'
+
+group 'com.darylteo'
+version '0.1.0-SNAPSHOT'
+
 
 vertx {
   platform {
-    version '2.0.3-SNAPSHOT'
-    scala '0.2.0-SNAPSHOT'
+    version '2.1RC1'
+    lang 'scala'
   }
 
-  config { main 'scala:Main' }
+  config {
+    main 'scala:Main'
+  }
 
   deployments {
     mod {
       platform {
-        version '2.1.0-SNAPSHOT'
+        version '2.1RC1'
       }
     }
   }
 
   info {
-    groupId 'com.darylteo'
-    artifactId project.name
-    version '0.1.0-SNAPSHOT'
-
-    description 'Groovy sample project for the vert.x gradle plugin'
+    description 'Scala sample project for the vert.x gradle plugin'
 
     developers {
       developer {

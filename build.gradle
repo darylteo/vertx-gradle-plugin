@@ -9,12 +9,15 @@ configurations {
   compile.extendsFrom provided
 }
 
+group = 'com.darylteo.vertx'
+version = '0.1.0'
+
 apply plugin: 'groovy'
 apply from: rootProject.file('gradle/sonatype.gradle')
 
 dependencies {
   compile localGroovy()
-  compile 'com.darylteo.gradle:gradle-watcher:0.1.0'
+  compile 'com.darylteo.gradle:gradle-watcher:0.1.2'
 
   provided gradleApi()
 }
