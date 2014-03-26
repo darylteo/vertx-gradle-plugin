@@ -9,6 +9,9 @@ configurations {
   compile.extendsFrom provided
 }
 
+group = 'com.darylteo.vertx'
+version = '0.1.0'
+
 apply plugin: 'groovy'
 apply from: rootProject.file('gradle/sonatype.gradle')
 
