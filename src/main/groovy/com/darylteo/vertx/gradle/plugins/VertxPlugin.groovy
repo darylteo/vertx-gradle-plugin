@@ -219,8 +219,10 @@ public class Main extends Verticle {}\
         }
 
         afterEvaluate {
+          // make this project the default module target
+          dep.deploy.module = dep.deploy.module ?: project
           def module = dep.deploy.module
-
+          
           if (module instanceof Project) {
             if (module.vertx.config.map.'auto-redeploy') {
               runTask.dependsOn module.dummyAutoRedeployableMod, watcherTask

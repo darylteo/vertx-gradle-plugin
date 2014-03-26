@@ -41,8 +41,16 @@ class RunVertx extends JavaExec {
     classpath += config + confDirs
     main = 'org.vertx.java.platform.impl.cli.Starter'
 
-    args 'runMod', moduleName, '-conf', project.file(configFile).toString()
-    args(platform.args)
+    // running a module
+    args 'runMod', moduleName
+
+    // with these platform arguments
+    args platform.args
+
+    // and also this configuration, if it was generated
+    // this will appears AFTER the platform arguments, so if the platform
+    // args also has a -conf parameter, the behavior of this is undefined.
+    args '-conf', project.file(configFile).toString()
 
     // set stdio
     this.standardInput = System.in
