@@ -25,12 +25,13 @@ class PlatformConfiguration {
     this.args('-instances', "$instances")
   }
 
-  def cluster(String hostname = null, int port = null) {
+  def cluster(String hostname = null, Integer port = null) {
     this.args('-cluster')
-    if(hostname) {
+
+    if(hostname != null) {
       this.args('-cluster-host', hostname)
     }
-    if(port) {
+    if(port != null) {
       this.args('-cluster-port', "$port")
     }
   }

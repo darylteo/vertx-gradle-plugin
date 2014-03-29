@@ -124,8 +124,6 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addArchiveTasks(Project project) {
     project.with {
-      def modDir = project.vertx.moduleDir
-
       // archive tasks
       task('generateModJson', type: GenerateModJson) {}
       task('assembleVertx', type: Sync) {
@@ -133,6 +131,7 @@ public class VertxPlugin implements Plugin<Project> {
 
       task("dummyAutoRedeployableMod") {
         doLast {
+          def modDir = project.vertx.moduleDir
           modDir.mkdirs()
 
           project.file("$modDir/mod.json").withWriter { writer ->
@@ -149,7 +148,7 @@ public class Main extends Verticle {}\
       }
 
       task('copyMod', type: Sync) {
-        into { modDir }
+        into { project.vertx.moduleDir }
         from assembleVertx
       }
 
@@ -220,7 +219,6 @@ public class Main extends Verticle {}\
 
         afterEvaluate {
           // make this project the default module target
-          dep.deploy.module = dep.deploy.module ?: project
           def module = dep.deploy.module
           
           if (module instanceof Project) {
@@ -235,22 +233,6 @@ public class Main extends Verticle {}\
 
           if (!dep.platform.version) {
             dep.platform.version = vertx.platform.version
-          }
-        }
-
-        // perform non-failing builds
-        gradle.taskGraph.whenReady { graph ->
-          if (graph.hasTask(runTask) || graph.hasTask(debugTask)) {
-            graph.afterTask { task, taskState ->
-              println(task)
-              if (taskState.failure) {
-                try {
-                  taskState.rethrowFailure()
-                } finally {
-                  println 'Absorbed build failure'
-                }
-              }
-            }
           }
         }
       }
