@@ -1,7 +1,6 @@
 package com.darylteo.vertx.gradle.deployments
 
 import groovy.json.JsonBuilder
-
 import org.gradle.api.Project
 
 class Deployment {
@@ -14,7 +13,7 @@ class Deployment {
 
   DeploymentItem deploy
 
-  public Deployment(String name){
+  public Deployment(String name) {
     this.name = name
     this.config = [:] as Map
     this.platform = new PlatformConfiguration()

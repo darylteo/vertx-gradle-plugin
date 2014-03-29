@@ -34,19 +34,21 @@ public class VertxPlugin implements Plugin<Project> {
       repositories { mavenCentral() }
 
       configurations {
+        vertx
         vertxcore
         vertxlang
         vertxtest
         vertxincludes
 
-        provided {
+        vertx {
           extendsFrom vertxcore
           extendsFrom vertxlang
           extendsFrom vertxtest
           extendsFrom vertxincludes
         }
 
-        compile { extendsFrom provided }
+        provided.extendsFrom vertx
+        compile.extendsFrom provided
       }
 
       afterEvaluate {
@@ -220,15 +222,19 @@ public class Main extends Verticle {}\
         afterEvaluate {
           // make this project the default module target
           def module = dep.deploy.module
-          
+
           if (module instanceof Project) {
             if (module.vertx.config.map.'auto-redeploy') {
               runTask.dependsOn module.dummyAutoRedeployableMod, watcherTask
               debugTask.dependsOn module.dummyAutoRedeployableMod, watcherTask
             } else {
-              runTask.dependsOn(module.copyMod)
-              debugTask.dependsOn(module.copyMod)
+              runTask.dependsOn module.tasks.copyMod
+              debugTask.dependsOn module.tasks.copyMod
             }
+          } else {
+            // since this is an external module I don't see a use case where you would want to
+            // debug the module
+            debugTask.enabled = false
           }
 
           if (!dep.platform.version) {
@@ -242,7 +248,11 @@ public class Main extends Verticle {}\
         tasks.removeAll tasks."run$name", tasks."debug$name"
       }
 
-      vertx.deployments { mod { deploy project } }
+      vertx.deployments {
+        mod {
+          deploy project
+        }
+      }
     }
   }
 

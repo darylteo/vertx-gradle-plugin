@@ -31,14 +31,16 @@ class RunVertx extends JavaExec {
       throw new DeploymentVersionNotSetException()
     }
 
-    def config = getVertxPlatformDependencies(project, version)
     def confDirs = project.rootProject.files('conf')
     def module = this.deployment.deploy.module
     def platform = this.deployment.platform
     def moduleName = module instanceof Project ? module.vertx.vertxName : (module as String)
 
+    def deploymentClasspath = getPlatformDependencies(project, version, platform.classpath)
+
     // set classpath to run
-    classpath += config + confDirs
+    classpath += deploymentClasspath + confDirs
+
     main = 'org.vertx.java.platform.impl.cli.Starter'
 
     // running a module
@@ -72,16 +74,15 @@ class RunVertx extends JavaExec {
     super.exec()
   }
 
-  private Configuration getVertxPlatformDependencies(Project project, String version) {
+  private Configuration getPlatformDependencies(Project project, String version, def paths = []) {
     project.with {
-      def configName = '__platform'
-      def config = configurations.create configName
-
-      dependencies.add(configName, "io.vertx:vertx-platform:$version") {
-        exclude group: 'log4j', module: 'log4j'
+      def deps = (paths + "io.vertx:vertx-platform:$version").collect { path ->
+        project.dependencies.create(path) {
+          exclude group: 'log4j', module: 'log4j'
+        }
       }
 
-      return config
+      return configurations.detachedConfiguration(*deps)
     }
   }
 }
