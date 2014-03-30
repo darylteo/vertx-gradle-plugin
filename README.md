@@ -2,6 +2,14 @@
 
 Unofficial Gradle plugin for Vert.x projects.
 
+## Version
+
+Latest version is 0.1.1
+
+```
+com.darylteo.vertx:vertx-gradle-plugin:0.1.0
+```
+
 ## Sample Script
 
 ```groovy
@@ -12,7 +20,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.0-SNAPSHOT'
+		classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.0'
 	}
 }
 
