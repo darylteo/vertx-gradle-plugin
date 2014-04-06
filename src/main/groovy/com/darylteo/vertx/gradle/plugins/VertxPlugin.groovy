@@ -220,8 +220,8 @@ public class Main extends Verticle {}\
         }
 
         afterEvaluate {
-          // make this project the default module target
-          def module = dep.deploy.module
+          // make this project the default module target if it was not specified
+          def module = dep.deploy?.module ?: project
 
           if (module instanceof Project) {
             if (module.vertx.config.map.'auto-redeploy') {
