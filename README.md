@@ -4,10 +4,10 @@ Unofficial Gradle plugin for Vert.x projects.
 
 ## Version
 
-Latest version is 0.1.1
+Latest version is 0.1.2
 
 ```
-com.darylteo.vertx:vertx-gradle-plugin:0.1.0
+com.darylteo.vertx:vertx-gradle-plugin:0.1.2
 ```
 
 ## Sample Script
@@ -20,7 +20,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.0'
+		classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.2'
 	}
 }
 
@@ -37,8 +37,8 @@ apply plugin: 'vertx'
 
 vertx {
 	platform {
-		version '2.0.1-final'
-		tools '2.0.1-final'
+		version '2.1RC3'
+		tools '2.0.3-final'
 	}
 
 	config { main 'Main' }
@@ -46,7 +46,7 @@ vertx {
 	deployments {
 		mod {
 			platform {
-				version '2.0.3-final'
+				version '2.1RC3'
 				cluster '127.0.0.1', 8080
 				instances 10
 			}
@@ -92,9 +92,9 @@ uploadArchives {
   repositories {
 	mavenDeployer {
 	  pom.withXml {
-		asNode().children().addAll vertx.info
-	  }
-	}
+      asNode().children().addAll vertx.info
+      }
+    }
   }
 }
 
@@ -122,10 +122,10 @@ Specify which version of Vert.x you're using. If running unit tests, you may als
 vertx {
 	platform {
 		// version {versionString}
-		version '2.0.3-final'
+		version '2.1RC3'
 
 		// tools {toolsVersionString}
-		tools '2.0.1-final'
+		tools '2.0.3-final'
 	}
 }
 ````
