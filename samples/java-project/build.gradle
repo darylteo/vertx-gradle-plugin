@@ -5,7 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.0-SNAPSHOT'
+    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.1'
   }
 }
 
@@ -22,7 +22,7 @@ version '0.1.0-SNAPSHOT'
 
 vertx {
   platform {
-    version '2.1RC1'
+    version '2.1RC3'
     // lang 'java' <-- not required. Vertx is Java by default.
   }
 
@@ -33,7 +33,7 @@ vertx {
   deployments {
     mod {
       platform {
-        version '2.1RC1'
+        version '2.1RC3'
       }
     }
   }

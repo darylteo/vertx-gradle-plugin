@@ -28,7 +28,7 @@ repositories {
 	mavenCentral() 
 }
 
-groupId 'com.darylteo'
+group 'com.darylteo'
 version '0.1.0-SNAPSHOT'
 
 apply plugin: 'java'
@@ -102,9 +102,9 @@ install {
   repositories {
 	mavenInstaller {
 	  pom.withXml {
-		asNode().children().addAll vertx.info
-	  }
-	}
+      asNode().children().addAll vertx.info
+      }
+    }
   }
 }
 

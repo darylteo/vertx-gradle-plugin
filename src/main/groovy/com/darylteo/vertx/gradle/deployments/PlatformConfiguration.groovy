@@ -1,16 +1,22 @@
 package com.darylteo.vertx.gradle.deployments
 
+import com.darylteo.vertx.gradle.configuration.ClusterConfiguration
+
 class PlatformConfiguration {
-  List<?> args = []
-  String version
-  List<?> classpath = []
+  def args = []
+  def classpath = []
+
+  def conf
+  def instances
+  def cluster
+  def version
 
   def args(Iterable<?> values) {
-    args.addAll(values)
+    this.args.addAll(values)
   }
 
   def args(Object... values) {
-    args.addAll(values)
+    this.args.addAll(values)
   }
 
   def version(String version) {
@@ -18,26 +24,46 @@ class PlatformConfiguration {
   }
 
   // auxiliary parameters
-  def conf(String file) {
-    this.args('-conf', file)
+  def conf(def file) {
+    this.conf = file.toString()
   }
 
   def instances(int instances) {
     this.args('-instances', "$instances")
   }
 
+  def cluster(Closure closure) {
+    if (cluster == null) {
+      cluster = new ClusterConfiguration()
+    }
+
+    closure.delegate = cluster
+    closure.resolveStrategy = Closure.DELEGATE_FIRST
+    closure.call(cluster)
+  }
+
+  def cluster(ClusterConfiguration clusterConfig) {
+    cluster = clusterConfig;
+  }
+
   def cluster(String hostname = null, Integer port = null) {
     this.args('-cluster')
-
-    if (hostname != null) {
+    if (hostname) {
       this.args('-cluster-host', hostname)
     }
-    if (port != null) {
+    if (port) {
       this.args('-cluster-port', "$port")
     }
   }
 
   def classpath(def paths) {
     classpath += paths
+  }
+
+  def getEffectiveArgs() {
+    def result = args
+    if (conf != null) {
+      result += ['-conf', conf]
+    }
   }
 }
