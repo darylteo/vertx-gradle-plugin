@@ -10,6 +10,10 @@ Latest version is 0.1.2
 com.darylteo.vertx:vertx-gradle-plugin:0.1.2
 ```
 
+## Getting Started
+
+To get started, view the [barebones project](samples/bare-project).
+
 ## Sample Script
 
 ```groovy

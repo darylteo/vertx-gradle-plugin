@@ -1,0 +1,31 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+  }
+
+  dependencies {
+    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.2'
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+apply plugin: 'java'
+apply plugin: 'vertx'
+
+group 'com.darylteo'
+version '0.1.0-SNAPSHOT'
+
+vertx {
+  platform {
+    version '2.1RC3'
+    // lang 'java' <-- not required. Vertx is Java by default.
+  }
+
+  config {
+    main 'Main'
+  }
+}
