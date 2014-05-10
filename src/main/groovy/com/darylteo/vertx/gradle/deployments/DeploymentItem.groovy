@@ -2,8 +2,6 @@ package com.darylteo.vertx.gradle.deployments
 
 import groovy.json.JsonBuilder
 
-import org.gradle.api.Project
-
 class DeploymentItem {
   final Deployment deployment
   final Map config
@@ -26,9 +24,9 @@ class DeploymentItem {
     map << this.deployment.config
     map << this.config
   }
-  
+
   private Map closureToMap(Closure closure) {
-    if(!closure) {
+    if (!closure) {
       return [:]
     }
 

@@ -2,10 +2,8 @@ package com.darylteo.vertx.gradle.tasks
 
 import groovy.json.JsonOutput
 import groovy.xml.QName
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-
 
 class GenerateModJson extends DefaultTask {
   def destinationDir = { "${project.buildDir}/conf" }
@@ -43,17 +41,17 @@ class GenerateModJson extends DefaultTask {
 
     // need to use get() for properties, to bypass getProperties() method
     def props = info.getAt(QName.valueOf('properties'))[0]
-    if(props) {
+    if (props) {
       def keywords = props.keywords[0]?.value().split('\\s*,\\s*')
       this.insert(data, 'keywords', keywords)
     }
 
     def developers = info.developers[0]?.developer
-    if(developers) {
-      if(developers.size() > 0) {
+    if (developers) {
+      if (developers.size() > 0) {
         insert data, 'author', developers[0]?.name[0]?.value()
       }
-      if(developers.size() > 1) {
+      if (developers.size() > 1) {
         def others = (developers.collect { it.name[0].value() })
         others.remove(0)
         insert data, 'developers', others
@@ -67,7 +65,7 @@ class GenerateModJson extends DefaultTask {
     data << project.vertx.config.map
 
     // hack until vertx supports array for includes property
-    if(data.includes && !(data.includes instanceof String)) {
+    if (data.includes && !(data.includes instanceof String)) {
       data.includes = data.includes.join(',')
     }
 
@@ -75,7 +73,7 @@ class GenerateModJson extends DefaultTask {
   }
 
   void insert(def map, String key, def value) {
-    if(value) {
+    if (value) {
       map."$key" = value
     }
   }
