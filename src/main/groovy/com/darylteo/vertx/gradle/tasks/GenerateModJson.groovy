@@ -12,7 +12,8 @@ class GenerateModJson extends DefaultTask {
   public GenerateModJson() {
     inputs.property 'config', { MapToJson.convert(project.vertx.config.map) }
     inputs.property 'info', {
-      "$project.vertx.info" }
+      "$project.vertx.info"
+    }
 
 
     outputs.file {
