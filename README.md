@@ -94,9 +94,9 @@ artifacts {
 
 uploadArchives {
   repositories {
-	mavenDeployer {
-	  pom.withXml {
-      asNode().children().addAll vertx.info
+    mavenDeployer {
+      pom.withXml {
+        asNode().children().addAll vertx.info
       }
     }
   }
@@ -104,9 +104,9 @@ uploadArchives {
 
 install {
   repositories {
-	mavenInstaller {
-	  pom.withXml {
-      asNode().children().addAll vertx.info
+    mavenInstaller {
+      pom.withXml {
+        asNode().children().addAll vertx.info
       }
     }
   }
@@ -267,8 +267,8 @@ vertx {
 			debug true
 
 			config {
-				hello 'World',
-				'foo-bar' 'bar-foo'
+				hello 'World'
+				'foo-bar' 'bar-foo' 
 			}
 		}
 	}
@@ -374,9 +374,9 @@ __Maven Plugin__
 ```groovy
 uploadArchives {
   repositories {
-	mavenDeployer {
-	  pom.withXml {
-			asNode().children().addAll vertx.info
+    mavenDeployer {
+      pom.withXml {
+        asNode().children().addAll vertx.info
 		  }
 		}
   }
@@ -384,9 +384,9 @@ uploadArchives {
 
 install {
   repositories {
-	mavenInstaller {
-	  pom.withXml {
-			asNode().children().addAll vertx.info
+    mavenInstaller {
+      pom.withXml {
+        asNode().children().addAll vertx.info
 		  }
 		}
   }
