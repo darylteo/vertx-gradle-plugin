@@ -1,7 +1,7 @@
 package com.darylteo.vertx.gradle.tasks
 
 import com.darylteo.vertx.gradle.deployments.Deployment
-import groovy.json.JsonBuilder
+import com.darylteo.vertx.gradle.util.MapToJson
 import groovy.json.JsonOutput
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -14,11 +14,7 @@ class GenerateDeploymentConfig extends DefaultTask {
   public setDeployment(Deployment deployment) {
     this.deployment = deployment
 
-    this.inputs.property('config', {
-      JsonBuilder json = new JsonBuilder()
-      json.call(deployment.config)
-      return json.toPrettyString()
-    })
+    this.inputs.property('config', { MapToJson.convert(deployment.config) })
 
     this.outputFile = { "${project.buildDir}/configs/${deployment.name}.conf" }
     this.outputs.file outputFile

@@ -1,5 +1,6 @@
 package com.darylteo.vertx.gradle.tasks
 
+import com.darylteo.vertx.gradle.util.MapToJson
 import groovy.json.JsonOutput
 import groovy.xml.QName
 import org.gradle.api.DefaultTask
@@ -9,12 +10,14 @@ class GenerateModJson extends DefaultTask {
   def destinationDir = { "${project.buildDir}/conf" }
 
   public GenerateModJson() {
-    project.afterEvaluate {
-      inputs.property 'config', project.vertx.config.map
-      inputs.property 'info', project.vertx.info
+    inputs.property 'config', { MapToJson.convert(project.vertx.config.map) }
+    inputs.property 'info', {
+      "$project.vertx.info" }
 
+
+    outputs.file {
       def dir = project.file(this.destinationDir)
-      outputs.file "$dir/mod.json"
+      return "$dir/mod.json"
     }
   }
 
@@ -77,4 +80,5 @@ class GenerateModJson extends DefaultTask {
       map."$key" = value
     }
   }
+
 }
