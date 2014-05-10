@@ -153,92 +153,37 @@ vertx {
 
 If you are not using a officially supported language, no worries! Simply add a langs.properties in the conf/ directory. For more information, see Vertx Configuration.
 
-### Deployments
 
-Setup deployment profiles for your project. 
+### Module Configuration
 
-__Incubating Features__
-
- - change deployment target 
- - multiple targets per deployment
-
-
-__Example__
+Configure your module through the _config_ section. All vert.x fields are supported.
 
 ```groovy
 vertx {
-	platform { // ... } 
-
-	deployments {
-		mod {
-			platform {
-				cluster '127.0.0.1', 8080
-				instances 10
-			}
-		}
-
-		modWithConf {
-			debug true
-
-      conf {
-        hello 'World',
-        'foo-bar' 'bar-foo'
-      }
-		}
+	config {
+		main 'Main'
+		
+		includes 'some.other~module~version', 'another~module~version'
+		deploys 'some.other~module~version', 'another~module~version'
+		
+		// camelcased names - autoRedeploy instead of auto-redeploy
+		worker false
+		multiThreaded false
+		preserveCwd false
+		autoRedeploy false
+		
+		resident false
+		system false
 	}
 }
-````
+```
 
-By default, a deployment called "mod" is automatically created and you may alter this. However, you may add as many new ones as you wish.
-
-__Running__
-
-Each deployment configuration you create comes with 2 Gradle tasks _run<deploymentName>_ and _debug<deploymentName>_. Calling the debug task allows you to use remote debugging.
-Refer to documentation from your preferred IDE regarding remote debugging configuration.
-
-#### Platform Configuration
-
- - Incubating Feature: This plugin allows you to configure the parameters of vertx runtime.
-
-```groovy
-vertx {
-	deployments {
-		mod {
-			platform {
-				// use this to deploy this module on a different version of vertx other than what it was built with. 
-				// useful for testing compatibility with other versions
-				version '2.1RC3'
-
-				// equivalent to -cluster -cluster-host 127.0.0.1 -cluster-port 8080
-				cluster '127.0.0.1', 8080
-
-				// equivalent to -instances 10
-				instances 10
-
-				// specify a file to pass as the -conf parameter. This file is found from the root project's working directory
-				conf 'dev.json'
-
-				/* extra properties */
-
-				// append a path to the jvm classpath - potentially useful to specify a different directory for common vert.x configurations
-				classpath 'common/'
-			}
-		}
-	}
-}
-````
-
-### Module Info
-
-Provide relevant for your module using standard Maven fields. This information will be included in the generated mod.json.
+Provide relevant for your module using the _info_ section, using standard Maven fields. This information will be included in the generated mod.json and can also be used for pom descriptors (example below).
 
 #### Example
 
 ```groovy
 vertx {
-	platform { //... }
-	deployments { //... }
-
 	info {
 		description 'Java sample project for the vert.x gradle plugin'
 
@@ -270,6 +215,8 @@ vertx {
 
 #### mod.json 
 
+The generated mod.json will contain information from both _config_ and _info_ sections, using vert.x appropriate field names.
+
 ```javascript
 {
 	"description": "Java sample project for the vert.x gradle plugin",
@@ -287,7 +234,87 @@ vertx {
 	"developers": [
 		"Code Monkey"
 	],
-	"main": "Main"
+	"main": "Main",
+	"auto-redeploy": true
+}
+````
+
+### Deployments
+
+Setup deployment profiles for your project. 
+
+__Incubating Features__
+
+ - change deployment target 
+ - multiple targets per deployment
+ - auto-redeploy rebuilds without requiring IDE (using watcher)
+
+__Example__
+
+```groovy
+vertx {
+	platform { // ... } 
+
+	deployments {
+		mod {
+			platform {
+				cluster '127.0.0.1', 8080
+				instances 10
+			}
+		}
+
+		modWithConf {
+			debug true
+
+			config {
+				hello 'World',
+				'foo-bar' 'bar-foo'
+			}
+		}
+	}
+}
+````
+
+By default, a deployment called "mod" is automatically created and you may alter this. However, you may add as many new ones as you wish.
+
+__Running__
+
+Each deployment configuration you create comes with 2 Gradle tasks _run<deploymentName>_ and _debug<deploymentName>_. Calling the debug task allows you to use remote debugging.
+Refer to documentation from your preferred IDE regarding remote debugging configuration.
+
+__Auto Redeploy__
+
+Module configuration includes a field "autoRedeploy" (or "auto-redeploy" in standard vert.x). Setting this field to true will enable the "watcher" task, which will automatically rebuild your project when its source files changes. 
+
+#### Platform Configuration
+
+ - Incubating Feature: This plugin allows you to configure the parameters of vertx runtime.
+
+```groovy
+vertx {
+	deployments {
+		mod {
+			platform {
+				// use this to deploy this module on a different version of vertx other than what it was built with. 
+				// useful for testing compatibility with other versions
+				version '2.1RC3'
+
+				// equivalent to -cluster -cluster-host 127.0.0.1 -cluster-port 8080
+				cluster '127.0.0.1', 8080
+
+				// equivalent to -instances 10
+				instances 10
+
+				// specify a file to pass as the -conf parameter. This file is found from the root project's working directory
+				conf 'dev.json'
+
+				/* extra properties */
+
+				// append a path to the jvm classpath - potentially useful to specify a different directory for common vert.x configurations
+				classpath 'common/'
+			}
+		}
+	}
 }
 ````
 
@@ -349,9 +376,9 @@ uploadArchives {
   repositories {
 	mavenDeployer {
 	  pom.withXml {
-		asNode().children().addAll vertx.info
-	  }
-	}
+			asNode().children().addAll vertx.info
+		  }
+		}
   }
 }
 
@@ -359,9 +386,9 @@ install {
   repositories {
 	mavenInstaller {
 	  pom.withXml {
-		asNode().children().addAll vertx.info
-	  }
-	}
+			asNode().children().addAll vertx.info
+		  }
+		}
   }
 }
 ````
