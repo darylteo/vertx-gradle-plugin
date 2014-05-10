@@ -4,10 +4,10 @@ Unofficial Gradle plugin for Vert.x projects.
 
 ## Version
 
-Latest version is 0.1.2
+Latest version is 0.1.3
 
 ```
-com.darylteo.vertx:vertx-gradle-plugin:0.1.2
+com.darylteo.vertx:vertx-gradle-plugin:0.1.3
 ```
 
 ## Getting Started
@@ -24,7 +24,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.2'
+		classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.3'
 	}
 }
 
@@ -180,12 +180,10 @@ vertx {
 		modWithConf {
 			debug true
 
-			platform {
-				conf {
-					hello: 'World',
-					foo: 'bar'
-				}
-			}
+      conf {
+        hello 'World',
+        'foo-bar' 'bar-foo'
+      }
 		}
 	}
 }
@@ -198,8 +196,9 @@ __Running__
 Each deployment configuration you create comes with 2 Gradle tasks _run<deploymentName>_ and _debug<deploymentName>_. Calling the debug task allows you to use remote debugging.
 Refer to documentation from your preferred IDE regarding remote debugging configuration.
 
-
 #### Platform Configuration
+
+ - Incubating Feature: This plugin allows you to configure the parameters of vertx runtime.
 
 ```groovy
 vertx {
@@ -208,7 +207,7 @@ vertx {
 			platform {
 				// use this to deploy this module on a different version of vertx other than what it was built with. 
 				// useful for testing compatibility with other versions
-				version '2.0.1-final'
+				version '2.1RC3'
 
 				// equivalent to -cluster -cluster-host 127.0.0.1 -cluster-port 8080
 				cluster '127.0.0.1', 8080
@@ -216,11 +215,13 @@ vertx {
 				// equivalent to -instances 10
 				instances 10
 
-				// this will generate a file which is then passed to the module. Equivalent to -conf conf.json
-				conf {
-					hello: 'World',
-					foo: 'bar'
-				}
+				// specify a file to pass as the -conf parameter. This file is found from the root project's working directory
+				conf 'dev.json'
+
+				/* extra properties */
+
+				// append a path to the jvm classpath - potentially useful to specify a different directory for common vert.x configurations
+				classpath 'common/'
 			}
 		}
 	}
