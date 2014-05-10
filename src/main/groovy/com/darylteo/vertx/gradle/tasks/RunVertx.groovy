@@ -49,11 +49,13 @@ class RunVertx extends JavaExec {
     // with these platform arguments
     args platform.args
 
-    // and also this configuration, if it was generated
-    // this will appears AFTER the platform arguments, so if the platform
-    // args also has a -conf parameter, the behavior of this is undefined.
-    args '-conf', project.file(configFile).toString()
-
+    // and config file configuration
+    if (deployment.platform.conf != null) {
+      args '-conf', "$deployment.platform.conf"
+    } else {
+      args '-conf', project.file(configFile).toString()
+    }
+    
     // set stdio
     this.standardInput = System.in
     this.standardOutput = System.out

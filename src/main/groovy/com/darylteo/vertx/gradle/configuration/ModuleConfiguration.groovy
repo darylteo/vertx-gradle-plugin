@@ -40,16 +40,16 @@ class ModuleConfiguration {
     map.system = value
   }
 
-  public def includes(String ... includes) {
-    if(!map.includes) {
+  public def includes(String... includes) {
+    if (!map.includes) {
       map.includes = []
     }
 
     map.includes.addAll(includes)
   }
 
-  public def deploys(String ... deploys) {
-    if(!map.deploys) {
+  public def deploys(String... deploys) {
+    if (!map.deploys) {
       map.deploys = []
     }
 

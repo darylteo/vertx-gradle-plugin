@@ -3,18 +3,18 @@ apply plugin: 'signing'
 
 def release = !project.version.endsWith('-SNAPSHOT')
 def sonatypeUsername = project.hasProperty('sonatypeUsername') ? project.sonatypeUsername : '';
-def sonatypePassword = project.hasProperty('sonatypePassword') ? project.sonatypePassword: '';
+def sonatypePassword = project.hasProperty('sonatypePassword') ? project.sonatypePassword : '';
 
 configurations {
   archives
 }
 
-task sourcesJar(type:Jar) {
+task sourcesJar(type: Jar) {
   from sourceSets.main.allSource
   classifier = 'sources'
 }
 
-task javadocJar(type:Jar) {
+task javadocJar(type: Jar) {
   from javadoc
   classifier = 'javadoc'
 }
@@ -35,7 +35,7 @@ uploadArchives {
       def url = !release ? 'https://oss.sonatype.org/content/repositories/snapshots/' : 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
 
       repository(url: url) {
-        authentication(userName: sonatypeUsername, password : sonatypePassword)
+        authentication(userName: sonatypeUsername, password: sonatypePassword)
       }
 
       beforeDeployment { dep ->
