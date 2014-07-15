@@ -35,20 +35,19 @@ public class VertxPlugin implements Plugin<Project> {
       repositories { mavenCentral() }
 
       configurations {
-        vertx
-        vertxcore
-        vertxlang
-        vertxtest
-        vertxincludes
+        vertxAll
 
-        vertx {
-          extendsFrom vertxcore
-          extendsFrom vertxlang
-          extendsFrom vertxtest
-          extendsFrom vertxincludes
-        }
+        vertxCore
+        vertxLang
+        vertxTest
+        vertxIncludes
 
-        provided.extendsFrom vertx
+        vertxAll.extendsFrom vertxCore
+        vertxAll.extendsFrom vertxLang
+        vertxAll.extendsFrom vertxTest
+        vertxAll.extendsFrom vertxIncludes
+
+        provided.extendsFrom vertxAll
         compile.extendsFrom provided
       }
 
@@ -61,25 +60,25 @@ public class VertxPlugin implements Plugin<Project> {
 
           dependencies {
             // core and lang modules
-            vertxcore("${vertxGroup}:vertx-platform:${vertx.platform.version}")
+            vertxCore("${vertxGroup}:vertx-platform:${vertx.platform.version}")
 
             if (vertx.platform.lang != null) {
               def module = getModuleForLang(project, vertx.platform.lang)
               if (!module) {
                 println("Unsupported Language: ${vertx.platform.lang}")
               } else {
-                vertxlang(module)
+                vertxLang(module)
               }
             }
 
             if (vertx.platform.toolsVersion) {
-              vertxtest("${vertxGroup}:testtools:${vertx.platform.toolsVersion}")
+              vertxTest("${vertxGroup}:testtools:${vertx.platform.toolsVersion}")
             }
 
             // includes
             vertx.config?.map?.includes?.collect { String dep ->
               dep.replace('~', ':')
-            }.each { dep -> vertxincludes dep }
+            }.each { dep -> vertxIncludes dep }
           }
         }
       }
@@ -88,7 +87,7 @@ public class VertxPlugin implements Plugin<Project> {
 
   private String getModuleForLang(Project project, String lang) {
     // load langs.properties and get the correct version if a version was not specified
-    def cp = (project.configurations.vertxcore.files + project.file('conf'))
+    def cp = (project.configurations.vertxCore.files + project.file('conf'))
       .collect({ file ->
       // File.toURL() is bugged. Use toURI().toURL(). See Javadoc
       file.toURI().toURL()
