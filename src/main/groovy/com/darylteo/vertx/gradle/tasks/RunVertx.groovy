@@ -41,7 +41,7 @@ class RunVertx extends JavaExec {
     // set classpath to run
     classpath += deploymentClasspath + confDirs
 
-    main = 'org.vertx.java.platform.impl.cli.Starter'
+    this.main = 'org.vertx.java.platform.impl.cli.Starter'
 
     // running a module
     args 'runMod', moduleName

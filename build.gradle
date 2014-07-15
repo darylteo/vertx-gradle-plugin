@@ -10,7 +10,7 @@ configurations {
 }
 
 group = 'com.darylteo.vertx'
-version = '0.1.3'
+version = '0.1.4'
 
 apply plugin: 'groovy'
 apply from: rootProject.file('gradle/sonatype.gradle')

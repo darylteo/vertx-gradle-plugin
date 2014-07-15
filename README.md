@@ -268,7 +268,7 @@ vertx {
 
 			config {
 				hello 'World'
-				'foo-bar' 'bar-foo' 
+				'foo-bar' 'bar-foo'
 			}
 		}
 	}

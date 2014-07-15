@@ -10,6 +10,7 @@ import com.darylteo.vertx.gradle.tasks.GenerateModJson
 import com.darylteo.vertx.gradle.tasks.RunVertx
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
@@ -154,6 +155,16 @@ public class Main extends Verticle {}\
         from assembleVertx
       }
 
+      // create the watcher task
+      task('__watch', type: WatcherTask) {
+        // flags
+        block = false
+        runImmediately = true
+
+        includes = ['src/**']
+        tasks = ['copyMod']
+      }
+
       task('modZip', type: Zip) {
         group = 'Vertx'
         classifier = 'mod'
@@ -180,22 +191,27 @@ public class Main extends Verticle {}\
           dependsOn generateModJson
           dependsOn sourceSets*.classesTaskName
         }
+
+        // runtime configuration extends from compile configuration
+        // so let's grab all vertx projects and link their copyMod tasks
+        def deployedProjects = configurations.runtime.dependencies
+          .withType(ProjectDependency.class)
+          .collect { dep -> dep.dependencyProject }
+
+        deployedProjects.each { module ->
+          evaluationDependsOn(module.path)
+
+          if (module.plugins.hasPlugin(VertxPlugin.class)) {
+            tasks.copyMod.dependsOn module.tasks.copyMod
+            tasks.__watch.dependsOn module.tasks.__watch
+          }
+        }
       }
     }
   }
 
   private void addRunTasks(Project project) {
     project.with {
-      // create the watcher task
-      def watcherTask = task('__watch', type: WatcherTask) {
-        // flags
-        block = false
-        runImmediately = true
-
-        includes = ['src/**']
-        tasks = ['copyMod']
-      }
-
       // configure the run/debug tasks
       vertx.deployments.whenObjectAdded { Deployment dep ->
         // add tasks for deployment
@@ -225,8 +241,8 @@ public class Main extends Verticle {}\
 
           if (module instanceof Project) {
             if (module.vertx.config.map.'auto-redeploy') {
-              runTask.dependsOn module.dummyAutoRedeployableMod, watcherTask
-              debugTask.dependsOn module.dummyAutoRedeployableMod, watcherTask
+              runTask.dependsOn module.dummyAutoRedeployableMod, module.tasks.__watch
+              debugTask.dependsOn module.dummyAutoRedeployableMod, module.tasks.__watch
             } else {
               runTask.dependsOn module.tasks.copyMod
               debugTask.dependsOn module.tasks.copyMod
