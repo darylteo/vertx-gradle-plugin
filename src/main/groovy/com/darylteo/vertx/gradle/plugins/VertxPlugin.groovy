@@ -72,7 +72,7 @@ public class VertxPlugin implements Plugin<Project> {
             }
 
             if (vertx.platform.toolsVersion) {
-              vertxTest("${vertxGroup}:vertx-testsuite:${vertx.platform.toolsVersion}")
+              vertxTest("${vertxGroup}:testtools:${vertx.platform.toolsVersion}")
             }
 
             // includes
