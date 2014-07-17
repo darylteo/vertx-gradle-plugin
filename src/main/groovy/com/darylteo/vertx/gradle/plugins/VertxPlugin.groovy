@@ -127,14 +127,11 @@ public class VertxPlugin implements Plugin<Project> {
   private void addArchiveTasks(Project project) {
     project.with {
       // archive tasks
+      task('generateModJson', type: GenerateModJson) {}
       task('assembleVertx', type: Sync) {
       }
 
-      task("dummyMod") {
-        // only work this if the target dir does not exist
-        onlyIf { !compileJava.didWork && !project.vertx.moduleDir.exists() }
-        mustRunAfter compileJava
-
+      task("dummyAutoRedeployableMod") {
         doLast {
           def modDir = project.vertx.moduleDir
           modDir.mkdirs()
@@ -153,13 +150,9 @@ public class Main extends Verticle {}\
       }
 
       task('copyMod', type: Sync) {
-        onlyIf { compileJava.didWork }
-
         into { project.vertx.moduleDir }
         from assembleVertx
       }
-
-      task('generateModJson', type: GenerateModJson) {}
 
       // create the watcher task
       task('__watch', type: WatcherTask) {
@@ -168,7 +161,7 @@ public class Main extends Verticle {}\
         runImmediately = true
 
         includes = ['src/**']
-        tasks = ['dummyMod', 'copyMod']
+        tasks = ['copyMod']
       }
 
       task('modZip', type: Zip) {
@@ -247,10 +240,8 @@ public class Main extends Verticle {}\
 
           if (module instanceof Project) {
             if (module.vertx.config.map.'auto-redeploy') {
-              module.tasks.compileJava.options.failOnError = false
-
-              runTask.dependsOn module.dummyMod, module.tasks.__watch
-              debugTask.dependsOn module.dummyMod, module.tasks.__watch
+              runTask.dependsOn module.dummyAutoRedeployableMod, module.tasks.__watch
+              debugTask.dependsOn module.dummyAutoRedeployableMod, module.tasks.__watch
             } else {
               runTask.dependsOn module.tasks.copyMod
               debugTask.dependsOn module.tasks.copyMod
