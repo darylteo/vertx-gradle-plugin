@@ -153,8 +153,6 @@ public class Main extends Verticle {}\
       }
 
       task('copyMod', type: Sync) {
-        onlyIf { compileJava.didWork }
-
         into { project.vertx.moduleDir }
         from assembleVertx
       }
@@ -178,11 +176,14 @@ public class Main extends Verticle {}\
       }
 
       afterEvaluate {
-        def group = vertx.info.groupId || project.group
-        def name = vertx.info.artifactId || project.name
-        def version = vertx.info.version || project.version
+        // configure the test task with system variables
+        test {
+          systemProperty 'vertx.modulename', project.vertx.vertxName
+          systemProperty 'vertx.mods', rootProject.file('build/mods');
 
-        ext.archivesBaseName = name
+          dependsOn copyMod
+        }
+
         assembleVertx {
           def sourceSets = sourceSets.matching({ it.name != SourceSet.TEST_SOURCE_SET_NAME })
 
