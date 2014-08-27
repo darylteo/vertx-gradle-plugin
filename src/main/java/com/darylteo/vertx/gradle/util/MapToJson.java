@@ -11,7 +11,7 @@ public class MapToJson {
   public static String convert(Map map) {
     JsonBuilder json = new JsonBuilder();
     json.call(map);
+
     return json.toPrettyString();
   }
-
 }
