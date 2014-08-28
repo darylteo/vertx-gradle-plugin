@@ -5,7 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.1.3'
+    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.2.0'
   }
 }
 
@@ -22,7 +22,7 @@ version '0.1.0-SNAPSHOT'
 
 vertx {
   platform {
-    version '2.1RC3'
+    version '2.1.2'
     // lang 'java' <-- not required. Vertx is Java by default.
   }
 
@@ -66,5 +66,4 @@ afterEvaluate {
   // test deployments and tasks
   assert vertx.deployments.findByName('mod') != null
   assert tasks.findByName('runMod') != null
-  assert tasks.findByName('debugMod') != null
 }

@@ -1,5 +1,6 @@
 package com.darylteo.vertx.gradle.deployments;
 
+import com.darylteo.vertx.gradle.tasks.VertxRun;
 import groovy.json.JsonBuilder;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
@@ -15,6 +16,7 @@ public class Deployment {
   private boolean isDebug = false;
 
   private DeploymentItem deploy;
+  private VertxRun runTask;
 
   public Deployment(String name) {
     this.name = name;
@@ -48,6 +50,14 @@ public class Deployment {
 
   public void setDeploy(DeploymentItem deploy) {
     this.deploy = deploy;
+  }
+
+  public VertxRun getRunTask() {
+    return this.runTask;
+  }
+
+  public void setRunTask(VertxRun runTask) {
+    this.runTask = runTask;
   }
 
   public void config(Closure data) {

@@ -6,6 +6,7 @@ import groovy.util.Node;
 import groovy.util.NodeList;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 
 import java.io.File;
@@ -18,7 +19,7 @@ public class ProjectConfiguration {
   private final ModuleConfiguration config;
   private final ClusterConfiguration cluster;
 
-  private final DomainObjectCollection<Deployment> deployments;
+  private final NamedDomainObjectContainer<Deployment> deployments;
 
   public ProjectConfiguration(Project project) {
     this.project = project;
@@ -46,6 +47,10 @@ public class ProjectConfiguration {
     return this.cluster;
   }
 
+  public NamedDomainObjectContainer<Deployment> getDeployments() {
+    return this.deployments;
+  }
+
   public void platform(Action<PlatformConfiguration> action) {
     action.execute(this.platform);
   }
@@ -56,6 +61,10 @@ public class ProjectConfiguration {
 
   public void cluster(Action<ClusterConfiguration> action) {
     action.execute(this.cluster);
+  }
+
+  public void deployments(Action<DomainObjectCollection<Deployment>> action) {
+    action.execute(this.deployments);
   }
 
   public NodeList getInfo() {

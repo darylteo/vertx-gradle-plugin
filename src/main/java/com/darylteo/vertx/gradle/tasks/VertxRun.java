@@ -11,12 +11,11 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RunVertx extends JavaExec {
+public class VertxRun extends JavaExec {
   private Deployment deployment;
   private File configFile;
 
-  public RunVertx() {
-    this.setGroup("Vertx Run");
+  public VertxRun() {
   }
 
   public Deployment getDeployment() {

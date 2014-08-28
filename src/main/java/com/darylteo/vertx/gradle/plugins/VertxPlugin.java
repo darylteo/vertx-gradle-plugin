@@ -1,11 +1,13 @@
 package com.darylteo.vertx.gradle.plugins;
 
 import com.darylteo.vertx.gradle.configuration.ProjectConfiguration;
+import com.darylteo.vertx.gradle.deployments.Deployment;
 import com.darylteo.vertx.gradle.tasks.GenerateModJson;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import com.darylteo.vertx.gradle.tasks.VertxRun;
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -23,6 +25,9 @@ import java.util.List;
 import java.util.Properties;
 
 public class VertxPlugin implements Plugin<Project> {
+  private static String COMMON_TASK_GROUP = "Vert.x Common";
+  private static String RUN_TASK_GROUP = "Vert.x Run";
+
   public void apply(Project project) {
     applyPlugins(project);
     applyExtensions(project);
@@ -35,14 +40,54 @@ public class VertxPlugin implements Plugin<Project> {
     project.getPlugins().apply("watcher");
   }
 
+  private void applyExtensions(Project project) {
+    final ExtensionContainer extensions = project.getExtensions();
+    final TaskContainer tasks = project.getTasks();
+
+    // apply vertx convention
+    final ProjectConfiguration vertx = extensions.create("vertx", ProjectConfiguration.class, project);
+
+    // apply hooks to deployments container
+    final NamedDomainObjectContainer<Deployment> deployments = vertx.getDeployments();
+
+    deployments.whenObjectAdded(new Action<Deployment>() {
+      @Override
+      public void execute(Deployment deployment) {
+        // building task name
+        String name = deployment.getName();
+
+        if (name.length() > 1) {
+          name = name.substring(0, 1).toUpperCase() + (name.length() > 2 ? name.substring(1) : "");
+        }
+
+        VertxRun runTask = tasks.create("run" + name, VertxRun.class);
+        runTask.setGroup(RUN_TASK_GROUP);
+
+        deployment.setRunTask(runTask);
+
+        System.out.println("Creating Task: " + runTask);
+      }
+    });
+
+    deployments.whenObjectRemoved(new Action<Deployment>() {
+      @Override
+      public void execute(Deployment deployment) {
+        tasks.remove(deployment.getRunTask());
+      }
+    });
+
+    // add default "mod" deployment
+    deployments.create("mod");
+  }
+
   private void addDependencies(Project project) {
     ConfigurationContainer configurations = project.getConfigurations();
 
-    Configuration vertxAll = configurations.getByName("vertxAll");
-    Configuration vertxCore = configurations.getByName("vertxCore");
-    Configuration vertxLang = configurations.getByName("vertxLang");
-    Configuration vertxTest = configurations.getByName("vertxTest");
-    Configuration vertxIncludes = configurations.getByName("vertxIncludes");
+    Configuration vertxAll = configurations.create("vertxAll");
+    Configuration vertxCore = configurations.create("vertxCore");
+    Configuration vertxLang = configurations.create("vertxLang");
+    Configuration vertxTest = configurations.create("vertxTest");
+    Configuration vertxIncludes = configurations.create("vertxIncludes");
 
     vertxAll.extendsFrom(vertxCore);
 
@@ -56,8 +101,8 @@ public class VertxPlugin implements Plugin<Project> {
     vertxIncludes.setVisible(false);
 
     // TODO: evaluate mangling of configurations. Can we do without?
-    Configuration provided = configurations.getByName("provided");
-    Configuration compile = configurations.getByName("provided");
+    Configuration provided = configurations.maybeCreate("provided");
+    Configuration compile = configurations.getByName("compile");
 
     provided.extendsFrom(vertxAll);
     compile.extendsFrom(provided);
@@ -136,16 +181,10 @@ public class VertxPlugin implements Plugin<Project> {
     // vertx modules are defined in a different format.
     String langString = props.getProperty(lang);
     if (langString != null) {
-      return ((String) (DefaultGroovyMethods.invokeMethod(DefaultGroovyMethods.invokeMethod(langString.split(":", -1), "getAt", new Object[]{0}), "replace", new Object[]{"~", ":"})));
+      return langString.split(":", -1)[0].replace("~", ":");
     }
 
     return langString;
-  }
-
-  private void applyExtensions(Project project) {
-    ExtensionContainer extensions = project.getExtensions();
-
-    ProjectConfiguration vertx = extensions.create("vertx", ProjectConfiguration.class, project);
   }
 
   private void addTasks(Project project) {
@@ -155,22 +194,29 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addArchiveTasks(Project project) {
 
+
     ProjectConfiguration vertx = project.getExtensions().findByType(ProjectConfiguration.class);
     TaskContainer tasks = project.getTasks();
 
     // archive tasks
-    Task assembleVertxTask = tasks.create("assembleVertxTask", Sync.class);
+    Sync assembleVertxTask = tasks.create("assembleVertxTask", Sync.class);
+    assembleVertxTask.setGroup(COMMON_TASK_GROUP);
 
-    Task copyModTask = tasks.create("copyMod", Sync.class);
-    ((Sync) copyModTask).from(assembleVertxTask).into(vertx.getModuleDir());// TODO: this needs to be a deferred configuration else it won't work properly
+    Sync copyModTask = tasks.create("copyMod", Sync.class);
+    copyModTask
+      .from(assembleVertxTask)
+      .into(vertx.getModuleDir());
+    copyModTask.setGroup(COMMON_TASK_GROUP);
 
+    // TODO: this needs to be a deferred configuration else it won't work properly
 
-    Task generateModJsonTask = tasks.create("generateModJson", GenerateModJson.class);
+    GenerateModJson generateModJsonTask = tasks.create("generateModJson", GenerateModJson.class);
+    generateModJsonTask.setGroup(COMMON_TASK_GROUP);
 
-    Task modZipTask = tasks.create("modZip", Zip.class);
-    ((Zip) modZipTask).from(assembleVertxTask);
-    ((Zip) modZipTask).setGroup("Vertx");
-    ((Zip) modZipTask).setClassifier("mod");
+    Zip modZipTask = tasks.create("modZip", Zip.class);
+    modZipTask.from(assembleVertxTask);
+    modZipTask.setGroup(COMMON_TASK_GROUP);
+    modZipTask.setClassifier("mod");
 
 //    task("dummyMod") {
 //      // only work this if the target dir does not exist
