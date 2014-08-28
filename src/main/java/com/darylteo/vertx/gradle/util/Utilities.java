@@ -14,6 +14,4 @@ public class Utilities {
 
     return json.toPrettyString();
   }
-
-  
 }

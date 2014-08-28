@@ -10,13 +10,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Deployment {
-  private final String name;
-  private final Map config;
-  private final PlatformConfiguration platform;
+  private String name;
+  private Map config;
+  private PlatformConfiguration platform;
   private boolean isDebug = false;
 
   private DeploymentItem deploy;
   private VertxRun runTask;
+
+  public Deployment() {
+    this(null);
+  }
 
   public Deployment(String name) {
     this.name = name;
@@ -44,12 +48,8 @@ public class Deployment {
     this.isDebug = debug;
   }
 
-  public DeploymentItem getDeploy() {
+  public DeploymentItem getDeploymentItem() {
     return deploy;
-  }
-
-  public void setDeploy(DeploymentItem deploy) {
-    this.deploy = deploy;
   }
 
   public VertxRun getRunTask() {

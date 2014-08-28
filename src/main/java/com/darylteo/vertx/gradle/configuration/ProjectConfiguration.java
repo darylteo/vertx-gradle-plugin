@@ -15,7 +15,7 @@ public class ProjectConfiguration {
   private final Project project;
   private final Node _info = new Node(null, "info");
 
-  private final PlatformConfiguration platform;
+  private final VertxConfiguration platform;
   private final ModuleConfiguration config;
   private final ClusterConfiguration cluster;
 
@@ -24,7 +24,7 @@ public class ProjectConfiguration {
   public ProjectConfiguration(Project project) {
     this.project = project;
 
-    this.platform = new PlatformConfiguration(project);
+    this.platform = new VertxConfiguration(project);
     this.config = new ModuleConfiguration(project);
     this.cluster = new ClusterConfiguration();
 
@@ -35,7 +35,7 @@ public class ProjectConfiguration {
     return this.project;
   }
 
-  public PlatformConfiguration getPlatform() {
+  public VertxConfiguration getPlatform() {
     return this.platform;
   }
 
@@ -51,7 +51,7 @@ public class ProjectConfiguration {
     return this.deployments;
   }
 
-  public void platform(Action<PlatformConfiguration> action) {
+  public void platform(Action<VertxConfiguration> action) {
     action.execute(this.platform);
   }
 

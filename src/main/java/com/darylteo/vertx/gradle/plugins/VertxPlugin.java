@@ -62,10 +62,12 @@ public class VertxPlugin implements Plugin<Project> {
 
         VertxRun runTask = tasks.create("run" + name, VertxRun.class);
         runTask.setGroup(RUN_TASK_GROUP);
+        runTask.setDeployment(deployment);
 
         deployment.setRunTask(runTask);
 
         System.out.println("Creating Task: " + runTask);
+        System.out.println(deployment.getName());
       }
     });
 
@@ -76,8 +78,8 @@ public class VertxPlugin implements Plugin<Project> {
       }
     });
 
-    // add default "mod" deployment
-    deployments.create("mod");
+    // add default "mod" deployment for this project
+    deployments.create("mod").deploy(project);
   }
 
   private void addDependencies(Project project) {
