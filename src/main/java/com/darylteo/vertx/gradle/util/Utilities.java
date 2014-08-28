@@ -7,11 +7,13 @@ import java.util.Map;
 /**
  * Created by dteo on 10/05/2014.
  */
-public class MapToJson {
-  public static String convert(Map map) {
+public class Utilities {
+  public static String convertMapToJson(Map map) {
     JsonBuilder json = new JsonBuilder();
     json.call(map);
 
     return json.toPrettyString();
   }
+
+  
 }

@@ -90,7 +90,6 @@ public class VertxPlugin implements Plugin<Project> {
     Configuration vertxIncludes = configurations.create("vertxIncludes");
 
     vertxAll.extendsFrom(vertxCore);
-
     vertxAll.extendsFrom(vertxLang);
     vertxAll.extendsFrom(vertxTest);
     vertxAll.extendsFrom(vertxIncludes);
