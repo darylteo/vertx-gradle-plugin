@@ -1,7 +1,5 @@
 package com.darylteo.vertx.gradle.deployments;
 
-import groovy.json.JsonBuilder;
-import groovy.lang.Closure;
 import org.gradle.api.Project;
 
 import java.util.HashMap;
@@ -20,19 +18,19 @@ public class DeploymentItem {
   private final Map<String, Object> config;
   private final Object module;
 
-  public DeploymentItem(Deployment deployment, Project project, Closure closure) {
+  public DeploymentItem(Deployment deployment, Project project, Map<String, Object> config) {
     this.deployment = deployment;
     this.module = project;
     this.config = new HashMap<String, Object>();
-    this.config.putAll(closureToMap(closure));
+    this.config.putAll(config);
 
   }
 
-  public DeploymentItem(Deployment deployment, String module, Closure closure) {
+  public DeploymentItem(Deployment deployment, String module, Map<String, Object> config) {
     this.deployment = deployment;
     this.module = module;
     this.config = new HashMap<String, Object>();
-    this.config.putAll(closureToMap(closure));
+    this.config.putAll(config);
   }
 
   public Deployment getDeployment() {
@@ -58,12 +56,4 @@ public class DeploymentItem {
     map.putAll(this.config);
   }
 
-  private Map closureToMap(Closure closure) {
-    if (closure == null) {
-      return new HashMap();
-    }
-
-    JsonBuilder builder = new JsonBuilder();
-    return ((Map) (builder.call(closure)));
-  }
 }

@@ -65,9 +65,6 @@ public class VertxPlugin implements Plugin<Project> {
         runTask.setDeployment(deployment);
 
         deployment.setRunTask(runTask);
-
-        System.out.println("Creating Task: " + runTask);
-        System.out.println(deployment.getName());
       }
     });
 

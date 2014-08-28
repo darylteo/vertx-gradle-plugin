@@ -15,7 +15,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.tasks.JavaExec;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -84,29 +83,22 @@ public class VertxRun extends JavaExec {
     // configure JavaExec
     Configuration deploymentClasspath = getPlatformDependencies(version);
 
-    this.setClasspath(
-      this.getClasspath()
-        .plus(deploymentClasspath)
-        .plus(confDirs)
-    );
+    this.classpath(deploymentClasspath, confDirs);
 
     this.setMain("org.vertx.java.platform.impl.cli.Starter");
 
     // running a module
-    List<String> args = this.getArgs();
-    args.addAll(Arrays.asList("runMod", moduleName));
+    this.args("runMod", moduleName);
 
     // with these platform arguments
-    args.addAll(platform.getArgs());
+    this.args(platform.getArgs());
 
     // and config file configuration
     if (platform.getConf() != null) {
-      args.addAll(Arrays.asList("-conf", platform.getConf().toString()));
+      this.args("-conf", platform.getConf().toString());
     } else if (this.configFile != null) {
-      args.addAll(Arrays.asList("-conf", configFile.toString()));
+      this.args("-conf", configFile.toString());
     }
-
-    this.setArgs(args);
 
     // set stdio
     this.setStandardInput(System.in);
@@ -115,11 +107,6 @@ public class VertxRun extends JavaExec {
     // environment variables
     this.setWorkingDir(getProject().getRootDir());
     this.systemProperty("vertx.mods", getProject().getRootProject().getBuildDir() + "/mods");
-
-    if (this.deployment.getIsDebug()) {
-      this.setIgnoreExitValue(true);
-      this.setJvmArgs(Arrays.asList("-agentlib:jdwp=transport=dt_socket,address=localhost,server=y,suspend=y"));
-    }
 
     super.exec();
   }

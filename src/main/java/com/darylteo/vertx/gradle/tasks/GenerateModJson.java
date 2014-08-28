@@ -1,24 +1,20 @@
 package com.darylteo.vertx.gradle.tasks;
 
+import com.darylteo.vertx.gradle.configuration.ProjectConfiguration;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GenerateModJson extends DefaultTask {
   private File destinationDir;
 
   public GenerateModJson() {
-//    inputs.property 'config', { MapToJson.convertMapToJson(project.vertx.config.map) }
-//    inputs.property 'info', {
-//      "$project.vertx.info"
-//    }
-//
-//    outputs.file {
-//      def dir = project.file(this.destinationDir)
-//      return "$dir/mod.json"
-//    }
+    destinationDir = this.getProject().file(this.getProject().getBuildDir() + "/jsons");
   }
 
   @OutputDirectory
@@ -28,15 +24,19 @@ public class GenerateModJson extends DefaultTask {
 
   @TaskAction
   public void run() {
-    File destDir = getProject().file(destinationDir);
-    File modjson = getProject().file(String.valueOf(destDir) + "/mod.json");
+    Project project = this.getProject();
+    ProjectConfiguration vertx = project.getExtensions().getByType(ProjectConfiguration.class);
+
+    File destDir = this.getDestinationDir();
+    File modjson = project.file(destDir + "/mod.json");
 
     destDir.mkdirs();
 
-//    // http://vertx.io/mods_manual.html
-//    def data = [:]
-//    def info = new Node(null, 'info')
-//    info.children().addAll project.vertx.info
+    // http://vertx.io/mods_manual.html
+    Map<String, Object> data = new HashMap<>();
+
+//    Node info = new Node(null, 'info')
+//    info.children().addAll(vertx.getInfo())
 //
 //    // module info
 //    // description, licenses, author, keywords, developers, homepage
