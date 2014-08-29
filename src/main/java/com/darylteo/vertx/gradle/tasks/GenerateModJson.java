@@ -1,6 +1,7 @@
 package com.darylteo.vertx.gradle.tasks;
 
 import com.darylteo.vertx.gradle.configuration.ProjectConfiguration;
+import groovy.util.Node;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.OutputDirectory;
@@ -35,11 +36,11 @@ public class GenerateModJson extends DefaultTask {
     // http://vertx.io/mods_manual.html
     Map<String, Object> data = new HashMap<>();
 
-//    Node info = new Node(null, 'info')
-//    info.children().addAll(vertx.getInfo())
-//
-//    // module info
-//    // description, licenses, author, keywords, developers, homepage
+    Node info = new Node(null, "info");
+    info.children().addAll(vertx.getInfo());
+
+    // module info
+    // description, licenses, author, keywords, developers, homepage
 //    this.insert(data, 'description', info.description[0]?.value())
 //    this.insert(data, 'licenses', info.licenses[0]?.license.collect { it.name[0].value() })
 //
