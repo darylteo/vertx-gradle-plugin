@@ -68,28 +68,4 @@ afterEvaluate {
   assert tasks.findByName('runMod') != null
 }
 
-vertx {
-  deployments {
-    blah {
-      println config
-      config {
-        println it
-        test "Hello"
-        world {
-          instances 1
-        }
-      }
-      println config
-    }
-  }
-}
-
-def json = new groovy.json.JsonBuilder();
-def root = json {
-  test "Hello"
-  world {
-    instances 1
-  }
-}
-
-println json.content
+println vertx.info

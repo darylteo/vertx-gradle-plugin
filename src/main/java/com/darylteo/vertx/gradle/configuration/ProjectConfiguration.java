@@ -1,9 +1,7 @@
 package com.darylteo.vertx.gradle.configuration;
 
 import com.darylteo.vertx.gradle.deployments.Deployment;
-import groovy.lang.Closure;
-import groovy.util.Node;
-import groovy.util.NodeList;
+import com.darylteo.vertx.gradle.util.ConfigBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -13,7 +11,7 @@ import java.io.File;
 
 public class ProjectConfiguration {
   private final Project project;
-  private final Node _info = new Node(null, "info");
+  private final ConfigBuilder info;
 
   private final VertxConfiguration platform;
   private final ModuleConfiguration config;
@@ -23,6 +21,8 @@ public class ProjectConfiguration {
 
   public ProjectConfiguration(Project project) {
     this.project = project;
+
+    this.info = new ConfigBuilder();
 
     this.platform = new VertxConfiguration(project);
     this.config = new ModuleConfiguration(project);
@@ -35,8 +35,8 @@ public class ProjectConfiguration {
     return this.project;
   }
 
-  public VertxConfiguration getPlatform() {
-    return this.platform;
+  public ConfigBuilder getInfo() {
+    return this.info;
   }
 
   public ModuleConfiguration getConfig() {
@@ -51,8 +51,8 @@ public class ProjectConfiguration {
     return this.deployments;
   }
 
-  public void platform(Action<VertxConfiguration> action) {
-    action.execute(this.platform);
+  public VertxConfiguration getPlatform() {
+    return this.platform;
   }
 
   public void config(Action<ModuleConfiguration> action) {
@@ -67,40 +67,12 @@ public class ProjectConfiguration {
     action.execute(this.deployments);
   }
 
-  public NodeList getInfo() {
-    return (NodeList) _info.children();
+  public void platform(Action<VertxConfiguration> action) {
+    action.execute(this.platform);
   }
 
-  // TODO: Regression
-  public void info(Closure closure) {
-//    // hack for appending closure to child nodes
-//    Node root = new Node(null, "temp");
-//    Node empty = new Node(root, "empty");
-//
-//    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
-//
-//    // all top level children must be unique
-//    empty.plus(closure);// append in front
-//    root.remove(empty);
-
-    // merge top level nodes into _info
-//    for (Node section : root.children()) {
-//      Object name = section.name();
-//      Object list = _info.get(name);
-//
-//      if (list[0]) {
-//        section.children().each { def element ->
-//          if (element instanceof Node) {
-//            list[0].append element
-//          } else {
-//            list[0].setValue(element.toString())
-//          }
-//        }
-//      } else {
-//        _info.append section
-//      }
-//    }
-
+  public void info(Action<ConfigBuilder> action) {
+    action.execute(this.info);
   }
 
   public String getVertxName() {

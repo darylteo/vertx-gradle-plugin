@@ -158,13 +158,12 @@ class ConfigBuilderTests extends GroovyTestCase {
       ]
     ])
 
-    // TODO: FIX
     // nest maps within lists
     config {
       list([
-        { id 1 },
+        [id: 1],
         { id 2 },
-        { id 3 }
+        { id = 3 }
       ])
     }
     assertEquals(config, [

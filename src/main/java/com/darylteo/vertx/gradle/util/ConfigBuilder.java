@@ -45,7 +45,6 @@ public class ConfigBuilder extends Expando {
   }
 
   private void insertValue(String name, Object value) {
-    System.out.println("Insert Value: " + name + " Value: " + value);
     if (value == null) {
       super.setProperty(name, null);
       return;
