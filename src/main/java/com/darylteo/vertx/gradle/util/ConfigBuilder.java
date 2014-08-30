@@ -4,6 +4,9 @@ import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.util.Expando;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,70 +24,131 @@ import java.util.Map;
  * </pre>
  */
 public class ConfigBuilder extends Expando {
+  public void methodMissing(String name, Object argArray) {
+    final Object[] args = (Object[]) argArray;
+
+    if (args.length == 1) {
+      insertValue(name, args[0]);
+    } else if (args.length > 0) {
+      insertValue(name, args);
+    } else {
+      throw new MissingMethodException(name, ConfigBuilder.class, args);
+    }
+  }
+
   public void call(Closure closure) {
+    insertClosure(closure);
+  }
+
+  public void call(Map<String, Object> map) {
+    insertMap(map);
+  }
+
+  private void insertValue(String name, Object value) {
+    System.out.println("Insert Value: " + name + " Value: " + value);
+    if (value == null) {
+      super.setProperty(name, null);
+      return;
+    }
+
+    if (isClosure(value)) {
+      insertClosure(name, (Closure) value);
+    } else if (isMap(value)) {
+      insertMap(name, (Map<String, Object>) value);
+    } else if (isCollection(value)) {
+      insertCollection(name, (Iterable<?>) value);
+    } else if (isArray(value)) {
+      insertCollection(name, (Object[]) value);
+    } else {
+      super.setProperty(name, value);
+    }
+  }
+
+  private void insertClosure(Closure closure) {
     closure.setDelegate(this);
     closure.setResolveStrategy(Closure.DELEGATE_FIRST);
     closure.call(this);
   }
 
-  public void call(Map<String, Object> map) {
-    for (Map.Entry<String, Object> entry : map.entrySet()) {
-      methodMissing(entry.getKey(), new Object[]{entry.getValue()});
+  private void insertClosure(String name, Closure closure) {
+    ConfigBuilder prop = createOrOverwriteNestedProperty(name);
+    prop.insertClosure(closure);
+  }
+
+  private void insertMap(Map<String, Object> values) {
+    for (Map.Entry<String, Object> entry : values.entrySet()) {
+      this.insertValue(entry.getKey(), entry.getValue());
     }
   }
 
-  public void methodMissing(String name, Object argArray) {
-    final Object[] args = (Object[]) argArray;
+  private void insertMap(String name, Map<String, Object> values) {
+    ConfigBuilder prop = createOrOverwriteNestedProperty(name);
 
-    if (args.length == 1) {
-
-      // simulates mutator
-      Object value = args[0];
-
-      // explicit 'null' argument was provided,
-      // so we remove the property
-      if (value == null) {
-        setProperty(name, null);
-        return;
-      }
-
-      // a closure was provided, so we are nesting builders using closures
-      if (value instanceof Closure) {
-        // check the existing property first for an existing value
-        // add a new ConfigBuilder if it doesn't already exist
-        // if the existing value is not a ConfigBuilder, then overwrite
-        Object existing = getProperty(name);
-
-        if (existing == null || !(existing instanceof ConfigBuilder)) {
-          existing = new ConfigBuilder();
-          setProperty(name, existing);
-        }
-
-        ((ConfigBuilder) existing).call((Closure) value);
-        return;
-      }
-
-      // a map was provided, so we are nesting builders using map notation
-      if (value instanceof Map) {
-        // check the existing property first for an existing value
-        // add a new ConfigBuilder if it doesn't already exist
-        // if the existing value is not a ConfigBuilder, then overwrite
-        Object existing = getProperty(name);
-
-        if (existing == null || !(existing instanceof ConfigBuilder)) {
-          existing = new ConfigBuilder();
-          setProperty(name, existing);
-        }
-
-        ((ConfigBuilder) existing).call((Map) value);
-        return;
-      }
-
-      // simple value was provided. Update the value
-      setProperty(name, value);
-    } else {
-      throw new MissingMethodException(name, ConfigBuilder.class, args);
+    for (Map.Entry<String, Object> entry : values.entrySet()) {
+      prop.insertValue(entry.getKey(), entry.getValue());
     }
+  }
+
+  private void insertCollection(String name, Object[] values) {
+    this.insertCollection(name, Arrays.asList(values));
+  }
+
+  private void insertCollection(String name, Iterable<?> values) {
+    super.setProperty(name, recursivelyConfigureCollection(values));
+  }
+
+  private ConfigBuilder createOrOverwriteNestedProperty(String name) {
+    Object value = super.getProperty(name);
+    ConfigBuilder result = null;
+
+    if (value != null && ConfigBuilder.class.isAssignableFrom(value.getClass())) {
+      result = (ConfigBuilder) value;
+    } else {
+      result = new ConfigBuilder();
+      super.setProperty(name, result);
+    }
+
+    return result;
+  }
+
+  private List<Object> recursivelyConfigureCollection(Iterable<?> values) {
+    List<Object> results = new LinkedList<>();
+
+    for (Object value : values) {
+      if (isClosure(value)) {
+        ConfigBuilder prop = new ConfigBuilder();
+        results.add(prop);
+        prop.insertClosure((Closure) value);
+      } else if (isMap(value)) {
+        ConfigBuilder prop = new ConfigBuilder();
+        results.add(prop);
+        prop.insertMap((Map) value);
+      } else if (isArray(value)) {
+        results.add(recursivelyConfigureCollection(Arrays.asList(value)));
+      } else if (isCollection(value)) {
+        results.add(recursivelyConfigureCollection((Iterable<?>) value));
+      } else {
+        results.add(value);
+      }
+    }
+
+    return results;
+  }
+
+  private boolean isMap(Object value) {
+    return Map.class.isAssignableFrom(value.getClass());
+  }
+
+  private boolean isClosure(Object value) {
+    return Closure.class.isAssignableFrom(value.getClass());
+  }
+
+  private boolean isArray(Object value) {
+    return Object[].class.isAssignableFrom(value.getClass());
+  }
+
+  private boolean isCollection(Object value) {
+    return Iterable.class.isAssignableFrom(value.getClass());
   }
 
   @Override
