@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>A ConfigBuilder allows for builder-syntax support for creating nested maps. Unless JsonBuilder, it also allows
- * you to modify existing values as a normal object
+ * <p>A ConfigBuilder allows for builder-syntax support for creating nested maps. Unlike JsonBuilder, it also allows
+ * you to modify existing values almost like a normal object.
  * </p>
  * <pre>
  *   def config = new ConfigBuilder();
@@ -98,7 +98,7 @@ public class ConfigBuilder extends Expando {
 
   private ConfigBuilder createOrOverwriteNestedProperty(String name) {
     Object value = super.getProperty(name);
-    ConfigBuilder result = null;
+    ConfigBuilder result;
 
     if (value != null && ConfigBuilder.class.isAssignableFrom(value.getClass())) {
       result = (ConfigBuilder) value;

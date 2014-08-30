@@ -79,8 +79,8 @@ class ConfigBuilderTests extends GroovyTestCase {
     assertEquals(config.foo.class, Integer.class)
 
     // long
-    config.foo = 1l
-    assertEquals(config, [foo: 1l])
+    config.foo = 1L
+    assertEquals(config, [foo: 1L])
     assertEquals(config.foo.class, Long.class)
 
     // float
