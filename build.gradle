@@ -12,7 +12,8 @@ configurations {
 group = 'com.darylteo.vertx'
 version = '0.2.0'
 
-apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'jacoco'
 apply from: rootProject.file('gradle/sonatype.gradle')
 
 dependencies {
@@ -53,4 +54,8 @@ uploadArchives {
       }
     }
   }
+}
+
+jacocoTestReport << {
+  println "Jacoco Report Url: file://${reports.html.entryPoint}"
 }
