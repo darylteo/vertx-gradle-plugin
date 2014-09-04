@@ -1,23 +1,22 @@
 package com.darylteo.vertx.gradle.plugins;
 
-import com.darylteo.vertx.gradle.configuration.ProjectConfiguration;
+import com.darylteo.vertx.gradle.configuration.ModuleConfiguration;
+import com.darylteo.vertx.gradle.configuration.VertxExtension;
+import com.darylteo.vertx.gradle.configuration.VertxPlatformConfiguration;
 import com.darylteo.vertx.gradle.deployments.Deployment;
 import com.darylteo.vertx.gradle.tasks.GenerateModJson;
 import com.darylteo.vertx.gradle.tasks.VertxRun;
-import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.LinkedList;
@@ -28,9 +27,19 @@ public class VertxPlugin implements Plugin<Project> {
   private static String COMMON_TASK_GROUP = "Vert.x Common";
   private static String RUN_TASK_GROUP = "Vert.x Run";
 
+  private static String VERTX_MAVEN_GROUP = "io.vertx";
+  private static String VERTX_MAVEN_NAME = "vertx-platform";
+  private static String VERTX_MAVEN_LANG_NAME_PREFIX = "vertx-lang-";
+
+  private VertxPlugin that = this;
+
+  private VertxExtension vertx;
+
   public void apply(Project project) {
     applyPlugins(project);
-    applyExtensions(project);
+
+    this.vertx = applyExtensions(project);
+
     addDependencies(project);
     addTasks(project);
   }
@@ -40,12 +49,12 @@ public class VertxPlugin implements Plugin<Project> {
     project.getPlugins().apply("watcher");
   }
 
-  private void applyExtensions(Project project) {
+  private VertxExtension applyExtensions(Project project) {
     final ExtensionContainer extensions = project.getExtensions();
     final TaskContainer tasks = project.getTasks();
 
     // apply vertx convention
-    final ProjectConfiguration vertx = extensions.create("vertx", ProjectConfiguration.class, project);
+    final VertxExtension vertx = extensions.create("vertx", VertxExtension.class, project);
 
     // apply hooks to deployments container
     final NamedDomainObjectContainer<Deployment> deployments = vertx.getDeployments();
@@ -77,16 +86,18 @@ public class VertxPlugin implements Plugin<Project> {
 
     // add default "mod" deployment for this project
     deployments.create("mod").deploy(project);
+
+    return vertx;
   }
 
   private void addDependencies(Project project) {
     ConfigurationContainer configurations = project.getConfigurations();
 
-    Configuration vertxAll = configurations.create("vertxAll");
-    Configuration vertxCore = configurations.create("vertxCore");
-    Configuration vertxLang = configurations.create("vertxLang");
-    Configuration vertxTest = configurations.create("vertxTest");
-    Configuration vertxIncludes = configurations.create("vertxIncludes");
+    final Configuration vertxAll = configurations.create("vertxAll");
+    final Configuration vertxCore = configurations.create("vertxCore");
+    final Configuration vertxLang = configurations.create("vertxLang");
+    final Configuration vertxTest = configurations.create("vertxTest");
+    final Configuration vertxIncludes = configurations.create("vertxIncludes");
 
     vertxAll.extendsFrom(vertxCore);
     vertxAll.extendsFrom(vertxLang);
@@ -105,75 +116,80 @@ public class VertxPlugin implements Plugin<Project> {
     provided.extendsFrom(vertxAll);
     compile.extendsFrom(provided);
 
-//    afterEvaluate {
-//      // validations
-//      if (vertx?.platform?.version == null) {
-//        println('Vert.x Platform Version not set. e.g. "vertx.platform.version = \'2.1\'".')
-//      } else {
-//        def vertxGroup = 'io.vertx'
-//
-//        dependencies {
-//          // core and lang modules
-//          vertxCore("${vertxGroup}:vertx-platform:${vertx.platform.version}")
-//
-//          if (vertx.platform.lang != null) {
-//            def module = getModuleForLang(project, vertx.platform.lang)
-//            if (!module) {
-//              println("Unsupported Language: ${vertx.platform.lang}")
-//            } else {
-//              vertxLang(module)
-//            }
-//          }
-//
-//          if (vertx.platform.toolsVersion) {
-//            vertxTest("${vertxGroup}:testtools:${vertx.platform.toolsVersion}")
-//          }
-//
-//          // includes
-//          vertx.config?.map?.includes?.collect { String dep ->
-//            dep.replace('~', ':')
-//          }.each { dep -> vertxIncludes dep }
-//        }
-//      }
+    project.afterEvaluate(new Action<Project>() {
+      @Override
+      public void execute(Project project) {
+        // validate Vert.x configuration
+        DependencyHandler dependencies = project.getDependencies();
 
-//  }
+        VertxPlatformConfiguration platform = that.vertx.getPlatform();
+        ModuleConfiguration config = that.vertx.getConfig();
+
+        String version = platform.getVersion();
+
+        if (version == null || version.trim().isEmpty()) {
+          throw new GradleException("Vert.x Platform Version has not been set.");
+        }
+
+        // load vert.x platform
+        String artifactId = String.format("%s:%s:%s", VERTX_MAVEN_GROUP, VERTX_MAVEN_NAME, version);
+        dependencies.add(vertxCore.getName(), artifactId);
+
+        // load vert.x language dependencies
+        String language = platform.getLang();
+        if (language == null || language.trim().isEmpty()) {
+          language = "java";
+        }
+
+        if (language != "java") {
+          try {
+            String languageArtifactId = getModuleForLang(project, language);
+            dependencies.add(vertxLang.getName(), languageArtifactId);
+
+            // load vert.x include dependencies
+            // TODO: only load dependencies for languages that require it - i.e. compiled mode
+            for (String include : config.getIncludes()) {
+              include = include.replace("~", ":");
+              dependencies.add(vertxIncludes.getName(), include);
+            }
+          } catch (Exception e) {
+            throw new GradleException("Error loading appropriate language module for vert.x", e);
+          }
+        }
+      }
+    });
   }
 
-  private String getModuleForLang(Project project, String lang) {
+  private String getModuleForLang(Project project, String lang) throws Exception {
     ConfigurationContainer configurations = project.getConfigurations();
 
     // setup classpath to search for langs.properties and get the correct version
     List<URL> classpath = new LinkedList<URL>();
 
     for (File file : configurations.getByName("vertxCore").getFiles()) {
-      try {
-        URL url = file.toURI().toURL();
-
-        // File.toURL() is bugged. Use toURI().toURL(). See Javadoc
-        classpath.add(url);
-      } catch (MalformedURLException e) {
-        //TODO: WARNING
-      }
+      // File.toURL() is bugged. Use toURI().toURL(). See Javadoc
+      classpath.add(file.toURI().toURL());
     }
 
-    try {
-      classpath.add(project.file("conf").toURI().toURL());
-    } catch (MalformedURLException e) {
-      //TODO: WARNING
-    }
+    classpath.add(project.file("conf").toURI().toURL());
 
     // load lang properties files into properties
     Properties props = new Properties();
 
-    try {
-      URLClassLoader loader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
+    try (
+      URLClassLoader loader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]))
+    ) {
+      InputStream in;
 
-      props.load(loader.getResourceAsStream("default-langs.properties"));
-      props.load(loader.getResourceAsStream("langs.properties"));
+      in = loader.getResourceAsStream("default-langs.properties");
+      if (in != null) {
+        props.load(in);
+      }
 
-      loader.close();
-    } catch (IOException e) {
-      //TODO: WARNING
+      in = loader.getResourceAsStream("langs.properties");
+      if (in != null) {
+        props.load(in);
+      }
     }
 
     // vertx modules are defined in a different format.
@@ -182,7 +198,7 @@ public class VertxPlugin implements Plugin<Project> {
       return langString.split(":", -1)[0].replace("~", ":");
     }
 
-    return langString;
+    throw new Exception("Language \"" + lang + "\" is not a known vert.x language. Please ensure it is registered in langs.properties");
   }
 
   private void addTasks(Project project) {
@@ -193,7 +209,7 @@ public class VertxPlugin implements Plugin<Project> {
   private void addArchiveTasks(Project project) {
 
 
-    ProjectConfiguration vertx = project.getExtensions().findByType(ProjectConfiguration.class);
+    VertxExtension vertx = project.getExtensions().findByType(VertxExtension.class);
     TaskContainer tasks = project.getTasks();
 
     // archive tasks

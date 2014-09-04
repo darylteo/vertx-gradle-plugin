@@ -9,22 +9,22 @@ import org.gradle.api.Project;
 
 import java.io.File;
 
-public class ProjectConfiguration {
+public class VertxExtension {
   private final Project project;
   private final ConfigBuilder info;
 
-  private final VertxConfiguration platform;
+  private final VertxPlatformConfiguration platform;
   private final ModuleConfiguration config;
   private final ClusterConfiguration cluster;
 
   private final NamedDomainObjectContainer<Deployment> deployments;
 
-  public ProjectConfiguration(Project project) {
+  public VertxExtension(Project project) {
     this.project = project;
 
     this.info = new ConfigBuilder();
 
-    this.platform = new VertxConfiguration(project);
+    this.platform = new VertxPlatformConfiguration(project);
     this.config = new ModuleConfiguration(project);
     this.cluster = new ClusterConfiguration();
 
@@ -51,7 +51,7 @@ public class ProjectConfiguration {
     return this.deployments;
   }
 
-  public VertxConfiguration getPlatform() {
+  public VertxPlatformConfiguration getPlatform() {
     return this.platform;
   }
 
@@ -67,7 +67,7 @@ public class ProjectConfiguration {
     action.execute(this.deployments);
   }
 
-  public void platform(Action<VertxConfiguration> action) {
+  public void platform(Action<VertxPlatformConfiguration> action) {
     action.execute(this.platform);
   }
 

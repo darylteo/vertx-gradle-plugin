@@ -1,6 +1,6 @@
 package com.darylteo.vertx.gradle.tasks;
 
-import com.darylteo.vertx.gradle.configuration.ProjectConfiguration;
+import com.darylteo.vertx.gradle.configuration.VertxExtension;
 import com.darylteo.vertx.gradle.deployments.Deployment;
 import com.darylteo.vertx.gradle.deployments.DeploymentItem;
 import com.darylteo.vertx.gradle.deployments.PlatformConfiguration;
@@ -56,15 +56,6 @@ public class VertxRun extends JavaExec {
       throw new GradleException();
     }
 
-    // validate vert.x version
-    PlatformConfiguration platform = this.deployment.getPlatform();
-    String version = platform.getVersion();
-
-    if (version == null || version.isEmpty()) {
-      this.getLogger().error("Vertx Platform Version not defined for this deployment");
-      throw new GradleException(this + " has not been properly configured with a vert.x platform configuration");
-    }
-
     // validate module deployment
     DeploymentItem deploymentItem = this.deployment.getDeploymentItem();
 
@@ -77,7 +68,25 @@ public class VertxRun extends JavaExec {
     String moduleName = module.toString();
 
     if (module instanceof Project) {
-      moduleName = this.getModuleName((Project) module);
+      if (!((Project) module).getPlugins().hasPlugin(VertxPlugin.class)) {
+        throw new GradleException("Project " + module + " does not have Vert.x Plugin applied and cannot be deployed by Vert.x");
+      }
+
+      moduleName = getModuleName((Project) module);
+    }
+
+    // validate vert.x version
+    PlatformConfiguration platform = this.deployment.getPlatform();
+    String version = platform.getVersion();
+
+    // no deployment version specified, use project version
+    if ((version == null || version.trim().isEmpty()) && module instanceof Project) {
+      version = getVersion((Project) module);
+    }
+
+    if (version == null || version.trim().isEmpty()) {
+      this.getLogger().error("Vertx Platform Version not defined for this deployment");
+      throw new GradleException(this + " has not been properly configured with a vert.x platform configuration");
     }
 
     // configure JavaExec
@@ -112,11 +121,11 @@ public class VertxRun extends JavaExec {
   }
 
   private String getModuleName(Project project) {
-    if (!project.getPlugins().hasPlugin(VertxPlugin.class)) {
-      throw new GradleException("Project " + project + " does not have Vert.x Plugin applied and cannot be deployed by Vert.x");
-    }
+    return project.getExtensions().getByType(VertxExtension.class).getVertxName();
+  }
 
-    return project.getExtensions().getByType(ProjectConfiguration.class).getVertxName();
+  private String getVersion(Project project) {
+    return project.getExtensions().getByType(VertxExtension.class).getPlatform().getVersion();
   }
 
   private Configuration getPlatformDependencies(String version, String... paths) {

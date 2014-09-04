@@ -5,7 +5,7 @@ import org.gradle.api.Project;
 import java.util.*;
 
 public class ModuleConfiguration {
-  public Map<String, Object> map;
+  private Map<String, Object> map;
   private Project project;
 
   public ModuleConfiguration(Project project) {
@@ -55,5 +55,9 @@ public class ModuleConfiguration {
     }
 
     ((List<String>) map.get("deploys")).addAll(Arrays.asList(deploys));
+  }
+
+  public List<String> getIncludes() {
+    return map.containsKey("includes") ? (List<String>) map.get("includes)") : new ArrayList<String>();
   }
 }

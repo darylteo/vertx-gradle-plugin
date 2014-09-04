@@ -1,6 +1,6 @@
 package com.darylteo.vertx.gradle.tasks;
 
-import com.darylteo.vertx.gradle.configuration.ProjectConfiguration;
+import com.darylteo.vertx.gradle.configuration.VertxExtension;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.OutputDirectory;
@@ -24,7 +24,7 @@ public class GenerateModJson extends DefaultTask {
   @TaskAction
   public void run() {
     Project project = this.getProject();
-    ProjectConfiguration vertx = project.getExtensions().getByType(ProjectConfiguration.class);
+    VertxExtension vertx = project.getExtensions().getByType(VertxExtension.class);
 
     File destDir = this.getDestinationDir();
     File modjson = project.file(destDir + "/mod.json");

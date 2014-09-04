@@ -2,13 +2,13 @@ package com.darylteo.vertx.gradle.configuration;
 
 import org.gradle.api.Project;
 
-public class VertxConfiguration {
+public class VertxPlatformConfiguration {
   private Project project;
   private String version;
   private String toolsVersion;
   private String lang;
 
-  public VertxConfiguration(Project project) {
+  public VertxPlatformConfiguration(Project project) {
     this.project = project;
   }
 

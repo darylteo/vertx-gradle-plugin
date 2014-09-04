@@ -48,12 +48,4 @@ public class DeploymentItem {
   public void config(Map data) {
     this.config.putAll(data);
   }
-
-  public void getEffectiveConfig() {
-    Map<String, Object> map = new HashMap<String, Object>();
-
-    map.putAll(this.deployment.getConfig());
-    map.putAll(this.config);
-  }
-
 }
