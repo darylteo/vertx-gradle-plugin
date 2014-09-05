@@ -6,22 +6,27 @@ import com.darylteo.vertx.gradle.configuration.VertxPlatformConfiguration;
 import com.darylteo.vertx.gradle.deployments.Deployment;
 import com.darylteo.vertx.gradle.tasks.GenerateModJson;
 import com.darylteo.vertx.gradle.tasks.VertxRun;
+import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.tasks.Sync;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.api.tasks.testing.Test;
 
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 public class VertxPlugin implements Plugin<Project> {
   private static String COMMON_TASK_GROUP = "Vert.x Common";
@@ -206,31 +211,80 @@ public class VertxPlugin implements Plugin<Project> {
     addRunTasks(project);
   }
 
-  private void addArchiveTasks(Project project) {
-
-
-    VertxExtension vertx = project.getExtensions().findByType(VertxExtension.class);
-    TaskContainer tasks = project.getTasks();
+  private void addArchiveTasks(final Project project) {
+    final VertxExtension vertx = project.getExtensions().findByType(VertxExtension.class);
+    final JavaPlugin java = project.getPlugins().findPlugin(JavaPlugin.class);
+    final TaskContainer tasks = project.getTasks();
+    final ConfigurationContainer configurations = project.getConfigurations();
 
     // archive tasks
-    Sync assembleVertxTask = tasks.create("assembleVertxTask", Sync.class);
+    final GenerateModJson generateModJsonTask = tasks.create("generateModJson", GenerateModJson.class);
+    generateModJsonTask.setGroup(COMMON_TASK_GROUP);
+
+    // assemble vertx task
+    final Sync assembleVertxTask = tasks.create("assembleVertxTask", Sync.class);
     assembleVertxTask.setGroup(COMMON_TASK_GROUP);
 
-    Sync copyModTask = tasks.create("copyMod", Sync.class);
+    assembleVertxTask.into(project.file(new Callable<String>() {
+      @Override
+      public String call() throws Exception {
+        return Paths.get(project.getBuildDir().toString(), "mods").toString();
+      }
+    }));
+
+    assembleVertxTask.into("lib", new Closure(this) {
+      @Override
+      public Object call() {
+        // this should be a CopySpec
+        CopySpec spec = (CopySpec) this.getDelegate();
+
+        spec.from(configurations.getByName("compile").minus(configurations.getByName("provided")));
+        return null;
+      }
+    });
+
+    assembleVertxTask.from(new Callable<List<SourceSetOutput>>() {
+      @Override
+      public List<SourceSetOutput> call() throws Exception {
+        SourceSetContainer sourceSets = (SourceSetContainer) project.getProperties().get("sourceSets");
+        List<SourceSetOutput> files = new LinkedList<>();
+
+        for (SourceSet sourceSet : sourceSets) {
+          if (sourceSet.getName().equals(SourceSet.TEST_SOURCE_SET_NAME)) {
+            continue;
+          }
+
+          files.add(sourceSet.getOutput());
+        }
+
+        return files;
+      }
+    });
+
+    assembleVertxTask.from(generateModJsonTask);
+
+    final Sync copyModTask = tasks.create("copyMod", Sync.class);
     copyModTask
       .from(assembleVertxTask)
       .into(vertx.getModuleDir());
     copyModTask.setGroup(COMMON_TASK_GROUP);
 
-    // TODO: this needs to be a deferred configuration else it won't work properly
-
-    GenerateModJson generateModJsonTask = tasks.create("generateModJson", GenerateModJson.class);
-    generateModJsonTask.setGroup(COMMON_TASK_GROUP);
-
-    Zip modZipTask = tasks.create("modZip", Zip.class);
+    final Zip modZipTask = tasks.create("modZip", Zip.class);
     modZipTask.from(assembleVertxTask);
     modZipTask.setGroup(COMMON_TASK_GROUP);
     modZipTask.setClassifier("mod");
+
+    final Test testTask = (Test) tasks.getByName("test");
+
+    project.afterEvaluate(new Action<Project>() {
+      @Override
+      public void execute(final Project project) {
+        // set up system properties required for the test task templates.
+        testTask.systemProperty("vertx.modulename", vertx.getVertxName());
+        testTask.systemProperty("vertx.mods", Paths.get(project.getRootProject().getBuildDir().toString(), "mods")).toString();
+        testTask.dependsOn(copyModTask);
+      }
+    });
 
 //    task("dummyMod") {
 //      // only work this if the target dir does not exist

@@ -69,3 +69,4 @@ afterEvaluate {
 }
 
 println vertx.info
+println project.version

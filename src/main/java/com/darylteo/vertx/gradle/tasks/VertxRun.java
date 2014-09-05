@@ -132,12 +132,12 @@ public class VertxRun extends JavaExec {
     DependencyHandler dependencyHandler = getProject().getDependencies();
     List<Dependency> deps = new LinkedList<>();
 
+    deps.add(dependencyHandler.create("io.vertx:vertx-platform:" + version));
+    // TODO: exclude log4j
+
     for (String path : paths) {
       deps.add(dependencyHandler.create(path));
     }
-
-    deps.add(dependencyHandler.create("io.vertx:vertx-platform:" + version));
-    // TODO: exclude log4j
 
     return this.getProject().getConfigurations().detachedConfiguration(deps.toArray(new Dependency[deps.size()]));
   }

@@ -5,6 +5,7 @@ import groovy.json.JsonBuilder;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.ClosureBackedAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -90,6 +91,12 @@ public class Deployment {
 
   public void deploy(String notation, int instances, Closure closure) {
     this.deploymentItem = new DeploymentItem(this, notation, closureToMap(closure));
+  }
+
+  public void platform(Closure<PlatformConfiguration> closure) {
+    closure.setDelegate(this.platform);
+    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
+    platform(new ClosureBackedAction<PlatformConfiguration>(closure));
   }
 
   public void platform(Action<PlatformConfiguration> action) {
