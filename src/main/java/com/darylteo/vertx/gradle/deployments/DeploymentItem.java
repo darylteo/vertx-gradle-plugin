@@ -6,12 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>Module can be
+ * <p>Module can be</p>
  * <ul>
  * <li>String - a Maven artifact identifier</li>
  * <li>Project - a Gradle Project that has Vert.x plugin</li>
  * </ul>
- * </p>
  */
 public class DeploymentItem {
   private final Deployment deployment;

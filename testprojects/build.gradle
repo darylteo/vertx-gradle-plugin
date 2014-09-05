@@ -1,0 +1,11 @@
+buildscript {
+  def testVersion = System.getProperty("test.version")
+
+  repositories {
+    mavenLocal()
+  }
+
+  dependencies {
+    classpath "org.darylteo.vertx:vertx-gradle-plugin:$testVersion"
+  }
+}

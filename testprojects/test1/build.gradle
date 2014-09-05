@@ -1,0 +1,3 @@
+apply plugin: 'vertx'
+
+project.fail()

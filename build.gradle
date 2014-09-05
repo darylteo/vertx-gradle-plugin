@@ -38,16 +38,17 @@ uploadArchives {
               id 'darylteo'
               name 'Daryl Teo'
               email 'i.am@darylteo.com'
+
             }
-          }
 
-          scm { url 'http://github.com/darylteo/vertx-gradle-plugin' }
+            scm { url 'http://github.com/darylteo/vertx-gradle-plugin' }
 
-          licenses {
-            license {
-              name 'The Apache Software License, Version 2.0'
-              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              distribution 'repo'
+            licenses {
+              license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
+              }
             }
           }
         }
@@ -55,6 +56,22 @@ uploadArchives {
     }
   }
 }
+
+task integrationTest(type: Test) {
+  systemProperty 'test.version', project.version
+  include '**/integration/**'
+
+  dependsOn install
+}
+
+test {
+  exclude '**/integration/**'
+}
+
+check {
+  dependsOn integrationTest
+}
+
 
 jacocoTestReport << {
   println "Jacoco Report Url: file://${reports.html.entryPoint}"
