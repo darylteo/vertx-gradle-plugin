@@ -1,3 +1,12 @@
-apply plugin: 'vertx'
+apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
 
-project.fail()
+assert project.vertx != null
+vertx {
+  platform {
+    version '2.1'
+  }
+}
+
+afterEvaluate {
+  assert vertx.platform.version == '2.1'
+}

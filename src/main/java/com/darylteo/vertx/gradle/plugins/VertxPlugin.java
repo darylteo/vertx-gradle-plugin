@@ -51,7 +51,7 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void applyPlugins(Project project) {
     project.getPlugins().apply("java");
-    project.getPlugins().apply("watcher");
+//    project.getPlugins().apply("watcher");
   }
 
   private VertxExtension applyExtensions(Project project) {
@@ -133,7 +133,7 @@ public class VertxPlugin implements Plugin<Project> {
         String version = platform.getVersion();
 
         if (version == null || version.trim().isEmpty()) {
-          throw new GradleException("Vert.x Platform Version has not been set.");
+          version = "+";
         }
 
         // load vert.x platform

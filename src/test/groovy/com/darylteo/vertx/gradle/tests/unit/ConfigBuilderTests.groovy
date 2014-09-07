@@ -1,3 +1,5 @@
+package com.darylteo.vertx.gradle.tests.unit
+
 import com.darylteo.vertx.gradle.util.ConfigBuilder
 import groovy.json.JsonOutput
 
