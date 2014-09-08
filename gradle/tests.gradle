@@ -1,8 +1,6 @@
 apply plugin: 'jacoco'
 
 test {
-  reports.html.destination = "$buildDir/reports/tests/unit"
-
   include '**/unit/**'
 
   doLast {
@@ -16,8 +14,9 @@ task integrationTest(type: JavaExec) {
 
   // IMPORTANT: do not offload to the daemon, you won't get coverage data if you do since the daemon runs in a isolated process
   args += '--no-daemon'
+  args += '--rerun-tasks'
   args += '-PpluginClasspath=../build/classes/main'
-  args += ':test1:tasks'
+  args += ':test'
 
   classpath += project.fileTree(gradle.gradleHomeDir)
 

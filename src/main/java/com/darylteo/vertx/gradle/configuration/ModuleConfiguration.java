@@ -42,15 +42,19 @@ public class ModuleConfiguration {
   }
 
   public void includes(String... includes) {
-    if (map.containsKey("includes") || map.get("includes") == null) {
+    if (!map.containsKey("includes") || map.get("includes") == null) {
       map.put("includes", new LinkedList<String>());
     }
+
+    System.out.println(project);
+    System.out.println(map.containsKey("includes"));
+    System.out.println(map.get("includes"));
 
     ((List<String>) map.get("includes")).addAll(Arrays.asList(includes));
   }
 
   public void deploys(String... deploys) {
-    if (map.containsKey("deploys") || map.get("deploys") == null) {
+    if (!map.containsKey("deploys") || map.get("deploys") == null) {
       map.put("deploys", new LinkedList<String>());
     }
 
@@ -58,6 +62,10 @@ public class ModuleConfiguration {
   }
 
   public List<String> getIncludes() {
+    System.out.println(project);
+    System.out.println(map.containsKey("includes"));
+    System.out.println(map.get("includes"));
+
     return map.containsKey("includes") ? (List<String>) map.get("includes)") : new ArrayList<String>();
   }
 }

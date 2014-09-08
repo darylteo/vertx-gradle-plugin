@@ -1,0 +1,33 @@
+apply plugin: 'vertx'
+
+def vertxVersion = '2.1'
+def crashubVersion = '2.1.0'
+
+vertx {
+  platform {
+    version vertxVersion
+  }
+
+  config {
+    main 'Main'
+    includes "org.crashub~vertx.shell~$crashubVersion"
+  }
+
+  deployments {
+    mod {
+      platform {
+        instances 10
+      }
+    }
+  }
+}
+
+import com.darylteo.vertx.gradle.tasks.*;
+
+afterEvaluate {
+  assert project.configurations.vertxIncludes != null
+
+  assert project.configurations.vertxIncludes.files.find({ file ->
+    file.name == "vertx.shell-${crashubVersion}.jar"
+  }) != null
+}

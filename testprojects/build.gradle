@@ -8,3 +8,12 @@ buildscript {
     classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.2.0'
   }
 }
+
+
+def testTasks = [
+  subprojects.collect { "${it.path}:build" }
+].flatten()
+
+task test {
+  dependsOn testTasks
+}

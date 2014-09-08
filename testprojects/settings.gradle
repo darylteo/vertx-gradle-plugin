@@ -1,1 +1,5 @@
-include ':test1'
+rootProject.projectDir.eachDir { dir ->
+  if(dir.name.startsWith('test')) {
+    include ":${dir.name}"
+  }
+}

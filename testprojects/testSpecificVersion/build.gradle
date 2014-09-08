@@ -1,8 +1,10 @@
 apply plugin: 'vertx'
 
+def vertxVersion = '2.1'
+
 vertx {
   platform {
-    version '2.1'
+    version vertxVersion
   }
 
   config {
@@ -23,7 +25,7 @@ import com.darylteo.vertx.gradle.tasks.*;
 afterEvaluate {
   assert vertx != null
   assert vertx.platform != null
-  assert vertx.platform.version == '2.1'
+  assert vertx.platform.version == vertxVersion
 
   assert vertx.config != null
   assert vertx.config.map.main == 'Main'
@@ -32,4 +34,10 @@ afterEvaluate {
   assert vertx.deployments.mod != null
 
   assert (project.tasks.runMod instanceof VertxRun)
+
+  assert project.configurations.vertxCore != null
+
+  assert project.configurations.vertxCore.files.find({ file ->
+    file.name == "vertx-platform-${vertxVersion}.jar"
+  }) != null
 }

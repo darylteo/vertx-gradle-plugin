@@ -11,6 +11,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
@@ -38,13 +39,9 @@ public class VertxPlugin implements Plugin<Project> {
 
   private VertxPlugin that = this;
 
-  private VertxExtension vertx;
-
   public void apply(Project project) {
     applyPlugins(project);
-
-    this.vertx = applyExtensions(project);
-
+    applyExtensions(project);
     addDependencies(project);
     addTasks(project);
   }
@@ -96,6 +93,9 @@ public class VertxPlugin implements Plugin<Project> {
   }
 
   private void addDependencies(Project project) {
+    RepositoryHandler repositories = project.getRepositories();
+    repositories.mavenCentral();
+
     ConfigurationContainer configurations = project.getConfigurations();
 
     final Configuration vertxAll = configurations.create("vertxAll");
@@ -125,10 +125,11 @@ public class VertxPlugin implements Plugin<Project> {
       @Override
       public void execute(Project project) {
         // validate Vert.x configuration
+        VertxExtension vertx = project.getExtensions().getByType(VertxExtension.class);
         DependencyHandler dependencies = project.getDependencies();
 
-        VertxPlatformConfiguration platform = that.vertx.getPlatform();
-        ModuleConfiguration config = that.vertx.getConfig();
+        VertxPlatformConfiguration platform = vertx.getPlatform();
+        ModuleConfiguration config = vertx.getConfig();
 
         String version = platform.getVersion();
 
