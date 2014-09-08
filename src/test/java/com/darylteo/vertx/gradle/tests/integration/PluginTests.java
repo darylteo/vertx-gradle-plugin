@@ -24,7 +24,7 @@ public class PluginTests {
 
 //    String version = String.format("%s:%s:%s", "com.darylteo.vertx", "vertx-gradle-plugin", "0.2.0");
 
-    this.launcher.withArguments("-PpluginClasspath=../build/classes/main");
+    this.launcher.withArguments("--no-daemon", "-PpluginClasspath=../build/classes/main");
   }
 
   @Test

@@ -1,11 +1,10 @@
 buildscript {
-  println file(pluginClasspath)
-
   repositories {
     mavenLocal()
   }
 
   dependencies {
-    classpath files(pluginClasspath)
+    // classpath files(path)
+    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.2.0'
   }
 }

@@ -1,0 +1,71 @@
+apply plugin: 'jacoco'
+
+test {
+  reports.html.destination = "$buildDir/reports/tests/unit"
+
+  include '**/unit/**'
+
+  doLast {
+    println "Unit Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task integrationTest(type: JavaExec) {
+  main = 'org.gradle.launcher.Main'
+  workingDir = 'testprojects'
+
+  // IMPORTANT: do not offload to the daemon, you won't get coverage data if you do since the daemon runs in a isolated process
+  args += '--no-daemon'
+  args += '-PpluginClasspath=../build/classes/main'
+  args += ':test1:tasks'
+
+  classpath += project.fileTree(gradle.gradleHomeDir)
+
+  mustRunAfter test
+}
+
+jacoco.applyTo integrationTest
+check.dependsOn integrationTest
+
+// setup reports
+jacocoTestReport {
+  executionData integrationTest
+
+  doLast {
+    println "Jacoco Overall Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task jacocoIntegrationTestReport(type:JacocoReport){
+  executionData integrationTest
+  sourceSets sourceSets.main
+
+  reports.html.destination = "$buildDir/reports/jacoco/integration/html"
+  reports.xml.destination = "$buildDir/reports/jacoco/integration/xml"
+  reports.csv.destination = "$buildDir/reports/jacoco/integration/csv"
+
+  mustRunAfter integrationTest
+
+  doLast {
+    println "Jacoco Integration Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task jacocoUnitTestReport(type:JacocoReport) {
+  executionData test
+  sourceSets sourceSets.main
+
+  reports.html.destination = "$buildDir/reports/jacoco/unit/html"
+  reports.xml.destination = "$buildDir/reports/jacoco/unit/xml"
+  reports.csv.destination = "$buildDir/reports/jacoco/unit/csv"
+
+  mustRunAfter test
+
+  doLast {
+    println "Jacoco Unit Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task jacocoTestReportAll {
+  dependsOn jacocoTestReport, jacocoUnitTestReport, jacocoIntegrationTestReport
+}

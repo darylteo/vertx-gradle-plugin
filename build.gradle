@@ -24,7 +24,7 @@ version = '0.2.0'
 
 apply plugin: 'download-task'
 apply plugin: 'groovy'
-apply plugin: 'jacoco'
+apply from: rootProject.file('gradle/tests.gradle')
 apply from: rootProject.file('gradle/sonatype.gradle')
 
 dependencies {
@@ -65,66 +65,5 @@ uploadArchives {
         }
       }
     }
-  }
-}
-
-test {
-  reports.html.destination = "$buildDir/reports/tests/unit"
-
-  include '**/unit/**'
-
-  doLast {
-    println "Unit Test Report Url: file://${reports.html.entryPoint}"
-  }
-}
-
-//task integrationTest(type: Test) {
-//  systemProperty 'plugin.test.version', project.version
-//  reports.html.destination = "$buildDir/reports/tests/integration"
-//
-//  include '**/integration/**'
-//  mustRunAfter test
-//
-//  doLast {
-//    println "Unit Test Report Url: file://${reports.html.entryPoint}"
-//  }
-//}
-
-task integrationTest(type: JavaExec) {
-  main = 'org.gradle.launcher.Main'
-  workingDir = 'testprojects'
-
-  // IMPORTANT: do not offload to the daemon, you won't get coverage data if you do since the daemon runs in a isolated process
-  args += '--no-daemon'
-  args += '-PpluginClasspath=../build/classes/main'
-  args += ':test1:tasks'
-
-  def gradleVersion = '2.0'
-  classpath += project.files("/usr/local/Cellar/gradle/$gradleVersion/libexec/lib/gradle-launcher-${gradleVersion}.jar")
-  classpath += project.fileTree("/usr/local/Cellar/gradle/$gradleVersion/libexec/lib/")
-
-  mustRunAfter test
-}
-
-check.dependsOn integrationTest
-
-jacoco.applyTo integrationTest
-
-jacocoTestReport {
-  doLast {
-    println "Jacoco Unit Test Report Url: file://${reports.html.entryPoint}"
-  }
-}
-
-task jacocoIntegrationTestReport(type:JacocoReport){
-  executionData integrationTest
-  sourceSets sourceSets.main
-
-  reports.html.destination = "$buildDir/reports/jacoco/integration/html"
-  reports.xml.destination = "$buildDir/reports/jacoco/integration/xml"
-  reports.csv.destination = "$buildDir/reports/jacoco/integration/csv"
-
-  doLast {
-    println "Jacoco Integration Test Report Url: file://${reports.html.entryPoint}"
   }
 }

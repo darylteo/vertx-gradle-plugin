@@ -1,12 +1,35 @@
-apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
+apply plugin: 'vertx'
 
-assert project.vertx != null
 vertx {
   platform {
     version '2.1'
   }
+
+  config {
+    main 'Main'
+  }
+
+  deployments {
+    mod {
+      platform {
+        instances 10
+      }
+    }
+  }
 }
 
+import com.darylteo.vertx.gradle.tasks.*;
+
 afterEvaluate {
+  assert vertx != null
+  assert vertx.platform != null
   assert vertx.platform.version == '2.1'
+
+  assert vertx.config != null
+  assert vertx.config.map.main == 'Main'
+
+  assert vertx.deployments != null
+  assert vertx.deployments.mod != null
+
+  assert (project.tasks.runMod instanceof VertxRun)
 }
