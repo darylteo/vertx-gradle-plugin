@@ -36,6 +36,11 @@ public class ConfigBuilder extends Expando {
     }
   }
 
+  @Override
+  public void setProperty(String property, Object newValue) {
+    insertValue(property, newValue);
+  }
+
   public void call(Closure closure) {
     insertClosure(closure);
   }
