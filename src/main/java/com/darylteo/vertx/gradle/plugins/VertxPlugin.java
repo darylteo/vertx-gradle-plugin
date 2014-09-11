@@ -151,16 +151,16 @@ public class VertxPlugin implements Plugin<Project> {
           try {
             String languageArtifactId = getModuleForLang(project, language);
             dependencies.add(vertxLang.getName(), languageArtifactId);
-
-            // load vert.x include dependencies
-            // TODO: only load dependencies for languages that require it - i.e. compiled mode
-            for (String include : config.getIncludes()) {
-              include = include.replace("~", ":");
-              dependencies.add(vertxIncludes.getName(), include);
-            }
           } catch (Exception e) {
             throw new GradleException("Error loading appropriate language module for vert.x", e);
           }
+        }
+
+        // load vert.x include dependencies
+        // TODO: only load dependencies for languages that require it - i.e. compiled mode
+        for (String include : config.getIncludes()) {
+          include = include.replace("~", ":");
+          dependencies.add(vertxIncludes.getName(), include);
         }
       }
     });
