@@ -20,5 +20,3 @@ afterEvaluate {
     file.name.startsWith("vertx-platform")
   }) != null
 }
-
-// do a build to test compilation

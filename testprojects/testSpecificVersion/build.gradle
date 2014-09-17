@@ -10,14 +10,6 @@ vertx {
   config {
     main 'Main'
   }
-
-  deployments {
-    mod {
-      platform {
-        instances 10
-      }
-    }
-  }
 }
 
 import com.darylteo.vertx.gradle.tasks.*;
@@ -29,11 +21,6 @@ afterEvaluate {
 
   assert vertx.config != null
   assert vertx.config.map.main == 'Main'
-
-  assert vertx.deployments != null
-  assert vertx.deployments.mod != null
-
-  assert (project.tasks.runMod instanceof VertxRun)
 
   assert project.configurations.vertxCore != null
 

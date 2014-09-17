@@ -1,0 +1,26 @@
+apply plugin: 'vertx'
+
+import com.darylteo.vertx.gradle.tasks.*;
+
+// test default 'mods' deployment
+assert vertx.deployments != null
+assert vertx.deployments.mod != null
+
+assert (project.tasks.runMod instanceof VertxRun)
+
+vertx {
+  deployments {
+    custom {
+
+    }
+  }
+}
+
+// test adding
+assert vertx.deployments.custom != null
+assert (project.tasks.runCustom instanceof VertxRun)
+
+// test removing
+vertx.deployments.remove(vertx.deployments.custom);
+assert vertx.deployments.findByName('custom') == null
+assert project.tasks.findByName('custom') == null
