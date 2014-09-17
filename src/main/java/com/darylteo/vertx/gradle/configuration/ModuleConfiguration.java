@@ -62,6 +62,11 @@ public class ModuleConfiguration {
   }
 
   public List<String> getIncludes() {
-    return (List<String>) map.get("includes");
+    List<String> result = (List<String>) map.get("includes");
+    if (result == null) {
+      result = new ArrayList<>();
+    }
+
+    return result;
   }
 }

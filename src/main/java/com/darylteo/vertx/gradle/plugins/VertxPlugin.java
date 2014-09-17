@@ -157,8 +157,9 @@ public class VertxPlugin implements Plugin<Project> {
         }
 
         // load vert.x include dependencies
-        // TODO: only load dependencies for languages that require it - i.e. compiled mode
+        // TODO: only load dependencies for languages that require it - i.e. compiled modx
         for (String include : config.getIncludes()) {
+          System.out.println(include);
           include = include.replace("~", ":");
           dependencies.add(vertxIncludes.getName(), include);
         }
