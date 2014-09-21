@@ -209,7 +209,6 @@ public class VertxPlugin implements Plugin<Project> {
 
   private void addTasks(Project project) {
     addArchiveTasks(project);
-    addRunTasks(project);
   }
 
   private void addArchiveTasks(final Project project) {

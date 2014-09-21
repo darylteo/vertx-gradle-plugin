@@ -18,7 +18,7 @@ task integrationTest(type: JavaExec) {
   args += '-PpluginClasspath=../build/classes/main'
   args += ':test'
 
-  classpath += project.fileTree(gradle.gradleHomeDir)
+  classpath += fileTree("${gradle.gradleHomeDir}/lib", { include '**/*.jar'})
 
   mustRunAfter test
 }
