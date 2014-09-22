@@ -1,0 +1,50 @@
+import groovy.xml.QName
+
+apply plugin: 'vertx'
+
+def vertxVersion = '2.1'
+
+vertx {
+  platform {
+    version vertxVersion
+  }
+
+  config {
+    main 'Main'
+  }
+
+  info {
+    description 'Test Project for Generating vert.x mod.jsons'
+    licenses {
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }
+
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }
+    }
+    developers {
+      developer {
+        name 'Daryl'
+      }
+      developer {
+        name 'John'
+      }
+      developer {
+        name 'James'
+      }
+    }
+    url 'http://github.com/darylteo/vertx-gradle-plugin'
+  }
+}
+
+build.dependsOn generateModJson
+
+build << {
+
+}

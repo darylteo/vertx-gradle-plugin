@@ -1,7 +1,7 @@
 package com.darylteo.vertx.gradle.configuration;
 
 import com.darylteo.vertx.gradle.deployments.Deployment;
-import com.darylteo.vertx.gradle.util.ConfigBuilder;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -11,8 +11,8 @@ import java.io.File;
 
 public class VertxExtension {
   private final Project project;
-  private final ConfigBuilder info;
 
+  private final ModuleInformation info;
   private final VertxPlatformConfiguration platform;
   private final ModuleConfiguration config;
   private final ClusterConfiguration cluster;
@@ -22,7 +22,7 @@ public class VertxExtension {
   public VertxExtension(Project project) {
     this.project = project;
 
-    this.info = new ConfigBuilder();
+    this.info = new ModuleInformation();
 
     this.platform = new VertxPlatformConfiguration(project);
     this.config = new ModuleConfiguration(project);
@@ -35,7 +35,7 @@ public class VertxExtension {
     return this.project;
   }
 
-  public ConfigBuilder getInfo() {
+  public ModuleInformation getInfo() {
     return this.info;
   }
 
@@ -71,8 +71,8 @@ public class VertxExtension {
     action.execute(this.platform);
   }
 
-  public void info(Action<ConfigBuilder> action) {
-    action.execute(this.info);
+  public void info(Closure closure) {
+    this.info.call(closure);
   }
 
   public String getVertxName() {

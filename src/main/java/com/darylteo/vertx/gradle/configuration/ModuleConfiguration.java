@@ -69,4 +69,8 @@ public class ModuleConfiguration {
 
     return result;
   }
+
+  public Map<String, Object> asMap() {
+    return new HashMap<>(this.map);
+  }
 }
