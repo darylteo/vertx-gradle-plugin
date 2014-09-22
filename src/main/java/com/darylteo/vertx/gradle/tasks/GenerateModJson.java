@@ -42,7 +42,7 @@ public class GenerateModJson extends DefaultTask {
     destDir.mkdirs();
 
     // http://vertx.io/mods_manual.html
-    Map<String, Object> config = vertx.getConfig().asMap();
+    Map<String, Object> config = vertx.getConfig().getMap();
     Node info = vertx.getInfo().asNode();
 
     // module info

@@ -1,76 +1,120 @@
 package com.darylteo.vertx.gradle.configuration;
 
-import org.gradle.api.Project;
-
 import java.util.*;
 
 public class ModuleConfiguration {
-  private Map<String, Object> map;
-  private Project project;
+  private String main;
 
-  public ModuleConfiguration(Project project) {
-    this.project = project;
-    this.map = new HashMap<>();
-  }
+  private Boolean worker;
+  private Boolean multiThreaded;
+  private Boolean preserveCwd;
+  private Boolean autoRedeploy;
+
+  private Boolean resident;
+  private Boolean system;
+
+  private List<String> includes = new LinkedList<>();
+  private List<String> deploys = new LinkedList<>();
+
+  private boolean changed = false;
+  private Map<String, Object> map;
 
   public void main(String value) {
-    map.put("main", value);
+    this.changed = true;
+    this.main = value;
   }
 
   public void worker(boolean value) {
-    map.put("worker", value);
+    this.changed = true;
+    this.worker = value;
   }
 
   public void multiThreaded(boolean value) {
-    map.put("multi-threaded", value);
+    this.changed = true;
+    this.multiThreaded = value;
   }
 
   public void preserveCwd(boolean value) {
-    map.put("preserve-cwd", value);
+    this.changed = true;
+    this.preserveCwd = value;
   }
 
   public void autoRedeploy(boolean value) {
-    map.put("auto-redeploy", value);
+    this.changed = true;
+    this.autoRedeploy = value;
   }
 
   public void resident(boolean value) {
-    map.put("resident", value);
+    this.changed = true;
+    this.resident = value;
   }
 
   public void system(boolean value) {
-    map.put("system", value);
+    this.changed = true;
+    this.system = value;
   }
 
   public void includes(String... includes) {
-    if (map.get("includes") == null) {
-      map.put("includes", new LinkedList<String>());
-    }
-
-    ((List<String>) map.get("includes")).addAll(Arrays.asList(includes));
-
-    System.out.println(this);
-    System.out.println(map.containsKey("includes"));
-    System.out.println(map.get("includes"));
+    this.changed = true;
+    this.includes.addAll(Arrays.asList(includes));
   }
 
   public void deploys(String... deploys) {
-    if (!map.containsKey("deploys") || map.get("deploys") == null) {
-      map.put("deploys", new LinkedList<String>());
-    }
-
-    ((List<String>) map.get("deploys")).addAll(Arrays.asList(deploys));
+    this.changed = true;
+    this.deploys.addAll(Arrays.asList(deploys));
   }
 
   public List<String> getIncludes() {
-    List<String> result = (List<String>) map.get("includes");
-    if (result == null) {
-      result = new ArrayList<>();
+    return this.includes;
+  }
+
+  public Map<String, Object> getMap() {
+    if (!changed && this.map != null) {
+      return this.map;
     }
+
+    Map<String, Object> result = new HashMap<>();
+
+    this.put(result, "main", this.main);
+    this.put(result, "worker", this.worker);
+    this.put(result, "multi-threaded", this.multiThreaded);
+    this.put(result, "preserve-cwd", this.preserveCwd);
+    this.put(result, "auto-redeploy", this.autoRedeploy);
+
+    this.put(result, "resident", this.resident);
+    this.put(result, "system", this.system);
+
+    if (!this.includes.isEmpty()) {
+      // note: vert.x is still stupid and doesn't acccept arrays for includes
+      // and my PR was stale and I cbf to reupdate it all over again.
+      // so this is here to solve that
+
+      StringBuilder builder = new StringBuilder();
+      List<String> clone = new ArrayList<>(this.includes);
+
+      builder.append(clone.remove(0));
+      while (!clone.isEmpty()) {
+        builder.append(":");
+        builder.append(clone.remove(0));
+      }
+
+      this.put(result, "includes", builder.toString());
+    }
+
+    if (!this.deploys.isEmpty()) {
+      this.put(result, "deploys", deploys);
+    }
+
+    changed = false;
 
     return result;
   }
 
-  public Map<String, Object> asMap() {
-    return new HashMap<>(this.map);
+  private void put(Map<String, Object> map, String key, Object value) {
+    if (value == null) {
+      return;
+    }
+
+    map.put(key, value);
   }
 }

@@ -9,7 +9,7 @@ test {
 }
 
 task integrationTest(type: JavaExec) {
-  main = 'org.gradle.launcher.Main'
+  main = 'org.gradle.launcher.GradleMain'
   workingDir = 'testprojects'
 
   // IMPORTANT: do not offload to the daemon, you won't get coverage data if you do since the daemon runs in a isolated process
@@ -18,7 +18,7 @@ task integrationTest(type: JavaExec) {
   args += '-PpluginClasspath=../build/classes/main'
   args += ':test'
 
-  classpath += fileTree("${gradle.gradleHomeDir}/lib", { include '**/*.jar'})
+  classpath += files("${gradle.gradleHomeDir}/lib/gradle-launcher-2.0.jar")
 
   mustRunAfter test
 }
@@ -35,7 +35,7 @@ jacocoTestReport {
   }
 }
 
-task jacocoIntegrationTestReport(type:JacocoReport){
+task jacocoIntegrationTestReport(type: JacocoReport) {
   executionData integrationTest
   sourceSets sourceSets.main
 
@@ -50,7 +50,7 @@ task jacocoIntegrationTestReport(type:JacocoReport){
   }
 }
 
-task jacocoUnitTestReport(type:JacocoReport) {
+task jacocoUnitTestReport(type: JacocoReport) {
   executionData test
   sourceSets sourceSets.main
 

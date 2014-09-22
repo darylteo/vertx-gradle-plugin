@@ -17,8 +17,8 @@ vertx {
     description 'Test Project for Generating vert.x mod.jsons'
     licenses {
       license {
-        name 'The Apache Software License, Version 2.0'
-        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        name 'The Apache Software License, Version 1.0'
+        url 'http://www.apache.org/licenses/LICENSE-1.0.txt'
         distribution 'repo'
       }
 
@@ -46,5 +46,13 @@ vertx {
 build.dependsOn generateModJson
 
 build << {
+  def json = new groovy.json.JsonSlurper()
+  def data = json.parse(file("${generateModJson.destinationDir}/mod.json"))
 
+  assert data.author == 'Daryl'
+  assert data.description == 'Test Project for Generating vert.x mod.jsons'
+  assert data.developers == ['John', 'James']
+  assert data.homepage == 'http://github.com/darylteo/vertx-gradle-plugin'
+  assert data.licenses == ['The Apache Software License, Version 1.0','The Apache Software License, Version 2.0']
+  assert data.main == 'Main'
 }

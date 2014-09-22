@@ -25,7 +25,7 @@ public class VertxExtension {
     this.info = new ModuleInformation();
 
     this.platform = new VertxPlatformConfiguration(project);
-    this.config = new ModuleConfiguration(project);
+    this.config = new ModuleConfiguration();
     this.cluster = new ClusterConfiguration();
 
     this.deployments = this.project.container(Deployment.class);
