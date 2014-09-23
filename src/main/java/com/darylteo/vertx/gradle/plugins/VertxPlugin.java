@@ -4,6 +4,7 @@ import com.darylteo.vertx.gradle.configuration.ModuleConfiguration;
 import com.darylteo.vertx.gradle.configuration.VertxExtension;
 import com.darylteo.vertx.gradle.configuration.VertxPlatformConfiguration;
 import com.darylteo.vertx.gradle.deployments.Deployment;
+import com.darylteo.vertx.gradle.tasks.GenerateDeploymentConfig;
 import com.darylteo.vertx.gradle.tasks.GenerateModJson;
 import com.darylteo.vertx.gradle.tasks.VertxRun;
 import groovy.lang.Closure;
@@ -51,7 +52,7 @@ public class VertxPlugin implements Plugin<Project> {
 //    project.getPlugins().apply("watcher");
   }
 
-  private VertxExtension applyExtensions(Project project) {
+  private VertxExtension applyExtensions(final Project project) {
     final ExtensionContainer extensions = project.getExtensions();
     final TaskContainer tasks = project.getTasks();
 
@@ -71,18 +72,25 @@ public class VertxPlugin implements Plugin<Project> {
           name = name.substring(0, 1).toUpperCase() + (name.length() > 2 ? name.substring(1) : "");
         }
 
+        GenerateDeploymentConfig generateConfigTask = tasks.create("generate" + name + "Config", GenerateDeploymentConfig.class);
+        generateConfigTask.setGroup(RUN_TASK_GROUP);
+        generateConfigTask.setDeployment(deployment);
+
         VertxRun runTask = tasks.create("run" + name, VertxRun.class);
         runTask.setGroup(RUN_TASK_GROUP);
         runTask.setDeployment(deployment);
+        runTask.dependsOn(generateConfigTask);
 
-        deployment.setRunTask(runTask);
+        deployment.setRunTaskName(runTask.getName());
+        deployment.setGenerateConfigTaskName(generateConfigTask.getName());
       }
     });
 
     deployments.whenObjectRemoved(new Action<Deployment>() {
       @Override
       public void execute(Deployment deployment) {
-        tasks.remove(deployment.getRunTask());
+        tasks.remove(project.getTasks().findByName(deployment.getRunTaskName()));
+        tasks.remove(project.getTasks().findByName(deployment.getGenerateConfigTaskName()));
       }
     });
 

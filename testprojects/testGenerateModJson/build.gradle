@@ -55,4 +55,7 @@ build << {
   assert data.homepage == 'http://github.com/darylteo/vertx-gradle-plugin'
   assert data.licenses == ['The Apache Software License, Version 1.0','The Apache Software License, Version 2.0']
   assert data.main == 'Main'
+
+  // data = json.parse(file("${generateModConfig.destinationDir}/mod.json"))
+  // println data
 }

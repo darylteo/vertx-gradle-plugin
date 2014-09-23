@@ -19,8 +19,11 @@ vertx {
 // test adding
 assert vertx.deployments.custom != null
 assert (project.tasks.runCustom instanceof VertxRun)
+assert (project.tasks.generateCustomConfig instanceof GenerateDeploymentConfig)
+assert project.tasks.runCustom.dependsOn.contains(project.tasks.generateCustomConfig)
 
 // test removing
 vertx.deployments.remove(vertx.deployments.custom);
 assert vertx.deployments.findByName('custom') == null
-assert project.tasks.findByName('custom') == null
+assert project.tasks.findByName('generateCustomConfig') == null
+assert project.tasks.findByName('runCustom') == null

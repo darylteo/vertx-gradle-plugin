@@ -11,6 +11,8 @@ afterEvaluate {
   assert vertx.deployments != null
   assert vertx.deployments.mod != null
   assert (project.tasks.runMod instanceof VertxRun)
+  assert (project.tasks.generateModConfig instanceof GenerateDeploymentConfig)
+  assert project.tasks.runMod.dependsOn.contains(project.tasks.generateModConfig)
 
   // dependencies
   assert project.configurations.vertxCore != null

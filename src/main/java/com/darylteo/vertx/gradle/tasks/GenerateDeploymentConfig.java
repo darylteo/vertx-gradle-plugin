@@ -44,7 +44,7 @@ public class GenerateDeploymentConfig extends DefaultTask {
 
   @TaskAction
   public void run() {
-    File file = getProject().file(outputFile);
+    File file = this.getOutputFile();
     File dir = file.getParentFile();
 
     file.delete();

@@ -1,6 +1,5 @@
 package com.darylteo.vertx.gradle.deployments;
 
-import com.darylteo.vertx.gradle.tasks.VertxRun;
 import groovy.json.JsonBuilder;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -16,7 +15,8 @@ public class Deployment {
   private PlatformConfiguration platform;
 
   private DeploymentItem deploymentItem;
-  private VertxRun runTask;
+  private String runTaskName;
+  private String generateConfigTaskName;
 
   public Deployment() {
     this(null);
@@ -44,12 +44,20 @@ public class Deployment {
     return deploymentItem;
   }
 
-  public VertxRun getRunTask() {
-    return this.runTask;
+  public String getRunTaskName() {
+    return this.runTaskName;
   }
 
-  public void setRunTask(VertxRun runTask) {
-    this.runTask = runTask;
+  public void setRunTaskName(String runTaskName) {
+    this.runTaskName = runTaskName;
+  }
+
+  public String getGenerateConfigTaskName() {
+    return generateConfigTaskName;
+  }
+
+  public void setGenerateConfigTaskName(String generateConfigTaskName) {
+    this.generateConfigTaskName = generateConfigTaskName;
   }
 
   public void config(Closure closure) {
