@@ -1,5 +1,5 @@
 apply plugin: 'groovy'
-apply plugin: 'vertx'
+apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
 
 def vertxVersion = '2.1'
 

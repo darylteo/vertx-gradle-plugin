@@ -1,7 +1,9 @@
 apply plugin: 'jacoco'
 
 test {
-  include '**/unit/**'
+  include '**/integration/**'
+
+  environment 'GRADLE_HOME', gradle.gradleHomeDir
 
   doLast {
     println "Unit Test Report Url: file://${reports.html.entryPoint}"

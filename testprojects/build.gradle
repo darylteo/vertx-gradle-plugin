@@ -5,7 +5,7 @@ buildscript {
 
   dependencies {
     // classpath files(path)
-    classpath 'com.darylteo.vertx:vertx-gradle-plugin:0.2.0'
+    classpath files('../build/classes/main/')
   }
 }
 

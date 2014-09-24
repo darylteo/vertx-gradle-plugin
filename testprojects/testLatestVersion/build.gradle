@@ -1,24 +1,16 @@
-apply plugin: 'vertx'
-
-import com.darylteo.vertx.gradle.tasks.*;
+apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
 
 afterEvaluate {
-  // convention
   assert vertx != null
   assert vertx.platform != null
+  assert vertx.platform.version == vertxVersion
 
-  // default mod task
-  assert vertx.deployments != null
-  assert vertx.deployments.mod != null
-  assert (project.tasks.runMod instanceof VertxRun)
-  assert (project.tasks.generateModConfig instanceof GenerateDeploymentConfig)
-  assert project.tasks.runMod.dependsOn.contains(project.tasks.generateModConfig)
+  assert vertx.config != null
+  assert vertx.config.map.main == 'Main'
 
-  // dependencies
   assert project.configurations.vertxCore != null
+
   assert project.configurations.vertxCore.files.find({ file ->
-    // since I don't know what the latest version is going to be,
-    // I'm just going to do a simple test here
-    file.name.startsWith("vertx-platform")
+    file.name.startsWith("vertx-platform-")
   }) != null
 }
