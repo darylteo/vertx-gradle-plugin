@@ -1,10 +1,11 @@
 package com.darylteo.vertx.gradle.tests.utils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.Description;
-import org.junit.runner.Runner;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.BlockJUnit4ClassRunner;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.Statement;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
@@ -18,12 +19,14 @@ import java.nio.file.Paths;
 /**
  * Created by dteo on 24/09/2014.
  */
-public class GradleBuildRunner extends Runner {
+public class GradleBuildRunner extends BlockJUnit4ClassRunner {
   private final Class<?> clazz;
   private final Path root;
   private final ExecutorFactory factory;
 
   public GradleBuildRunner(Class<?> clazz) throws Exception {
+    super(clazz);
+
     this.clazz = clazz;
     this.root = getRootProject().toPath();
     this.factory = new ExecutorFactory(createClassLoader());
@@ -38,21 +41,27 @@ public class GradleBuildRunner extends Runner {
 
     return result;
   }
+//
+//  @Override
+//  /**
+//   * get each test method, and execute them against root project
+//   */
+//  public void run(RunNotifier notifier) {
+//    Method[] methods = this.clazz.getDeclaredMethods();
+//
+//    for (Method method : methods) {
+//      if (!shouldTest(method)) {
+//        continue;
+//      }
+//
+//      this.factory.newExecutor(this.clazz, method, this.root, notifier).test();
+//    }
+//  }
 
   @Override
-  /**
-   * get each test method, and execute them against root project
-   */
-  public void run(RunNotifier notifier) {
-    Method[] methods = this.clazz.getDeclaredMethods();
-
-    for (Method method : methods) {
-      if (!shouldTest(method)) {
-        continue;
-      }
-
-      this.factory.newExecutor(this.clazz, method, this.root, notifier).test();
-    }
+  protected Statement methodInvoker(FrameworkMethod method, Object target) {
+    // the target can be safely ignored. Executor will handle the meaty part
+    return this.factory.newExecutor(method, this.root);
   }
 
   private File getRootProject() {
@@ -65,10 +74,9 @@ public class GradleBuildRunner extends Runner {
   }
 
   private boolean shouldTest(Method method) {
-    if (method.getAnnotation(Test.class) != null) {
-      return true;
-    }
-    return false;
+    return
+      method.getAnnotation(Test.class) != null &&
+        method.getAnnotation(Ignore.class) == null;
   }
 
   private ClassLoader createClassLoader() throws Exception {
@@ -84,36 +92,27 @@ public class GradleBuildRunner extends Runner {
     return loader;
   }
 
+  private class Executor extends Statement {
+    private final Object launcher;
 
-  private class Executor {
-    private Class<?> expected;
+    private final Method mainMethod;
+    private final ExecutionListener listener;
 
-    private RunNotifier notifier;
-    private Description test;
-    private Method mainMethod;
+    private final Path projectDir;
+    private final String task;
 
-    private Path projectDir;
-    private String task;
-
-    private Object launcher;
-    private ExecutionListener listener;
-
-    public Executor(Description test, RunNotifier notifier, Object launcher, Method mainMethod, ExecutionListener listener, Path projectDir, String task, Class<?> expected) {
-      this.test = test;
-      this.notifier = notifier;
-
+    public Executor(Method mainMethod, Object launcher, ExecutionListener listener, Path projectDir, String task) {
       this.mainMethod = mainMethod;
-      this.projectDir = projectDir;
-      this.task = task;
-
-      this.expected = expected;
-
       this.launcher = launcher;
+
       this.listener = listener;
+      this.projectDir = projectDir;
+
+      this.task = task;
     }
 
-    public void test() {
-      this.notifier.fireTestStarted(this.test);
+    @Override
+    public void evaluate() throws Throwable {
       Throwable error = null;
 
       // cast to object to avoid varargs
@@ -139,13 +138,10 @@ public class GradleBuildRunner extends Runner {
         error = this.listener.getError();
       }
 
-      if (error != null && !expected.isAssignableFrom(error.getClass())) {
-        notifier.fireTestFailure(new Failure(this.test, error));
-      } else {
-        notifier.fireTestFinished(this.test);
+      if (error != null) {
+        throw error;
       }
     }
-
   }
 
   private class ExecutorFactory {
@@ -165,17 +161,7 @@ public class GradleBuildRunner extends Runner {
       this.mainMethod.setAccessible(true);
     }
 
-    public Executor newExecutor(Class<?> testClass, Method testMethod, Path projectDir, RunNotifier notifier) {
-      Test annotation = testMethod.getAnnotation(Test.class);
-
-      Description description = Description.createTestDescription(
-        testClass,
-        testMethod.getName(),
-        testMethod.getAnnotations()
-      );
-
-      Class<?> expected = annotation != null ? annotation.expected() : null;
-
+    public Executor newExecutor(FrameworkMethod method, Path projectDir) {
       // instantiate Main class, get the required method for executing
       Object launcher = null;
       try {
@@ -185,20 +171,15 @@ public class GradleBuildRunner extends Runner {
       }
 
       Executor executor = new Executor(
-        description,
-        notifier,
-        launcher,
-
         mainMethod,
+        launcher,
         (ExecutionListener) Proxy.newProxyInstance(loader, new Class<?>[]{
           this.listenerClass,
           ExecutionListener.class
         }, new RecordingExecutionListener()),
 
         projectDir,
-        ":" + testMethod.getName() + ":build",
-
-        expected
+        ":" + method.getName() + ":build"
       );
 
       return executor;

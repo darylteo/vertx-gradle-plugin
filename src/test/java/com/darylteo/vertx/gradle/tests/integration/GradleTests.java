@@ -17,6 +17,26 @@ public class GradleTests {
   public void testDeployments() {
   }
 
+  @Test
+  public void testLatestVersion() {
+  }
+
+  @Test
+  public void testSpecificVersion() {
+  }
+
+  @Test
+  public void testGenerateModConfig() {
+  }
+
+  @Test
+  public void testGenerateModJson() {
+  }
+
+  @Test
+  public void testGroovyModule() {
+  }
+
   @Test(expected = GradleException.class)
   public void testUnknownLanguage() {
   }

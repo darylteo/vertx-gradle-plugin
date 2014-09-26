@@ -3,10 +3,7 @@ apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
 afterEvaluate {
   assert vertx != null
   assert vertx.platform != null
-  assert vertx.platform.version == vertxVersion
-
   assert vertx.config != null
-  assert vertx.config.map.main == 'Main'
 
   assert project.configurations.vertxCore != null
 

@@ -1,31 +1,25 @@
 apply plugin: 'jacoco'
 
 test {
-  include '**/integration/**'
-
-  environment 'GRADLE_HOME', gradle.gradleHomeDir
+  include '**/unit/**'
 
   doLast {
     println "Unit Test Report Url: file://${reports.html.entryPoint}"
   }
 }
 
-task integrationTest(type: JavaExec) {
-  main = 'org.gradle.launcher.GradleMain'
-  workingDir = 'testprojects'
+task integrationTest(type: Test) {
+  include '**/integration/**'
 
-  // IMPORTANT: do not offload to the daemon, you won't get coverage data if you do since the daemon runs in a isolated process
-  args += '--no-daemon'
-  args += '--rerun-tasks'
-  args += '-PpluginClasspath=../build/classes/main'
-  args += ':test'
-
-  classpath += files("${gradle.gradleHomeDir}/lib/gradle-launcher-2.0.jar")
+  environment 'GRADLE_HOME', gradle.gradleHomeDir
 
   mustRunAfter test
+
+  doLast {
+    println "Integration Test Report Url: file://${reports.html.entryPoint}"
+  }
 }
 
-jacoco.applyTo integrationTest
 check.dependsOn integrationTest
 
 // setup reports
@@ -34,21 +28,6 @@ jacocoTestReport {
 
   doLast {
     println "Jacoco Overall Test Report Url: file://${reports.html.entryPoint}"
-  }
-}
-
-task jacocoIntegrationTestReport(type: JacocoReport) {
-  executionData integrationTest
-  sourceSets sourceSets.main
-
-  reports.html.destination = "$buildDir/reports/jacoco/integration/html"
-  reports.xml.destination = "$buildDir/reports/jacoco/integration/xml"
-  reports.csv.destination = "$buildDir/reports/jacoco/integration/csv"
-
-  mustRunAfter integrationTest
-
-  doLast {
-    println "Jacoco Integration Test Report Url: file://${reports.html.entryPoint}"
   }
 }
 
@@ -61,9 +40,26 @@ task jacocoUnitTestReport(type: JacocoReport) {
   reports.csv.destination = "$buildDir/reports/jacoco/unit/csv"
 
   mustRunAfter test
+  mustRunAfter jacocoTestReport
 
   doLast {
     println "Jacoco Unit Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task jacocoIntegrationTestReport(type: JacocoReport) {
+  executionData integrationTest
+  sourceSets sourceSets.main
+
+  reports.html.destination = "$buildDir/reports/jacoco/integration/html"
+  reports.xml.destination = "$buildDir/reports/jacoco/integration/xml"
+  reports.csv.destination = "$buildDir/reports/jacoco/integration/csv"
+
+  mustRunAfter integrationTest
+  mustRunAfter jacocoUnitTestReport
+
+  doLast {
+    println "Jacoco Integration Test Report Url: file://${reports.html.entryPoint}"
   }
 }
 
