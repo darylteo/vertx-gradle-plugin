@@ -1,0 +1,11 @@
+language: java
+jdk:
+  - openjdk7
+  - openjdk8
+
+env:
+ - TERM=dumb
+
+script:
+ - ./gradlew check
+ - ./gradlew jacocoTestReportAll coveralls

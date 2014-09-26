@@ -4,7 +4,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'de.undercouch:gradle-download-task:1.0'
+    classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.0'
   }
 }
 
@@ -22,8 +22,8 @@ configurations {
 group = 'com.darylteo.vertx'
 version = '0.2.0'
 
-apply plugin: 'download-task'
 apply plugin: 'groovy'
+apply plugin: 'com.github.kt3k.coveralls'
 apply from: rootProject.file('gradle/tests.gradle')
 apply from: rootProject.file('gradle/sonatype.gradle')
 

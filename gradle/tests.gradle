@@ -26,6 +26,8 @@ check.dependsOn integrationTest
 jacocoTestReport {
   executionData integrationTest
 
+  reports.xml.enabled = true;
+
   doLast {
     println "Jacoco Overall Test Report Url: file://${reports.html.entryPoint}"
   }
@@ -34,6 +36,8 @@ jacocoTestReport {
 task jacocoUnitTestReport(type: JacocoReport) {
   executionData test
   sourceSets sourceSets.main
+
+  reports.xml.enabled = true;
 
   reports.html.destination = "$buildDir/reports/jacoco/unit/html"
   reports.xml.destination = "$buildDir/reports/jacoco/unit/xml"
@@ -51,6 +55,8 @@ task jacocoIntegrationTestReport(type: JacocoReport) {
   executionData integrationTest
   sourceSets sourceSets.main
 
+  reports.xml.enabled = true;
+  
   reports.html.destination = "$buildDir/reports/jacoco/integration/html"
   reports.xml.destination = "$buildDir/reports/jacoco/integration/xml"
   reports.csv.destination = "$buildDir/reports/jacoco/integration/csv"
