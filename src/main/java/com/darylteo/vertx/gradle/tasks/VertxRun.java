@@ -17,6 +17,7 @@ import org.gradle.api.tasks.JavaExec;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -116,6 +117,11 @@ public class VertxRun extends JavaExec {
     // environment variables
     this.setWorkingDir(getProject().getRootDir());
     this.systemProperty("vertx.mods", getProject().getRootProject().getBuildDir() + "/mods");
+
+    // copy all system properties
+    for (Map.Entry<Object, Object> property : System.getProperties().entrySet()) {
+      this.systemProperty((String)property.getKey(), property.getValue());
+    }
 
     super.exec();
   }
