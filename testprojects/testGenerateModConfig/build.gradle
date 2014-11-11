@@ -1,0 +1,38 @@
+apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
+
+def vertxVersion = '2.1'
+
+vertx {
+  platform {
+    version vertxVersion
+  }
+
+  config {
+    main 'Main'
+  }
+
+  deployments {
+    mod {
+      config {
+        hello 'world'
+        number 1
+        list '1', '2', '3'
+      }
+    }
+  }
+}
+
+build.dependsOn generateModConfig
+
+build << {
+  def json = new groovy.json.JsonSlurper()
+  def data = json.parse(generateModConfig.outputFile)
+
+  assert data == [
+    hello: 'world',
+    number: 1,
+    list: ['1', '2', '3']
+  ]
+
+  // TODO: test that it is being passed to vertx module
+}

@@ -1,0 +1,40 @@
+apply plugin: 'groovy'
+apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
+
+def vertxVersion = '2.1'
+
+vertx {
+  platform {
+    version vertxVersion
+    lang 'groovy'
+  }
+
+  config {
+    main 'Main'
+  }
+
+  deployments {
+    mod {
+      platform {
+        instances 10
+      }
+    }
+  }
+}
+
+import com.darylteo.vertx.gradle.tasks.*;
+
+afterEvaluate {
+  assert project.configurations.vertxCore != null
+
+  assert project.configurations.vertxCore.files.find({ file ->
+    file.name == "vertx-platform-${vertxVersion}.jar"
+  }) != null
+
+  assert project.configurations.vertxLang != null
+
+  assert project.configurations.vertxLang.files.find({ file ->
+    // this is the version bundled with vert.x 2.1
+    file.name == "lang-groovy-2.1.0-final.jar"
+  }) != null
+}

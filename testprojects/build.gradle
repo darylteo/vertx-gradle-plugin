@@ -1,0 +1,19 @@
+buildscript {
+  repositories {
+    mavenLocal()
+  }
+
+  dependencies {
+    // classpath files(path)
+    classpath files('../build/classes/main/')
+  }
+}
+
+
+def testTasks = [
+  subprojects.collect { "${it.path}:build" }
+].flatten()
+
+task test {
+  dependsOn testTasks
+}

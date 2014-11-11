@@ -1,0 +1,13 @@
+apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
+
+afterEvaluate {
+  assert vertx != null
+  assert vertx.platform != null
+  assert vertx.config != null
+
+  assert project.configurations.vertxCore != null
+
+  assert project.configurations.vertxCore.files.find({ file ->
+    file.name.startsWith("vertx-platform-")
+  }) != null
+}

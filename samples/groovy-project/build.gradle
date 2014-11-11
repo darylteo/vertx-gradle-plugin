@@ -66,5 +66,4 @@ afterEvaluate {
   // test deployments and tasks
   assert vertx.deployments.findByName('mod') != null
   assert tasks.findByName('runMod') != null
-  assert tasks.findByName('debugMod') != null
 }

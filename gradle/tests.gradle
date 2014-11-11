@@ -1,0 +1,74 @@
+apply plugin: 'jacoco'
+
+test {
+  include '**/unit/**'
+
+  doLast {
+    println "Unit Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task integrationTest(type: Test) {
+  include '**/integration/**'
+
+  environment 'GRADLE_HOME', gradle.gradleHomeDir
+
+  mustRunAfter test
+
+  doLast {
+    println "Integration Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+check.dependsOn integrationTest
+
+// setup reports
+jacocoTestReport {
+  executionData integrationTest
+
+  reports.xml.enabled = true;
+
+  doLast {
+    println "Jacoco Overall Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task jacocoUnitTestReport(type: JacocoReport) {
+  executionData test
+  sourceSets sourceSets.main
+
+  reports.xml.enabled = true;
+
+  reports.html.destination = "$buildDir/reports/jacoco/unit/html"
+  reports.xml.destination = "$buildDir/reports/jacoco/unit/xml"
+  reports.csv.destination = "$buildDir/reports/jacoco/unit/csv"
+
+  mustRunAfter test
+  mustRunAfter jacocoTestReport
+
+  doLast {
+    println "Jacoco Unit Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task jacocoIntegrationTestReport(type: JacocoReport) {
+  executionData integrationTest
+  sourceSets sourceSets.main
+
+  reports.xml.enabled = true;
+  
+  reports.html.destination = "$buildDir/reports/jacoco/integration/html"
+  reports.xml.destination = "$buildDir/reports/jacoco/integration/xml"
+  reports.csv.destination = "$buildDir/reports/jacoco/integration/csv"
+
+  mustRunAfter integrationTest
+  mustRunAfter jacocoUnitTestReport
+
+  doLast {
+    println "Jacoco Integration Test Report Url: file://${reports.html.entryPoint}"
+  }
+}
+
+task jacocoTestReportAll {
+  dependsOn jacocoTestReport, jacocoUnitTestReport, jacocoIntegrationTestReport
+}

@@ -1,3 +1,13 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.0'
+  }
+}
+
 repositories {
   mavenCentral()
   mavenLocal()
@@ -10,14 +20,16 @@ configurations {
 }
 
 group = 'com.darylteo.vertx'
-version = '0.1.3'
+version = '0.2.0'
 
 apply plugin: 'groovy'
+apply plugin: 'com.github.kt3k.coveralls'
+apply from: rootProject.file('gradle/tests.gradle')
 apply from: rootProject.file('gradle/sonatype.gradle')
 
 dependencies {
   compile localGroovy()
-  compile 'com.darylteo.gradle:gradle-watcher:0.1.2'
+  compile 'com.darylteo.gradle:gradle-watcher:0.1.3'
 
   provided gradleApi()
 }
@@ -28,7 +40,7 @@ uploadArchives {
       pom {
         project {
           name 'Vert.x Gradle Plugin'
-          description 'A Gradle Plugin for building, assembling and running Vert.x projects.'
+          description 'A Gradle Plugin for building, assembling and runningert.x projects.'
           inceptionYear '2013'
           url 'http://github.com/darylteo/vertx-gradle-plugin'
 
@@ -37,16 +49,17 @@ uploadArchives {
               id 'darylteo'
               name 'Daryl Teo'
               email 'i.am@darylteo.com'
+
             }
-          }
 
-          scm { url 'http://github.com/darylteo/vertx-gradle-plugin' }
+            scm { url 'http://github.com/darylteo/vertx-gradle-plugin' }
 
-          licenses {
-            license {
-              name 'The Apache Software License, Version 2.0'
-              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              distribution 'repo'
+            licenses {
+              license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
+              }
             }
           }
         }

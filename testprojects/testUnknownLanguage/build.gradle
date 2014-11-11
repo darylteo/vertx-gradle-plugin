@@ -1,0 +1,7 @@
+apply plugin: com.darylteo.vertx.gradle.plugins.VertxPlugin
+
+vertx {
+  platform {
+    lang 'unknown'
+  }
+}
